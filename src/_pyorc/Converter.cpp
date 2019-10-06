@@ -408,7 +408,7 @@ void TimestampConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py
         tsBatch->hasNulls = true;
         tsBatch->notNull[rowId] = 0;
     } else {
-        py::object touts(elem.attr("timestamp"));
+        py::object touts((elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
         py::object microseconds(elem.attr("microsecond"));
         tsBatch->data[rowId] = static_cast<int64_t>(py::cast<double>(touts()));
         tsBatch->nanoseconds[rowId] = py::cast<int64_t>(microseconds) * 1000;
