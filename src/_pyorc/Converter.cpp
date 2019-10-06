@@ -382,7 +382,7 @@ void BinaryConverter::clear() {
 
 TimestampConverter::TimestampConverter(): Converter(), seconds(nullptr), nanoseconds(nullptr) {
     py::object dt = py::module::import("datetime").attr("datetime");
-    datetime = dt.attr("fromtimestamp");
+    datetime = dt.attr("utcfromtimestamp");
 }
 
 void TimestampConverter::reset(const orc::ColumnVectorBatch& batch) {
