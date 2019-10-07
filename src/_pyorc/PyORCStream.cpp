@@ -100,11 +100,11 @@ void PyORCOutputStream::write(const void* buf, size_t length) {
 
 void PyORCOutputStream::close() {
     if (!closed) {
+        pyflush();
         closed = true;
     }
 }
 
 PyORCOutputStream::~PyORCOutputStream() {
-    pyflush();
     close();
 }
