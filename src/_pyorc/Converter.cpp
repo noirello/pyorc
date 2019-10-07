@@ -548,7 +548,7 @@ void ListConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obj
     } else {
         py::list list(elem);
         size = list.size();
-        if (listBatch->elements->capacity > offset + size) {
+        if (listBatch->elements->capacity < offset + size) {
             listBatch->elements->resize(2 * (offset + size));
         }
         for (size_t cnt = 0; cnt < size; ++cnt) {
@@ -601,7 +601,7 @@ void MapConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obje
     } else {
         py::dict dict(elem);
         size_t size = dict.size();
-        if (mapBatch->keys->capacity > offset + size) {
+        if (mapBatch->keys->capacity < offset + size) {
             mapBatch->elements->resize(2 * (offset + size));
             mapBatch->keys->resize(2 * (offset + size));
         }
@@ -660,6 +660,9 @@ py::object StructConverter::convert(uint64_t rowId) {
 
 void StructConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
     auto *structBatch = dynamic_cast<orc::StructVectorBatch *>(batch);
+    if (structBatch->fields[i]->capacity <= structBatch->fields[i]->numElements) {
+        structBatch->fields[i]->resize(2 * structBatch->fields[i]->capacity);
+    }
     if (elem.is(py::none())) {
         structBatch->hasNulls = true;
         structBatch->notNull[rowId] = 0;
