@@ -1,5 +1,8 @@
 .vscode/
+build/
 deps/
+dist/
+pyorc.egg-info/
 .pytest_cache/
 __pycache__/
 tests/__pycache__
