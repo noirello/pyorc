@@ -660,18 +660,21 @@ py::object StructConverter::convert(uint64_t rowId) {
 
 void StructConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
     auto *structBatch = dynamic_cast<orc::StructVectorBatch *>(batch);
-    if (structBatch->fields[i]->capacity <= structBatch->fields[i]->numElements) {
-        structBatch->fields[i]->resize(2 * structBatch->fields[i]->capacity);
-    }
     if (elem.is(py::none())) {
         structBatch->hasNulls = true;
         structBatch->notNull[rowId] = 0;
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
+            if (structBatch->fields[i]->capacity <= structBatch->fields[i]->numElements) {
+                structBatch->fields[i]->resize(2 * structBatch->fields[i]->capacity);
+            }
             fieldConverters[i]->write(structBatch->fields[i], rowId, elem);
         }
     } else {
         py::dict dict(elem);
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
+            if (structBatch->fields[i]->capacity <= structBatch->fields[i]->numElements) {
+                structBatch->fields[i]->resize(2 * structBatch->fields[i]->capacity);
+            }
             fieldConverters[i]->write(structBatch->fields[i], rowId, dict[fieldNames[i]]);
         }
         structBatch->notNull[rowId] = 1;
