@@ -42,10 +42,11 @@ PYBIND11_MODULE(_pyorc, m) {
         .def_property_readonly("num_of_stripes", [](Reader &r) { return r.numberOfStripes(); })
         .def_readonly("current_row", &Reader::currentRow);
     py::class_<Writer>(m, "writer")
-        .def(py::init<py::object, py::object, py::object>(),
+        .def(py::init<py::object, py::object, py::object, py::object>(),
             py::arg("fileo"),
             py::arg("str_schema"),
-            py::arg_v("batch_size", py::int_(1024), "1024"))
+            py::arg_v("batch_size", py::int_(1024), "1024"),
+            py::arg_v("stripe_size", py::int_(67108864), "67108864"))
         .def("write", &Writer::write)
         .def("close", &Writer::close)
         .def_readonly("current_row", &Writer::currentRow);
