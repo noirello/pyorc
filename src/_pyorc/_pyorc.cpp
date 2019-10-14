@@ -8,25 +8,6 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(_pyorc, m) {
     m.doc() = "_pyorc plugin";
-    py::enum_<orc::TypeKind>(m, "TypeKind")
-        .value("BOOLEAN", orc::TypeKind::BOOLEAN)
-        .value("BYTE", orc::TypeKind::BYTE)
-        .value("SHORT", orc::TypeKind::SHORT)
-        .value("INT", orc::TypeKind::INT)
-        .value("LONG", orc::TypeKind::LONG)
-        .value("FLOAT", orc::TypeKind::FLOAT)
-        .value("STRING", orc::TypeKind::STRING)
-        .value("BINARY", orc::TypeKind::BINARY)
-        .value("TIMESTAMP", orc::TypeKind::TIMESTAMP)
-        .value("LIST", orc::TypeKind::LIST)
-        .value("MAP", orc::TypeKind::MAP)
-        .value("STRUCT", orc::TypeKind::STRUCT)
-        .value("UNION", orc::TypeKind::UNION)
-        .value("DECIMAL", orc::TypeKind::DECIMAL)
-        .value("DATE", orc::TypeKind::DATE)
-        .value("VARCHAR", orc::TypeKind::VARCHAR)
-        .value("CHAR", orc::TypeKind::CHAR)
-        .export_values();
     py::class_<Reader>(m, "reader")
         .def(py::init<py::object, py::object, py::object, py::object>(),
             py::arg("fileo"),
