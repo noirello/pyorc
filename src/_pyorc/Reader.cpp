@@ -3,6 +3,40 @@
 #include "Reader.h"
 #include "PyORCStream.h"
 
+py::object ORCIterator::next() {
+    while (true) {
+        if (batchItem == 0) {
+            if (!rowReader->next(*batch)) {
+                throw py::stop_iteration();
+            }
+            converter->reset(*batch);
+        }
+        if (batchItem < batch->numElements) {
+            py::object val = converter->convert(batchItem);
+            ++batchItem; ++currentRow;
+            return val;
+        } else {
+            batchItem = 0;
+        }
+    }
+}
+
+py::object ORCIterator::read(int64_t num) {
+    int64_t i = 0;
+    py::list res;
+    try {
+        while (true) {
+            res.append(this->next());
+            ++i;
+            if (num != -1 && i == num) {
+                return res;
+            }
+        }
+    } catch (py::stop_iteration) {
+        return res;
+    }
+}
+
 Reader::Reader(py::object fileo, py::object batch_size, py::object col_indices, py::object col_names) {
     orc::ReaderOptions readerOpts;
     batchItem = 0;
@@ -28,7 +62,7 @@ Reader::Reader(py::object fileo, py::object batch_size, py::object col_indices, 
     }
     reader = createReader(std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
     try {
-        uint64_t batchSize = py::cast<uint64_t>(batch_size);
+        batchSize = py::cast<uint64_t>(batch_size);
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
         converter = createConverter(&rowReader->getSelectedType());
@@ -45,6 +79,15 @@ uint64_t Reader::numberOfStripes() {
     return reader->getNumberOfStripes();
 }
 
+Stripe Reader::read_stripe(uint64_t num) {
+    return Stripe(*this, num, reader->getStripe(num));
+}
+
+py::object Reader::schema() {
+    const orc::Type& schema = reader->getType();
+    return py::str(schema.toString());
+}
+
 uint64_t Reader::seek(uint64_t row) {
     rowReader->seekToRow(row);
     batchItem = 0;
@@ -52,36 +95,29 @@ uint64_t Reader::seek(uint64_t row) {
     return currentRow;
 }
 
-py::object Reader::next() {
-    while (true) {
-        if (batchItem == 0) {
-            if (!rowReader->next(*batch)) {
-                throw py::stop_iteration();
-            }
-            converter->reset(*batch);
-        }
-        if (batchItem < batch->numElements) {
-            py::object val = converter->convert(batchItem);
-            ++batchItem; ++currentRow;
-            return val;
-        } else {
-            batchItem = 0;
-        }
-    }
+Stripe::Stripe(const Reader& reader, uint64_t num, std::unique_ptr<orc::StripeInformation> stripe) {
+    batchItem = 0;
+    currentRow = 0;
+    stripeInfo = std::move(stripe);
+    rowReaderOpts = reader.getRowReaderOptions();
+    rowReaderOpts = rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
+    rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
+    batch = rowReader->createRowBatch(reader.getBatchSize());
+    converter = createConverter(&rowReader->getSelectedType());
 }
 
-py::object Reader::read() {
-    py::list res;
-    try {
-        while (true) {
-            res.append(this->next());
-        }
-    } catch (py::stop_iteration) {
-        return res;
-    }
+uint64_t Stripe::len() {
+    return stripeInfo->getNumberOfRows();
 }
 
-py::object Reader::schema() {
-    const orc::Type& schema = reader->getType();
-    return py::str(schema.toString());
+uint64_t Stripe::length() {
+    return stripeInfo->getLength();
+}
+
+uint64_t Stripe::offset() {
+    return stripeInfo->getOffset();
+}
+
+std::string Stripe::writer_timezone() {
+    return stripeInfo->getWriterTimezone();
 }

@@ -8,6 +8,15 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(_pyorc, m) {
     m.doc() = "_pyorc plugin";
+        py::class_<Stripe>(m, "stripe")
+        .def("__next__", [](Stripe &s) -> py::object { return s.next(); })
+        .def("__iter__", [](Stripe &s) -> Stripe& { return s; })
+        .def("__len__", &Stripe::len)
+        .def("read", &Stripe::read)
+        .def_property_readonly("bytes_length", [](Stripe &s) { return s.length(); })
+        .def_property_readonly("bytes_offset", [](Stripe &s) { return s.offset(); })
+        .def_property_readonly("writer_timezone", [](Stripe &s) { return s.writer_timezone(); })
+        .def_readonly("current_row", &Stripe::currentRow);
     py::class_<Reader>(m, "reader")
         .def(py::init<py::object, py::object, py::object, py::object>(),
             py::arg("fileo"),
@@ -18,6 +27,7 @@ PYBIND11_MODULE(_pyorc, m) {
         .def("__iter__", [](Reader &r) -> Reader& { return r; })
         .def("__len__", &Reader::len)
         .def("read", &Reader::read)
+        .def("read_stripe", &Reader::read_stripe)
         .def("seek", &Reader::seek)
         .def("schema", &Reader::schema)
         .def_property_readonly("num_of_stripes", [](Reader &r) { return r.numberOfStripes(); })
