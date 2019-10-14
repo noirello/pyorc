@@ -134,7 +134,7 @@ EXT_MODULES = [
             get_pybind_include(user=True),
             "deps/include/",
         ],
-        library_dirs=["deps2/lib/"],
+        library_dirs=["deps/lib/"],
         language="c++",
     )
 ]

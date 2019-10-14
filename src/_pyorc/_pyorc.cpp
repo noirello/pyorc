@@ -7,8 +7,11 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(_pyorc, m) {
-    m.doc() = "_pyorc plugin";
-        py::class_<Stripe>(m, "stripe")
+    m.doc() = "_pyorc c++ extension";
+    py::class_<Stripe>(m, "stripe")
+        .def(py::init([](Reader &reader, uint64_t num) {
+                return reader.read_stripe(num);
+            }))
         .def("__next__", [](Stripe &s) -> py::object { return s.next(); })
         .def("__iter__", [](Stripe &s) -> Stripe& { return s; })
         .def("__len__", &Stripe::len)
