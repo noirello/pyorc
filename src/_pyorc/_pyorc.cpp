@@ -16,10 +16,12 @@ PYBIND11_MODULE(_pyorc, m) {
         .def("__iter__", [](Stripe &s) -> Stripe& { return s; })
         .def("__len__", &Stripe::len)
         .def("read", &Stripe::read)
+        .def("seek", &Stripe::seek)
         .def_property_readonly("bytes_length", [](Stripe &s) { return s.length(); })
         .def_property_readonly("bytes_offset", [](Stripe &s) { return s.offset(); })
         .def_property_readonly("writer_timezone", [](Stripe &s) { return s.writer_timezone(); })
-        .def_readonly("current_row", &Stripe::currentRow);
+        .def_readonly("current_row", &Stripe::currentRow)
+        .def_readonly("row_offset", &Stripe::firstRowOfStripe);
     py::class_<Reader>(m, "reader")
         .def(py::init<py::object, py::object, py::object, py::object>(),
             py::arg("fileo"),

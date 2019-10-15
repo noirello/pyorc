@@ -104,6 +104,7 @@ Stripe::Stripe(const Reader& reader, uint64_t num, std::unique_ptr<orc::StripeIn
     rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
     converter = createConverter(&rowReader->getSelectedType());
+    firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 
 uint64_t Stripe::len() {
@@ -116,6 +117,13 @@ uint64_t Stripe::length() {
 
 uint64_t Stripe::offset() {
     return stripeInfo->getOffset();
+}
+
+uint64_t Stripe::seek(uint64_t row) {
+    rowReader->seekToRow(row + firstRowOfStripe);
+    batchItem = 0;
+    currentRow = rowReader->getRowNumber();
+    return currentRow;
 }
 
 std::string Stripe::writer_timezone() {

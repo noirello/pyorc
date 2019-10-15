@@ -22,6 +22,7 @@ public:
     virtual uint64_t len() = 0;
     py::object next();
     py::object read(int64_t);
+    virtual uint64_t seek(uint64_t) = 0;
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
 };
 
@@ -37,7 +38,8 @@ public:
     uint64_t numberOfStripes();
     py::object schema();
     Stripe read_stripe(uint64_t);
-    uint64_t seek(uint64_t);
+    uint64_t seek(uint64_t) override;
+
     const orc::Reader& getORCReader() const { return *reader; }
     const uint64_t getBatchSize() const { return batchSize; }
 };
@@ -46,10 +48,12 @@ class Stripe : public ORCIterator {
 private:
     std::unique_ptr<orc::StripeInformation> stripeInfo;
 public:
+    uint64_t firstRowOfStripe;
     Stripe(const Reader&, uint64_t, std::unique_ptr<orc::StripeInformation>);
     uint64_t len() override;
     uint64_t length();
     uint64_t offset();
+    uint64_t seek(uint64_t) override;
     std::string writer_timezone();
 };
 
