@@ -89,7 +89,7 @@ void PyORCOutputStream::write(const void* buf, size_t length) {
     if (closed) {
         throw std::logic_error("Cannot write to closed stream.");
     }
-    py::bytes data = py::bytes((const char *)buf, length);
+    py::bytes data = py::bytes(static_cast<const char *>(buf), length);
     size_t count = py::cast<size_t>(pywrite(data));
     pyflush();
     if (count != length) {
