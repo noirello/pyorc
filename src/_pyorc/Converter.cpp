@@ -95,27 +95,31 @@ public:
 class Decimal64Converter: public Converter {
 private:
     const int64_t* data;
+    uint64_t prec;
     int32_t scale;
     py::object decimal;
+    py::object adjustDec;
 public:
-    Decimal64Converter();
+    Decimal64Converter(uint64_t prec_, uint64_t scale_);
     virtual ~Decimal64Converter() override {};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    //void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
 };
 
 class Decimal128Converter: public Converter {
 private:
     const orc::Int128* data;
+    uint64_t prec;
     int32_t scale;
     py::object decimal;
+    py::object adjustDec;
 public:
-    Decimal128Converter();
+    Decimal128Converter(uint64_t prec_, uint64_t scale_);
     virtual ~Decimal128Converter() override {};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    //void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
 };
 
 class ListConverter: public Converter {
@@ -199,9 +203,9 @@ std::unique_ptr<Converter> createConverter(const orc::Type* type) {
             break;
         case orc::DECIMAL:
             if (type->getPrecision() == 0 || type->getPrecision() > 18) {
-                result = new Decimal128Converter();
+                result = new Decimal128Converter(type->getPrecision(), type->getScale());
             } else {
-                result = new Decimal64Converter();
+                result = new Decimal64Converter(type->getPrecision(), type->getScale());
             }
             break;
         case orc::DATE:
@@ -449,8 +453,9 @@ void DateConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obj
     dBatch->numElements = rowId + 1;
 }
 
-Decimal64Converter::Decimal64Converter(): Converter(), data(nullptr) {
+Decimal64Converter::Decimal64Converter(uint64_t prec_, uint64_t scale_): Converter(), data(nullptr), prec(prec_), scale(scale_) {
     decimal = py::module::import("decimal").attr("Decimal");
+    adjustDec = py::module::import("pyorc.helpers").attr("adjust_decimal");
 }
 
 void Decimal64Converter::reset(const orc::ColumnVectorBatch& batch) {
@@ -495,8 +500,24 @@ py::object Decimal64Converter::convert(uint64_t rowId) {
     }
 }
 
-Decimal128Converter::Decimal128Converter(): Converter(), data(nullptr) {
+void Decimal64Converter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
+    auto *decBatch = dynamic_cast<orc::Decimal64VectorBatch *>(batch);
+    decBatch->precision = prec;
+    decBatch->scale = scale;
+    if (elem.is(py::none())) {
+        decBatch->hasNulls = true;
+        decBatch->notNull[rowId] = 0;
+    } else {
+        py::object value = adjustDec(decBatch->precision, decBatch->scale, elem);
+        decBatch->values[rowId] = py::cast<int64_t>(value);
+        decBatch->notNull[rowId] = 1;
+    }
+    decBatch->numElements = rowId + 1;
+}
+
+Decimal128Converter::Decimal128Converter(uint64_t prec_, uint64_t scale_): Converter(), data(nullptr), prec(prec_), scale(scale_) {
     decimal = py::module::import("decimal").attr("Decimal");
+    adjustDec = py::module::import("pyorc.helpers").attr("adjust_decimal");
 }
 
 void Decimal128Converter::reset(const orc::ColumnVectorBatch& batch) {
@@ -512,6 +533,21 @@ py::object Decimal128Converter::convert(uint64_t rowId) {
     } else {
         return decimal(data[rowId].toDecimalString(scale));
     }
+}
+
+void Decimal128Converter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
+    auto *decBatch = dynamic_cast<orc::Decimal128VectorBatch *>(batch);
+    decBatch->precision = prec;
+    decBatch->scale = scale;
+    if (elem.is(py::none())) {
+        decBatch->hasNulls = true;
+        decBatch->notNull[rowId] = 0;
+    } else {
+        py::object value = adjustDec(decBatch->precision, decBatch->scale, elem);
+        decBatch->values[rowId] = orc::Int128(py::cast<int64_t>(value));
+        decBatch->notNull[rowId] = 1;
+    }
+    decBatch->numElements = rowId + 1;
 }
 
 ListConverter::ListConverter(const orc::Type& type): Converter(), offsets(nullptr) {
