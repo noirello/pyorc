@@ -19,7 +19,7 @@ private:
 public:
     uint64_t currentRow;
 
-    Writer(py::object, py::object, py::object = py::int_(1024), py::object = py::int_(67108864));
+    Writer(py::object, py::object, py::object = py::int_(1024), py::object = py::int_(67108864), py::object = py::int_(1), py::object = py::int_(0));
     void write(py::object);
     void close();
 };
