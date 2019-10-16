@@ -6,9 +6,10 @@ import os
 import tempfile
 import subprocess
 
+from decimal import Decimal
 from datetime import date, datetime, timezone
 
-import _pyorc
+import pyorc
 
 
 @pytest.fixture
@@ -66,6 +67,13 @@ def transform_json(schema, row):
                 transformed[col] = datetime.strptime(value, "%Y-%m-%d").date()
             elif isinstance(value, list) and orc_type == "binary":
                 transformed[col] = bytes(value)
+            elif "decimal" in orc_type:
+                if value is None:
+                    transformed[col] = value
+                elif isinstance(value, float):
+                    transformed[col] = Decimal.from_float(value)
+                else:
+                    transformed[col] = Decimal(value)
             else:
                 transformed[col] = value
         return transformed
@@ -109,12 +117,13 @@ TESTDATA = [
         "demo-12-zlib.jsn.gz",
         "struct<_col0:int,_col1:string,_col2:string,_col3:string,_col4:int,_col5:string,_col6:int,_col7:int,_col8:int>",
     ),
+    ("decimal.jsn.gz", "struct<_col0:decimal(10,5)>"),
 ]
 
 
 @pytest.mark.parametrize("expected,schema", TESTDATA, ids=idfn)
 def test_examples(expected, schema, output_file):
-    writer = _pyorc.writer(output_file, schema)
+    writer = pyorc.writer(output_file, schema)
     num = 0
     for row in read_expected_json_record(get_full_path(expected)):
         orc_row = transform_json(schema, row)
@@ -133,7 +142,7 @@ def test_examples(expected, schema, output_file):
 
 
 def test_example_timestamp(output_file):
-    writer = _pyorc.writer(output_file, "timestamp")
+    writer = pyorc.writer(output_file, "timestamp")
     num = 0
     for row in read_expected_json_record(
         get_full_path("TestOrcFile.testTimestamp.jsn.gz")
