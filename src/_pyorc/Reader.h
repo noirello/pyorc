@@ -2,6 +2,8 @@
 #define READER_H
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
@@ -33,11 +35,11 @@ private:
     std::unique_ptr<orc::Reader> reader;
     uint64_t batchSize;
 public:
-    Reader(py::object, py::object = py::int_(1024), py::object = py::none(), py::object = py::none());
+    Reader(py::object, uint64_t = 1024, std::list<uint64_t> = {}, std::list<std::string> = {});
     uint64_t len() override;
     uint64_t numberOfStripes();
     py::object schema();
-    Stripe read_stripe(uint64_t);
+    Stripe readStripe(uint64_t);
     uint64_t seek(uint64_t) override;
 
     const orc::Reader& getORCReader() const { return *reader; }
@@ -54,7 +56,7 @@ public:
     uint64_t length();
     uint64_t offset();
     uint64_t seek(uint64_t) override;
-    std::string writer_timezone();
+    std::string writerTimezone();
 };
 
 #endif

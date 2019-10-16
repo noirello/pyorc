@@ -5,7 +5,7 @@ import gzip
 import os
 import math
 
-import _pyorc
+import pyorc
 
 from datetime import date, datetime
 from decimal import Decimal
@@ -105,7 +105,7 @@ TESTDATA = [
 def test_examples(example, expected):
     exp_res = gzip.open(get_full_path(expected), "rb")
     with open(get_full_path(example), "rb") as fileo:
-        orc_res = _pyorc.reader(fileo)
+        orc_res = pyorc.reader(fileo)
         length = 0
         for num, line in enumerate(exp_res):
             json_row = traverse_json_row(orc_res.schema(), json.loads(line))
@@ -151,7 +151,7 @@ def test_example_timestamp():
         get_full_path("expected/TestOrcFile.testTimestamp.jsn.gz"), "rb"
     )
     with open(get_full_path("TestOrcFile.testTimestamp.orc"), "rb") as fileo:
-        orc_res = _pyorc.reader(fileo)
+        orc_res = pyorc.reader(fileo)
         length = 0
         for num, line in enumerate(exp_res):
             json_row = datetime.strptime(json.loads(line)[:26], "%Y-%m-%d %H:%M:%S.%f")

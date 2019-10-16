@@ -37,32 +37,30 @@ py::object ORCIterator::read(int64_t num) {
     }
 }
 
-Reader::Reader(py::object fileo, py::object batch_size, py::object col_indices, py::object col_names) {
+Reader::Reader(py::object fileo, uint64_t batch_size, std::list<uint64_t> col_indices, std::list<std::string> col_names) {
     orc::ReaderOptions readerOpts;
     batchItem = 0;
     currentRow = 0;
-    if (!col_indices.is(py::none()) && !col_names.is(py::none())) {
+    if (!col_indices.empty() && !col_names.empty()) {
         throw py::value_error("Either col_indices or col_names can be set to select columns");
     }
-    if (!col_indices.is(py::none())) {
+    if (!col_indices.empty()) {
         try {
-            std::list<uint64_t> indices(py::cast<std::list<uint64_t>>(col_indices));
-            rowReaderOpts = rowReaderOpts.include(indices);
+            rowReaderOpts = rowReaderOpts.include(col_indices);
         } catch (py::cast_error) {
             throw py::value_error("col_indices must be a sequence of integers");
         }
     }
-    if (!col_names.is(py::none())) {
+    if (!col_names.empty()) {
         try {
-            std::list<std::string> names(py::cast<std::list<std::string>>(col_names));
-            rowReaderOpts = rowReaderOpts.include(names);
+            rowReaderOpts = rowReaderOpts.include(col_names);
         } catch (py::cast_error) {
             throw py::value_error("col_names must be a sequence of strings");
         }
     }
     reader = createReader(std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
     try {
-        batchSize = py::cast<uint64_t>(batch_size);
+        batchSize = batch_size;
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
         converter = createConverter(&rowReader->getSelectedType());
@@ -79,7 +77,7 @@ uint64_t Reader::numberOfStripes() {
     return reader->getNumberOfStripes();
 }
 
-Stripe Reader::read_stripe(uint64_t num) {
+Stripe Reader::readStripe(uint64_t num) {
     return Stripe(*this, num, reader->getStripe(num));
 }
 
@@ -126,6 +124,6 @@ uint64_t Stripe::seek(uint64_t row) {
     return currentRow;
 }
 
-std::string Stripe::writer_timezone() {
+std::string Stripe::writerTimezone() {
     return stripeInfo->getWriterTimezone();
 }

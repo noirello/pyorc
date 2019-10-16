@@ -2,6 +2,8 @@
 #define WRITER_H
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
@@ -19,7 +21,7 @@ private:
 public:
     uint64_t currentRow;
 
-    Writer(py::object, py::object, py::object = py::int_(1024), py::object = py::int_(67108864), py::object = py::int_(1), py::object = py::int_(0));
+    Writer(py::object, std::string, uint64_t = 1024, uint64_t = 67108864, int = 1, int = 0);
     void write(py::object);
     void close();
 };
