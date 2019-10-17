@@ -15,7 +15,7 @@ ORCIterator::next()
             converter->reset(*batch);
         }
         if (batchItem < batch->numElements) {
-            py::object val = converter->convert(batchItem);
+            py::object val = converter->toPython(batchItem);
             ++batchItem;
             ++currentRow;
             return val;

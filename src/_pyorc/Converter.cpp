@@ -1,4 +1,3 @@
-#include <cmath>
 #include <sstream>
 
 #include "Converter.h"
@@ -16,7 +15,7 @@ class BoolConverter : public Converter
       , data(nullptr)
     {}
     ~BoolConverter() override {}
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
@@ -32,7 +31,7 @@ class LongConverter : public Converter
       , data(nullptr)
     {}
     ~LongConverter() override {}
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
@@ -48,7 +47,7 @@ class DoubleConverter : public Converter
       , data(nullptr)
     {}
     ~DoubleConverter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
@@ -67,7 +66,7 @@ class StringConverter : public Converter
       , length(nullptr)
     {}
     ~StringConverter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
@@ -87,7 +86,7 @@ class BinaryConverter : public Converter
       , length(nullptr)
     {}
     ~BinaryConverter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
@@ -103,7 +102,7 @@ class TimestampConverter : public Converter
   public:
     TimestampConverter();
     virtual ~TimestampConverter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
@@ -118,7 +117,7 @@ class DateConverter : public Converter
   public:
     DateConverter();
     virtual ~DateConverter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
@@ -135,7 +134,7 @@ class Decimal64Converter : public Converter
   public:
     Decimal64Converter(uint64_t prec_, uint64_t scale_);
     virtual ~Decimal64Converter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
@@ -152,7 +151,7 @@ class Decimal128Converter : public Converter
   public:
     Decimal128Converter(uint64_t prec_, uint64_t scale_);
     virtual ~Decimal128Converter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
@@ -166,7 +165,7 @@ class ListConverter : public Converter
   public:
     ListConverter(const orc::Type& type);
     virtual ~ListConverter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
@@ -182,7 +181,7 @@ class MapConverter : public Converter
   public:
     MapConverter(const orc::Type& type);
     virtual ~MapConverter() override{};
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
@@ -197,7 +196,7 @@ class StructConverter : public Converter
   public:
     StructConverter(const orc::Type& type);
     virtual ~StructConverter() override;
-    py::object convert(uint64_t rowId) override;
+    py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
@@ -289,7 +288,7 @@ BoolConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-BoolConverter::convert(uint64_t rowId)
+BoolConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -320,7 +319,7 @@ LongConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-LongConverter::convert(uint64_t rowId)
+LongConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -351,7 +350,7 @@ DoubleConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-DoubleConverter::convert(uint64_t rowId)
+DoubleConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -384,7 +383,7 @@ StringConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-StringConverter::convert(uint64_t rowId)
+StringConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -430,7 +429,7 @@ BinaryConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-BinaryConverter::convert(uint64_t rowId)
+BinaryConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -486,7 +485,7 @@ TimestampConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-TimestampConverter::convert(uint64_t rowId)
+TimestampConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -533,7 +532,7 @@ DateConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-DateConverter::convert(uint64_t rowId)
+DateConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -608,7 +607,7 @@ toDecimalString(int64_t value, int32_t scale)
 }
 
 py::object
-Decimal64Converter::convert(uint64_t rowId)
+Decimal64Converter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -656,7 +655,7 @@ Decimal128Converter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-Decimal128Converter::convert(uint64_t rowId)
+Decimal128Converter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -701,14 +700,14 @@ ListConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-ListConverter::convert(uint64_t rowId)
+ListConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
         py::list result;
         for (int64_t i = offsets[rowId]; i < offsets[rowId + 1]; ++i) {
-            result.append(elementConverter->convert(static_cast<uint64_t>(i)));
+            result.append(elementConverter->toPython(static_cast<uint64_t>(i)));
         }
         return result;
     }
@@ -764,15 +763,15 @@ MapConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-MapConverter::convert(uint64_t rowId)
+MapConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
         py::dict result;
         for (int64_t i = offsets[rowId]; i < offsets[rowId + 1]; ++i) {
-            py::object key = keyConverter->convert(static_cast<uint64_t>(i));
-            result[key] = elementConverter->convert(static_cast<uint64_t>(i));
+            py::object key = keyConverter->toPython(static_cast<uint64_t>(i));
+            result[key] = elementConverter->toPython(static_cast<uint64_t>(i));
         }
         return result;
     }
@@ -841,7 +840,7 @@ StructConverter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 py::object
-StructConverter::convert(uint64_t rowId)
+StructConverter::toPython(uint64_t rowId)
 {
     if (hasNulls && !notNull[rowId]) {
         return py::none();
@@ -849,8 +848,8 @@ StructConverter::convert(uint64_t rowId)
         // py::tuple result = py::tuple(fieldConverters.size());
         py::dict result;
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
-            // result[i] = fieldConverters[i]->convert(rowId);
-            result[fieldNames[i]] = fieldConverters[i]->convert(rowId);
+            // result[i] = fieldConverters[i]->toPython(rowId);
+            result[fieldNames[i]] = fieldConverters[i]->toPython(rowId);
         }
         return result;
     }
