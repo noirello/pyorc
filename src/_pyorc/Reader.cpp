@@ -1,9 +1,12 @@
 #include <pybind11/stl.h>
 
-#include "Reader.h"
 #include "PyORCStream.h"
+#include "Reader.h"
 
-py::object ORCIterator::next() {
+
+py::object
+ORCIterator::next()
+{
     while (true) {
         if (batchItem == 0) {
             if (!rowReader->next(*batch)) {
@@ -13,7 +16,8 @@ py::object ORCIterator::next() {
         }
         if (batchItem < batch->numElements) {
             py::object val = converter->convert(batchItem);
-            ++batchItem; ++currentRow;
+            ++batchItem;
+            ++currentRow;
             return val;
         } else {
             batchItem = 0;
@@ -21,7 +25,9 @@ py::object ORCIterator::next() {
     }
 }
 
-py::object ORCIterator::read(int64_t num) {
+py::object
+ORCIterator::read(int64_t num)
+{
     int64_t i = 0;
     py::list res;
     try {
@@ -37,12 +43,17 @@ py::object ORCIterator::read(int64_t num) {
     }
 }
 
-Reader::Reader(py::object fileo, uint64_t batch_size, std::list<uint64_t> col_indices, std::list<std::string> col_names) {
+Reader::Reader(py::object fileo,
+               uint64_t batch_size,
+               std::list<uint64_t> col_indices,
+               std::list<std::string> col_names)
+{
     orc::ReaderOptions readerOpts;
     batchItem = 0;
     currentRow = 0;
     if (!col_indices.empty() && !col_names.empty()) {
-        throw py::value_error("Either col_indices or col_names can be set to select columns");
+        throw py::value_error(
+          "Either col_indices or col_names can be set to select columns");
     }
     if (!col_indices.empty()) {
         try {
@@ -58,7 +69,8 @@ Reader::Reader(py::object fileo, uint64_t batch_size, std::list<uint64_t> col_in
             throw py::value_error("col_names must be a sequence of strings");
         }
     }
-    reader = createReader(std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
+    reader = createReader(
+      std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
     try {
         batchSize = batch_size;
         rowReader = reader->createRowReader(rowReaderOpts);
@@ -69,61 +81,85 @@ Reader::Reader(py::object fileo, uint64_t batch_size, std::list<uint64_t> col_in
     }
 }
 
-uint64_t Reader::len() {
+uint64_t
+Reader::len()
+{
     return reader->getNumberOfRows();
 }
 
-uint64_t Reader::numberOfStripes() {
+uint64_t
+Reader::numberOfStripes()
+{
     return reader->getNumberOfStripes();
 }
 
-Stripe Reader::readStripe(uint64_t num) {
+Stripe
+Reader::readStripe(uint64_t num)
+{
     return Stripe(*this, num, reader->getStripe(num));
 }
 
-py::object Reader::schema() {
+py::object
+Reader::schema()
+{
     const orc::Type& schema = reader->getType();
     return py::str(schema.toString());
 }
 
-uint64_t Reader::seek(uint64_t row) {
+uint64_t
+Reader::seek(uint64_t row)
+{
     rowReader->seekToRow(row);
     batchItem = 0;
     currentRow = rowReader->getRowNumber();
     return currentRow;
 }
 
-Stripe::Stripe(const Reader& reader, uint64_t num, std::unique_ptr<orc::StripeInformation> stripe) {
+Stripe::Stripe(const Reader& reader,
+               uint64_t num,
+               std::unique_ptr<orc::StripeInformation> stripe)
+{
     batchItem = 0;
     currentRow = 0;
     stripeInfo = std::move(stripe);
     rowReaderOpts = reader.getRowReaderOptions();
-    rowReaderOpts = rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
+    rowReaderOpts =
+      rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
     rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
     converter = createConverter(&rowReader->getSelectedType());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 
-uint64_t Stripe::len() {
+uint64_t
+Stripe::len()
+{
     return stripeInfo->getNumberOfRows();
 }
 
-uint64_t Stripe::length() {
+uint64_t
+Stripe::length()
+{
     return stripeInfo->getLength();
 }
 
-uint64_t Stripe::offset() {
+uint64_t
+Stripe::offset()
+{
     return stripeInfo->getOffset();
 }
 
-uint64_t Stripe::seek(uint64_t row) {
+uint64_t
+Stripe::seek(uint64_t row)
+{
     rowReader->seekToRow(row + firstRowOfStripe);
     batchItem = 0;
     currentRow = rowReader->getRowNumber();
     return currentRow;
 }
 
-std::string Stripe::writerTimezone() {
+std::string
+Stripe::writerTimezone()
+{
     return stripeInfo->getWriterTimezone();
 }

@@ -10,16 +10,16 @@
 
 namespace py = pybind11;
 
-
-class ORCIterator {
-protected:
+class ORCIterator
+{
+  protected:
     uint64_t batchItem;
     orc::RowReaderOptions rowReaderOpts;
     std::unique_ptr<orc::RowReader> rowReader;
     std::unique_ptr<orc::ColumnVectorBatch> batch;
     std::unique_ptr<Converter> converter;
 
-public:
+  public:
     uint64_t currentRow;
     virtual uint64_t len() = 0;
     py::object next();
@@ -30,12 +30,17 @@ public:
 
 class Stripe; /* Forward declaration */
 
-class Reader : public ORCIterator {
-private:
+class Reader : public ORCIterator
+{
+  private:
     std::unique_ptr<orc::Reader> reader;
     uint64_t batchSize;
-public:
-    Reader(py::object, uint64_t = 1024, std::list<uint64_t> = {}, std::list<std::string> = {});
+
+  public:
+    Reader(py::object,
+           uint64_t = 1024,
+           std::list<uint64_t> = {},
+           std::list<std::string> = {});
     uint64_t len() override;
     uint64_t numberOfStripes();
     py::object schema();
@@ -46,10 +51,12 @@ public:
     const uint64_t getBatchSize() const { return batchSize; }
 };
 
-class Stripe : public ORCIterator {
-private:
+class Stripe : public ORCIterator
+{
+  private:
     std::unique_ptr<orc::StripeInformation> stripeInfo;
-public:
+
+  public:
     uint64_t firstRowOfStripe;
     Stripe(const Reader&, uint64_t, std::unique_ptr<orc::StripeInformation>);
     uint64_t len() override;

@@ -5,223 +5,270 @@
 
 namespace py = pybind11;
 
-class BoolConverter: public Converter {
-private:
+class BoolConverter : public Converter
+{
+  private:
     const int64_t* data;
-public:
-    BoolConverter(): Converter(), data(nullptr) {}
+
+  public:
+    BoolConverter()
+      : Converter()
+      , data(nullptr)
+    {}
     ~BoolConverter() override {}
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
 
-class LongConverter: public Converter {
-private:
+class LongConverter : public Converter
+{
+  private:
     const int64_t* data;
-public:
-    LongConverter(): Converter(), data(nullptr) {}
+
+  public:
+    LongConverter()
+      : Converter()
+      , data(nullptr)
+    {}
     ~LongConverter() override {}
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
 
-class DoubleConverter: public Converter {
-private:
+class DoubleConverter : public Converter
+{
+  private:
     const double* data;
-public:
-    DoubleConverter(): Converter(), data(nullptr) {}
-    ~DoubleConverter() override {};
+
+  public:
+    DoubleConverter()
+      : Converter()
+      , data(nullptr)
+    {}
+    ~DoubleConverter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
 
-class StringConverter: public Converter {
-private:
-    const char* const * data;
+class StringConverter : public Converter
+{
+  private:
+    const char* const* data;
     const int64_t* length;
     std::vector<py::object> buffer;
-public:
-    StringConverter(): Converter(), data(nullptr), length(nullptr) {}
-    ~StringConverter() override {};
+
+  public:
+    StringConverter()
+      : Converter()
+      , data(nullptr)
+      , length(nullptr)
+    {}
+    ~StringConverter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
 };
 
-class BinaryConverter: public Converter {
-private:
-    const char* const * data;
+class BinaryConverter : public Converter
+{
+  private:
+    const char* const* data;
     const int64_t* length;
     std::vector<py::object> buffer;
-public:
-    BinaryConverter(): Converter(), data(nullptr), length(nullptr) {}
-    ~BinaryConverter() override {};
+
+  public:
+    BinaryConverter()
+      : Converter()
+      , data(nullptr)
+      , length(nullptr)
+    {}
+    ~BinaryConverter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
 };
 
-class TimestampConverter: public Converter {
-private:
+class TimestampConverter : public Converter
+{
+  private:
     const int64_t* seconds;
     const int64_t* nanoseconds;
     py::object datetime;
-public:
+
+  public:
     TimestampConverter();
-    virtual ~TimestampConverter() override {};
+    virtual ~TimestampConverter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
 
-class DateConverter: public Converter {
-private:
+class DateConverter : public Converter
+{
+  private:
     const int64_t* data;
     py::object date;
     py::object epochDate;
-public:
+
+  public:
     DateConverter();
-    virtual ~DateConverter() override {};
+    virtual ~DateConverter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
 
-class Decimal64Converter: public Converter {
-private:
+class Decimal64Converter : public Converter
+{
+  private:
     const int64_t* data;
     uint64_t prec;
     int32_t scale;
     py::object decimal;
     py::object adjustDec;
-public:
+
+  public:
     Decimal64Converter(uint64_t prec_, uint64_t scale_);
-    virtual ~Decimal64Converter() override {};
+    virtual ~Decimal64Converter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
 
-class Decimal128Converter: public Converter {
-private:
+class Decimal128Converter : public Converter
+{
+  private:
     const orc::Int128* data;
     uint64_t prec;
     int32_t scale;
     py::object decimal;
     py::object adjustDec;
-public:
+
+  public:
     Decimal128Converter(uint64_t prec_, uint64_t scale_);
-    virtual ~Decimal128Converter() override {};
+    virtual ~Decimal128Converter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
 };
 
-class ListConverter: public Converter {
-private:
+class ListConverter : public Converter
+{
+  private:
     const int64_t* offsets;
     std::unique_ptr<Converter> elementConverter;
-public:
+
+  public:
     ListConverter(const orc::Type& type);
-    virtual ~ListConverter() override {};
+    virtual ~ListConverter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
 };
 
-class MapConverter: public Converter {
-private:
+class MapConverter : public Converter
+{
+  private:
     const int64_t* offsets;
     std::unique_ptr<Converter> keyConverter;
     std::unique_ptr<Converter> elementConverter;
-public:
+
+  public:
     MapConverter(const orc::Type& type);
-    virtual ~MapConverter() override {};
+    virtual ~MapConverter() override{};
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
 };
 
-class StructConverter: public Converter {
-private:
+class StructConverter : public Converter
+{
+  private:
     std::vector<Converter*> fieldConverters;
     std::vector<py::str> fieldNames;
-public:
+
+  public:
     StructConverter(const orc::Type& type);
     virtual ~StructConverter() override;
     py::object convert(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
-    void write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
     void clear() override;
 };
 
-std::unique_ptr<Converter> createConverter(const orc::Type* type) {
-    Converter *result = nullptr;
+std::unique_ptr<Converter>
+createConverter(const orc::Type* type)
+{
+    Converter* result = nullptr;
     if (type == nullptr) {
         result = nullptr;
     } else {
-        switch(static_cast<int64_t>(type->getKind())) {
-        case orc::BOOLEAN:
-            result = new BoolConverter();
-            break;
-        case orc::BYTE:
-        case orc::SHORT:
-        case orc::INT:
-        case orc::LONG:
-            result = new LongConverter();
-            break;
-        case orc::FLOAT:
-        case orc::DOUBLE:
-            result = new DoubleConverter();
-            break;
-        case orc::STRING:
-        case orc::VARCHAR:
-        case orc::CHAR:
-            result = new StringConverter();
-            break;
-        case orc::BINARY:
-            result = new BinaryConverter();
-            break;
-        case orc::TIMESTAMP:
-            result = new TimestampConverter();
-            break;
-        case orc::LIST:
-            result = new ListConverter(*type);
-            break;
-        case orc::MAP:
-            result = new MapConverter(*type);
-            break;
-        case orc::STRUCT:
-            result = new StructConverter(*type);
-            break;
-        case orc::DECIMAL:
-            if (type->getPrecision() == 0 || type->getPrecision() > 18) {
-                result = new Decimal128Converter(type->getPrecision(), type->getScale());
-            } else {
-                result = new Decimal64Converter(type->getPrecision(), type->getScale());
-            }
-            break;
-        case orc::DATE:
-            result = new DateConverter();
-            break;
-        case orc::UNION:
-            result = nullptr; //new UnionColumnPrinter(buffer, *type);
-            break;
-        default:
-            throw std::logic_error("unknown batch type");
-      }
+        switch (static_cast<int64_t>(type->getKind())) {
+            case orc::BOOLEAN:
+                result = new BoolConverter();
+                break;
+            case orc::BYTE:
+            case orc::SHORT:
+            case orc::INT:
+            case orc::LONG:
+                result = new LongConverter();
+                break;
+            case orc::FLOAT:
+            case orc::DOUBLE:
+                result = new DoubleConverter();
+                break;
+            case orc::STRING:
+            case orc::VARCHAR:
+            case orc::CHAR:
+                result = new StringConverter();
+                break;
+            case orc::BINARY:
+                result = new BinaryConverter();
+                break;
+            case orc::TIMESTAMP:
+                result = new TimestampConverter();
+                break;
+            case orc::LIST:
+                result = new ListConverter(*type);
+                break;
+            case orc::MAP:
+                result = new MapConverter(*type);
+                break;
+            case orc::STRUCT:
+                result = new StructConverter(*type);
+                break;
+            case orc::DECIMAL:
+                if (type->getPrecision() == 0 || type->getPrecision() > 18) {
+                    result =
+                      new Decimal128Converter(type->getPrecision(), type->getScale());
+                } else {
+                    result =
+                      new Decimal64Converter(type->getPrecision(), type->getScale());
+                }
+                break;
+            case orc::DATE:
+                result = new DateConverter();
+                break;
+            case orc::UNION:
+                result = nullptr; // new UnionColumnPrinter(buffer, *type);
+                break;
+            default:
+                throw std::logic_error("unknown batch type");
+        }
     }
     return std::unique_ptr<Converter>(result);
 }
 
-void Converter::reset(const orc::ColumnVectorBatch& batch) {
+void
+Converter::reset(const orc::ColumnVectorBatch& batch)
+{
     hasNulls = batch.hasNulls;
     if (hasNulls) {
         notNull = batch.notNull.data();
@@ -230,14 +277,20 @@ void Converter::reset(const orc::ColumnVectorBatch& batch) {
     }
 }
 
-void Converter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {}
+void
+Converter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{}
 
-void BoolConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+BoolConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     data = dynamic_cast<const orc::LongVectorBatch&>(batch).data.data();
 }
- 
-py::object BoolConverter::convert(uint64_t rowId) {
+
+py::object
+BoolConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -245,8 +298,10 @@ py::object BoolConverter::convert(uint64_t rowId) {
     }
 }
 
-void BoolConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *longBatch = dynamic_cast<orc::LongVectorBatch *>(batch);
+void
+BoolConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    auto* longBatch = dynamic_cast<orc::LongVectorBatch*>(batch);
     if (elem.is(py::none())) {
         longBatch->hasNulls = true;
         longBatch->notNull[rowId] = 0;
@@ -257,12 +312,16 @@ void BoolConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obj
     longBatch->numElements = rowId + 1;
 }
 
-void LongConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+LongConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     data = dynamic_cast<const orc::LongVectorBatch&>(batch).data.data();
 }
 
-py::object LongConverter::convert(uint64_t rowId) {
+py::object
+LongConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -270,8 +329,10 @@ py::object LongConverter::convert(uint64_t rowId) {
     }
 }
 
-void LongConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *longBatch = dynamic_cast<orc::LongVectorBatch *>(batch);
+void
+LongConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    auto* longBatch = dynamic_cast<orc::LongVectorBatch*>(batch);
     if (elem.is(py::none())) {
         longBatch->hasNulls = true;
         longBatch->notNull[rowId] = 0;
@@ -282,12 +343,16 @@ void LongConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obj
     longBatch->numElements = rowId + 1;
 }
 
-void DoubleConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+DoubleConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     data = dynamic_cast<const orc::DoubleVectorBatch&>(batch).data.data();
 }
 
-py::object DoubleConverter::convert(uint64_t rowId) {
+py::object
+DoubleConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -295,8 +360,10 @@ py::object DoubleConverter::convert(uint64_t rowId) {
     }
 }
 
-void DoubleConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *doubleBatch = dynamic_cast<orc::DoubleVectorBatch *>(batch);
+void
+DoubleConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    auto* doubleBatch = dynamic_cast<orc::DoubleVectorBatch*>(batch);
     if (elem.is(py::none())) {
         doubleBatch->hasNulls = true;
         doubleBatch->notNull[rowId] = 0;
@@ -307,14 +374,18 @@ void DoubleConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::o
     doubleBatch->numElements = rowId + 1;
 }
 
-void StringConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+StringConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& strBatch = dynamic_cast<const orc::StringVectorBatch&>(batch);
     data = strBatch.data.data();
     length = strBatch.length.data();
 }
 
-py::object StringConverter::convert(uint64_t rowId) {
+py::object
+StringConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -322,14 +393,16 @@ py::object StringConverter::convert(uint64_t rowId) {
     }
 }
 
-void StringConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *strBatch = dynamic_cast<orc::StringVectorBatch *>(batch);
+void
+StringConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    auto* strBatch = dynamic_cast<orc::StringVectorBatch*>(batch);
     if (elem.is(py::none())) {
         strBatch->hasNulls = true;
         strBatch->notNull[rowId] = 0;
     } else {
         Py_ssize_t length = 0;
-        char *src = PyUnicode_AsUTF8AndSize(elem.ptr(), &length);
+        char* src = PyUnicode_AsUTF8AndSize(elem.ptr(), &length);
         if (src == nullptr) {
             throw py::error_already_set();
         }
@@ -341,18 +414,24 @@ void StringConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::o
     strBatch->numElements = rowId + 1;
 }
 
-void StringConverter::clear() {
+void
+StringConverter::clear()
+{
     buffer.clear();
 }
 
-void BinaryConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+BinaryConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& strBatch = dynamic_cast<const orc::StringVectorBatch&>(batch);
     data = strBatch.data.data();
     length = strBatch.length.data();
 }
 
-py::object BinaryConverter::convert(uint64_t rowId) {
+py::object
+BinaryConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -360,9 +439,11 @@ py::object BinaryConverter::convert(uint64_t rowId) {
     }
 }
 
-void BinaryConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    char *src = nullptr;
-    auto *bytesBatch = dynamic_cast<orc::StringVectorBatch *>(batch);
+void
+BinaryConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    char* src = nullptr;
+    auto* bytesBatch = dynamic_cast<orc::StringVectorBatch*>(batch);
     if (elem.is(py::none())) {
         bytesBatch->hasNulls = true;
         bytesBatch->notNull[rowId] = 0;
@@ -380,23 +461,33 @@ void BinaryConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::o
     bytesBatch->numElements = rowId + 1;
 }
 
-void BinaryConverter::clear() {
+void
+BinaryConverter::clear()
+{
     buffer.clear();
 }
 
-TimestampConverter::TimestampConverter(): Converter(), seconds(nullptr), nanoseconds(nullptr) {
+TimestampConverter::TimestampConverter()
+  : Converter()
+  , seconds(nullptr)
+  , nanoseconds(nullptr)
+{
     py::object dt = py::module::import("datetime").attr("datetime");
     datetime = dt.attr("utcfromtimestamp");
 }
 
-void TimestampConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+TimestampConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& ts = dynamic_cast<const orc::TimestampVectorBatch&>(batch);
     seconds = ts.data.data();
     nanoseconds = ts.nanoseconds.data();
 }
 
-py::object TimestampConverter::convert(uint64_t rowId) {
+py::object
+TimestampConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -406,13 +497,18 @@ py::object TimestampConverter::convert(uint64_t rowId) {
     }
 }
 
-void TimestampConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *tsBatch = dynamic_cast<orc::TimestampVectorBatch *>(batch);
+void
+TimestampConverter::write(orc::ColumnVectorBatch* batch,
+                          uint64_t rowId,
+                          py::object elem)
+{
+    auto* tsBatch = dynamic_cast<orc::TimestampVectorBatch*>(batch);
     if (elem.is(py::none())) {
         tsBatch->hasNulls = true;
         tsBatch->notNull[rowId] = 0;
     } else {
-        py::object touts((elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
+        py::object touts(
+          (elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
         py::object microseconds(elem.attr("microsecond"));
         tsBatch->data[rowId] = static_cast<int64_t>(py::cast<double>(touts()));
         tsBatch->nanoseconds[rowId] = py::cast<int64_t>(microseconds) * 1000;
@@ -421,17 +517,24 @@ void TimestampConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py
     tsBatch->numElements = rowId + 1;
 }
 
-DateConverter::DateConverter(): Converter(), data(nullptr) {
+DateConverter::DateConverter()
+  : Converter()
+  , data(nullptr)
+{
     date = py::module::import("datetime").attr("date");
     epochDate = date(1970, 1, 1);
 }
 
-void DateConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+DateConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     data = dynamic_cast<const orc::LongVectorBatch&>(batch).data.data();
 }
 
-py::object DateConverter::convert(uint64_t rowId) {
+py::object
+DateConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -440,8 +543,10 @@ py::object DateConverter::convert(uint64_t rowId) {
     }
 }
 
-void DateConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *dBatch = dynamic_cast<orc::LongVectorBatch *>(batch);
+void
+DateConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    auto* dBatch = dynamic_cast<orc::LongVectorBatch*>(batch);
     if (elem.is(py::none())) {
         dBatch->hasNulls = true;
         dBatch->notNull[rowId] = 0;
@@ -453,19 +558,28 @@ void DateConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obj
     dBatch->numElements = rowId + 1;
 }
 
-Decimal64Converter::Decimal64Converter(uint64_t prec_, uint64_t scale_): Converter(), data(nullptr), prec(prec_), scale(scale_) {
+Decimal64Converter::Decimal64Converter(uint64_t prec_, uint64_t scale_)
+  : Converter()
+  , data(nullptr)
+  , prec(prec_)
+  , scale(scale_)
+{
     decimal = py::module::import("decimal").attr("Decimal");
     adjustDec = py::module::import("pyorc.helpers").attr("adjust_decimal");
 }
 
-void Decimal64Converter::reset(const orc::ColumnVectorBatch& batch) {
+void
+Decimal64Converter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& decBatch = dynamic_cast<const orc::Decimal64VectorBatch&>(batch);
     data = decBatch.values.data();
     scale = decBatch.scale;
 }
 
-std::string toDecimalString(int64_t value, int32_t scale) {
+std::string
+toDecimalString(int64_t value, int32_t scale)
+{
     std::stringstream buffer;
     if (scale == 0) {
         buffer << value;
@@ -480,7 +594,8 @@ std::string toDecimalString(int64_t value, int32_t scale) {
     std::string str = buffer.str();
     int32_t len = static_cast<int32_t>(str.length());
     if (len > scale) {
-        return sign + str.substr(0, static_cast<size_t>(len - scale)) + "." + str.substr(static_cast<size_t>(len - scale), static_cast<size_t>(scale));
+        return sign + str.substr(0, static_cast<size_t>(len - scale)) + "." +
+               str.substr(static_cast<size_t>(len - scale), static_cast<size_t>(scale));
     } else if (len == scale) {
         return sign + "0." + str;
     } else {
@@ -492,7 +607,9 @@ std::string toDecimalString(int64_t value, int32_t scale) {
     }
 }
 
-py::object Decimal64Converter::convert(uint64_t rowId) {
+py::object
+Decimal64Converter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -500,8 +617,12 @@ py::object Decimal64Converter::convert(uint64_t rowId) {
     }
 }
 
-void Decimal64Converter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *decBatch = dynamic_cast<orc::Decimal64VectorBatch *>(batch);
+void
+Decimal64Converter::write(orc::ColumnVectorBatch* batch,
+                          uint64_t rowId,
+                          py::object elem)
+{
+    auto* decBatch = dynamic_cast<orc::Decimal64VectorBatch*>(batch);
     decBatch->precision = prec;
     decBatch->scale = scale;
     if (elem.is(py::none())) {
@@ -515,19 +636,28 @@ void Decimal64Converter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py
     decBatch->numElements = rowId + 1;
 }
 
-Decimal128Converter::Decimal128Converter(uint64_t prec_, uint64_t scale_): Converter(), data(nullptr), prec(prec_), scale(scale_) {
+Decimal128Converter::Decimal128Converter(uint64_t prec_, uint64_t scale_)
+  : Converter()
+  , data(nullptr)
+  , prec(prec_)
+  , scale(scale_)
+{
     decimal = py::module::import("decimal").attr("Decimal");
     adjustDec = py::module::import("pyorc.helpers").attr("adjust_decimal");
 }
 
-void Decimal128Converter::reset(const orc::ColumnVectorBatch& batch) {
+void
+Decimal128Converter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& decBatch = dynamic_cast<const orc::Decimal128VectorBatch&>(batch);
     data = decBatch.values.data();
     scale = decBatch.scale;
 }
 
-py::object Decimal128Converter::convert(uint64_t rowId) {
+py::object
+Decimal128Converter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -535,8 +665,12 @@ py::object Decimal128Converter::convert(uint64_t rowId) {
     }
 }
 
-void Decimal128Converter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *decBatch = dynamic_cast<orc::Decimal128VectorBatch *>(batch);
+void
+Decimal128Converter::write(orc::ColumnVectorBatch* batch,
+                           uint64_t rowId,
+                           py::object elem)
+{
+    auto* decBatch = dynamic_cast<orc::Decimal128VectorBatch*>(batch);
     decBatch->precision = prec;
     decBatch->scale = scale;
     if (elem.is(py::none())) {
@@ -550,18 +684,25 @@ void Decimal128Converter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, p
     decBatch->numElements = rowId + 1;
 }
 
-ListConverter::ListConverter(const orc::Type& type): Converter(), offsets(nullptr) {
+ListConverter::ListConverter(const orc::Type& type)
+  : Converter()
+  , offsets(nullptr)
+{
     elementConverter = createConverter(type.getSubtype(0));
 }
 
-void ListConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+ListConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& listBatch = dynamic_cast<const orc::ListVectorBatch&>(batch);
     offsets = listBatch.offsets.data();
     elementConverter->reset(*listBatch.elements);
 }
 
-py::object ListConverter::convert(uint64_t rowId) {
+py::object
+ListConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
@@ -573,9 +714,11 @@ py::object ListConverter::convert(uint64_t rowId) {
     }
 }
 
-void ListConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
+void
+ListConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
     size_t size = 0;
-    auto *listBatch = dynamic_cast<orc::ListVectorBatch *>(batch);
+    auto* listBatch = dynamic_cast<orc::ListVectorBatch*>(batch);
     listBatch->offsets[0] = 0;
     uint64_t offset = static_cast<uint64_t>(listBatch->offsets[rowId]);
     if (elem.is(py::none())) {
@@ -596,16 +739,23 @@ void ListConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obj
     listBatch->numElements = rowId + 1;
 }
 
-void ListConverter::clear() {
+void
+ListConverter::clear()
+{
     elementConverter->clear();
 }
 
-MapConverter::MapConverter(const orc::Type& type): Converter(), offsets(nullptr) {
+MapConverter::MapConverter(const orc::Type& type)
+  : Converter()
+  , offsets(nullptr)
+{
     keyConverter = createConverter(type.getSubtype(0));
     elementConverter = createConverter(type.getSubtype(1));
 }
 
-void MapConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+MapConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& mapBatch = dynamic_cast<const orc::MapVectorBatch&>(batch);
     offsets = mapBatch.offsets.data();
@@ -613,12 +763,14 @@ void MapConverter::reset(const orc::ColumnVectorBatch& batch) {
     elementConverter->reset(*mapBatch.elements);
 }
 
-py::object MapConverter::convert(uint64_t rowId) {
+py::object
+MapConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
         py::dict result;
-        for (int64_t i = offsets[rowId]; i < offsets[rowId+1]; ++i) {
+        for (int64_t i = offsets[rowId]; i < offsets[rowId + 1]; ++i) {
             py::object key = keyConverter->convert(static_cast<uint64_t>(i));
             result[key] = elementConverter->convert(static_cast<uint64_t>(i));
         }
@@ -626,9 +778,11 @@ py::object MapConverter::convert(uint64_t rowId) {
     }
 }
 
-void MapConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
+void
+MapConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
     uint64_t cnt = 0;
-    auto *mapBatch = dynamic_cast<orc::MapVectorBatch *>(batch);
+    auto* mapBatch = dynamic_cast<orc::MapVectorBatch*>(batch);
     mapBatch->offsets[0] = 0;
     uint64_t offset = static_cast<uint64_t>(mapBatch->offsets[rowId]);
     if (elem.is(py::none())) {
@@ -654,25 +808,31 @@ void MapConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::obje
     mapBatch->numElements = rowId + 1;
 }
 
-void MapConverter::clear() {
+void
+MapConverter::clear()
+{
     keyConverter->clear();
     elementConverter->clear();
 }
 
-StructConverter::StructConverter(const orc::Type& type) {
+StructConverter::StructConverter(const orc::Type& type)
+{
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
         fieldConverters.push_back(createConverter(type.getSubtype(i)).release());
         fieldNames.push_back(py::str(type.getFieldName(i)));
     }
 }
 
-StructConverter::~StructConverter() {
+StructConverter::~StructConverter()
+{
     for (size_t i = 0; i < fieldConverters.size(); i++) {
         delete fieldConverters[i];
     }
 }
 
-void StructConverter::reset(const orc::ColumnVectorBatch& batch) {
+void
+StructConverter::reset(const orc::ColumnVectorBatch& batch)
+{
     Converter::reset(batch);
     const auto& structBatch = dynamic_cast<const orc::StructVectorBatch&>(batch);
     for (size_t i = 0; i < fieldConverters.size(); ++i) {
@@ -680,27 +840,32 @@ void StructConverter::reset(const orc::ColumnVectorBatch& batch) {
     }
 }
 
-py::object StructConverter::convert(uint64_t rowId) {
+py::object
+StructConverter::convert(uint64_t rowId)
+{
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        //py::tuple result = py::tuple(fieldConverters.size());
+        // py::tuple result = py::tuple(fieldConverters.size());
         py::dict result;
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
-            //result[i] = fieldConverters[i]->convert(rowId);
+            // result[i] = fieldConverters[i]->convert(rowId);
             result[fieldNames[i]] = fieldConverters[i]->convert(rowId);
         }
         return result;
     }
 }
 
-void StructConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::object elem) {
-    auto *structBatch = dynamic_cast<orc::StructVectorBatch *>(batch);
+void
+StructConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    auto* structBatch = dynamic_cast<orc::StructVectorBatch*>(batch);
     if (elem.is(py::none())) {
         structBatch->hasNulls = true;
         structBatch->notNull[rowId] = 0;
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
-            if (structBatch->fields[i]->capacity <= structBatch->fields[i]->numElements) {
+            if (structBatch->fields[i]->capacity <=
+                structBatch->fields[i]->numElements) {
                 structBatch->fields[i]->resize(2 * structBatch->fields[i]->capacity);
             }
             fieldConverters[i]->write(structBatch->fields[i], rowId, elem);
@@ -708,17 +873,21 @@ void StructConverter::write(orc::ColumnVectorBatch *batch, uint64_t rowId, py::o
     } else {
         py::dict dict(elem);
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
-            if (structBatch->fields[i]->capacity <= structBatch->fields[i]->numElements) {
+            if (structBatch->fields[i]->capacity <=
+                structBatch->fields[i]->numElements) {
                 structBatch->fields[i]->resize(2 * structBatch->fields[i]->capacity);
             }
-            fieldConverters[i]->write(structBatch->fields[i], rowId, dict[fieldNames[i]]);
+            fieldConverters[i]->write(
+              structBatch->fields[i], rowId, dict[fieldNames[i]]);
         }
         structBatch->notNull[rowId] = 1;
     }
     structBatch->numElements = rowId + 1;
 }
 
-void StructConverter::clear() {
+void
+StructConverter::clear()
+{
     for (size_t i = 0; i < fieldConverters.size(); ++i) {
         fieldConverters[i]->clear();
     }

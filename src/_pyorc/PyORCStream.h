@@ -7,13 +7,15 @@
 
 namespace py = pybind11;
 
-class PyORCInputStream : public orc::InputStream {
-private:
+class PyORCInputStream : public orc::InputStream
+{
+  private:
     std::string filename;
     py::object pyread;
     py::object pyseek;
     uint64_t totalLength;
-public:
+
+  public:
     PyORCInputStream(py::object);
     ~PyORCInputStream() override;
     uint64_t getLength() const override;
@@ -22,14 +24,16 @@ public:
     const std::string& getName() const override;
 };
 
-class PyORCOutputStream : public orc::OutputStream {
-private:
+class PyORCOutputStream : public orc::OutputStream
+{
+  private:
     std::string filename;
     py::object pywrite;
     py::object pyflush;
     uint64_t bytesWritten;
     bool closed;
-public:
+
+  public:
     PyORCOutputStream(py::object);
     ~PyORCOutputStream() override;
     uint64_t getLength() const override;
