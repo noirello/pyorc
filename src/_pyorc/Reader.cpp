@@ -3,7 +3,6 @@
 #include "PyORCStream.h"
 #include "Reader.h"
 
-
 py::object
 ORCIterator::next()
 {
@@ -43,6 +42,15 @@ ORCIterator::read(int64_t num)
     }
 }
 
+uint64_t
+ORCIterator::seek(uint64_t row)
+{
+    rowReader->seekToRow(row + firstRowOfStripe);
+    batchItem = 0;
+    currentRow = rowReader->getRowNumber() - firstRowOfStripe;
+    return currentRow;
+}
+
 Reader::Reader(py::object fileo,
                uint64_t batch_size,
                std::list<uint64_t> col_indices,
@@ -51,6 +59,7 @@ Reader::Reader(py::object fileo,
     orc::ReaderOptions readerOpts;
     batchItem = 0;
     currentRow = 0;
+    firstRowOfStripe = 0;
     if (!col_indices.empty() && !col_names.empty()) {
         throw py::value_error(
           "Either col_indices or col_names can be set to select columns");
@@ -82,13 +91,13 @@ Reader::Reader(py::object fileo,
 }
 
 uint64_t
-Reader::len()
+Reader::len() const
 {
     return reader->getNumberOfRows();
 }
 
 uint64_t
-Reader::numberOfStripes()
+Reader::numberOfStripes() const
 {
     return reader->getNumberOfStripes();
 }
@@ -104,15 +113,6 @@ Reader::schema()
 {
     const orc::Type& schema = reader->getType();
     return py::str(schema.toString());
-}
-
-uint64_t
-Reader::seek(uint64_t row)
-{
-    rowReader->seekToRow(row);
-    batchItem = 0;
-    currentRow = rowReader->getRowNumber();
-    return currentRow;
 }
 
 Stripe::Stripe(const Reader& reader,
@@ -132,30 +132,21 @@ Stripe::Stripe(const Reader& reader,
 }
 
 uint64_t
-Stripe::len()
+Stripe::len() const
 {
     return stripeInfo->getNumberOfRows();
 }
 
 uint64_t
-Stripe::length()
+Stripe::length() const
 {
     return stripeInfo->getLength();
 }
 
 uint64_t
-Stripe::offset()
+Stripe::offset() const
 {
     return stripeInfo->getOffset();
-}
-
-uint64_t
-Stripe::seek(uint64_t row)
-{
-    rowReader->seekToRow(row + firstRowOfStripe);
-    batchItem = 0;
-    currentRow = rowReader->getRowNumber();
-    return currentRow;
 }
 
 std::string
