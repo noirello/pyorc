@@ -25,7 +25,7 @@ class ORCIterator
     virtual uint64_t len() const = 0;
     py::object next();
     py::object read(int64_t);
-    uint64_t seek(uint64_t);
+    uint64_t seek(int64_t, uint16_t = 0);
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
 };
 

@@ -43,9 +43,27 @@ ORCIterator::read(int64_t num)
 }
 
 uint64_t
-ORCIterator::seek(uint64_t row)
+ORCIterator::seek(int64_t row, uint16_t whence)
 {
-    rowReader->seekToRow(row + firstRowOfStripe);
+    uint64_t start = 0;
+    switch (whence) {
+        case 0:
+            start = firstRowOfStripe;
+            if (row < 0) {
+                throw py::value_error("Invalid value for row");
+            }
+            break;
+        case 1:
+            start = currentRow + firstRowOfStripe;
+            break;
+        case 2:
+            start = this->len() + firstRowOfStripe;
+            break;
+        default:
+            throw py::value_error("Invalid value for whence");
+            break;
+    }
+    rowReader->seekToRow(start + row);
     batchItem = 0;
     currentRow = rowReader->getRowNumber() - firstRowOfStripe;
     return currentRow;
