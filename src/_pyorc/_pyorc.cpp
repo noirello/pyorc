@@ -42,13 +42,20 @@ PYBIND11_MODULE(_pyorc, m)
                              [](Reader& r) { return r.numberOfStripes(); })
       .def_readonly("current_row", &Reader::currentRow);
     py::class_<Writer>(m, "writer")
-      .def(py::init<py::object, std::string, uint64_t, uint64_t, int, int>(),
+      .def(py::init<py::object,
+                    std::string,
+                    uint64_t,
+                    uint64_t,
+                    int,
+                    int,
+                    std::set<uint64_t>>(),
            py::arg("fileo"),
            py::arg("str_schema"),
            py::arg_v("batch_size", 1024, "1024"),
            py::arg_v("stripe_size", 67108864, "67108864"),
            py::arg_v("compression", 1, "CompressionKind.ZLIB"),
-           py::arg_v("compression_strategy", 0, "CompressionStrategy.SPEED"))
+           py::arg_v("compression_strategy", 0, "CompressionStrategy.SPEED"),
+           py::arg_v("bloom_filter_cols", std::set<uint64_t>{}, "None"))
       .def("write", &Writer::write)
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);

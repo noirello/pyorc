@@ -28,7 +28,8 @@ class Writer
            uint64_t = 1024,
            uint64_t = 67108864,
            int = 1,
-           int = 0);
+           int = 0,
+           std::set<uint64_t> = {});
     void write(py::object);
     void close();
 };
