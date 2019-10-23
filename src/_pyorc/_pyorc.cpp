@@ -33,7 +33,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def("__iter__", [](Reader& r) -> Reader& { return r; })
       .def("__len__", &Reader::len)
       .def("read", &Reader::read)
-      .def("read_stripe", &Reader::readStripe)
+      .def("read_stripe", &Reader::readStripe, py::keep_alive<0, 1>())
       .def("seek", &Reader::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
       .def("schema", &Reader::schema)
       .def_property_readonly("num_of_stripes",
