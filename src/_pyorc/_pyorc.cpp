@@ -18,6 +18,8 @@ PYBIND11_MODULE(_pyorc, m)
       .def("seek", &Stripe::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
       .def_property_readonly("bytes_length", [](Stripe& s) { return s.length(); })
       .def_property_readonly("bytes_offset", [](Stripe& s) { return s.offset(); })
+      .def_property_readonly("bloom_filter_columns",
+                             [](Stripe& s) { return s.bloomFilterColumns(); })
       .def_property_readonly("writer_timezone",
                              [](Stripe& s) { return s.writerTimezone(); })
       .def_readonly("current_row", &Stripe::currentRow)

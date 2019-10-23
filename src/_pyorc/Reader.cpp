@@ -133,12 +133,14 @@ Reader::schema()
     return py::str(schema.toString());
 }
 
-Stripe::Stripe(const Reader& reader,
+Stripe::Stripe(const Reader& reader_,
                uint64_t num,
                std::unique_ptr<orc::StripeInformation> stripe)
+  : reader(reader_)
 {
     batchItem = 0;
     currentRow = 0;
+    stripeIndex = num;
     stripeInfo = std::move(stripe);
     rowReaderOpts = reader.getRowReaderOptions();
     rowReaderOpts =
@@ -147,6 +149,21 @@ Stripe::Stripe(const Reader& reader,
     batch = rowReader->createRowBatch(reader.getBatchSize());
     converter = createConverter(&rowReader->getSelectedType());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
+}
+
+py::object
+Stripe::bloomFilterColumns()
+{
+    int64_t idx = 0;
+    std::set<uint32_t> empty = {};
+    std::map<uint32_t, orc::BloomFilterIndex> bfCols =
+      reader.getORCReader().getBloomFilters(stripeIndex, empty);
+    py::tuple result(bfCols.size());
+    for (auto const& col : bfCols) {
+        result[idx] = py::cast(col.first);
+        ++idx;
+    }
+    return result;
 }
 
 uint64_t

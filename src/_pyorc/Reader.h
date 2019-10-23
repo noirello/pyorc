@@ -54,10 +54,13 @@ class Reader : public ORCIterator
 class Stripe : public ORCIterator
 {
   private:
+    uint64_t stripeIndex;
     std::unique_ptr<orc::StripeInformation> stripeInfo;
+    const Reader& reader;
 
   public:
     Stripe(const Reader&, uint64_t, std::unique_ptr<orc::StripeInformation>);
+    py::object bloomFilterColumns();
     uint64_t len() const override;
     uint64_t length() const;
     uint64_t offset() const;
