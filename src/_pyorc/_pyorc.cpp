@@ -55,7 +55,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def("read", &Reader::read, py::arg_v("num", -1, "-1"))
       .def("read_stripe", &Reader::readStripe, py::keep_alive<0, 1>())
       .def("seek", &Reader::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
-      .def("schema", &Reader::schema)
+      .def_property_readonly("schema", &Reader::schema)
       .def_property_readonly("num_of_stripes",
                              [](Reader& r) { return r.numberOfStripes(); })
       .def_readonly("current_row", &Reader::currentRow);

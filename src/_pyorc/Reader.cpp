@@ -98,6 +98,7 @@ Reader::Reader(py::object fileo,
     }
     reader = createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
+    typeDesc = std::make_unique<TypeDescription>(reader->getType());
     try {
         batchSize = batch_size;
         rowReader = reader->createRowReader(rowReaderOpts);
@@ -126,11 +127,10 @@ Reader::readStripe(uint64_t num)
     return Stripe(*this, num, reader->getStripe(num));
 }
 
-py::object
+TypeDescription&
 Reader::schema()
 {
-    const orc::Type& schema = reader->getType();
-    return py::str(schema.toString());
+    return *typeDesc;
 }
 
 Stripe::Stripe(const Reader& reader_,

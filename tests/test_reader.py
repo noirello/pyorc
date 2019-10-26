@@ -107,9 +107,10 @@ def test_examples(example, expected):
     with open(get_full_path(example), "rb") as fileo:
         orc_res = pyorc.reader(fileo)
         length = 0
+        str_schema = str(orc_res.schema)
         for num, line in enumerate(exp_res):
-            json_row = traverse_json_row(orc_res.schema(), json.loads(line))
-            orc_row = traverse_orc_row(orc_res.schema(), next(orc_res))
+            json_row = traverse_json_row(str_schema, json.loads(line))
+            orc_row = traverse_orc_row(str_schema, next(orc_res))
             for _, exp_path, exp_val in json_row:
                 otype, act_path, act_val = next(orc_row)
                 assert exp_path == act_path

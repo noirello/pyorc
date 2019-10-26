@@ -7,6 +7,7 @@
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
+#include "TypeDescription.h"
 
 namespace py = pybind11;
 
@@ -35,6 +36,7 @@ class Reader : public ORCIterator
 {
   private:
     std::unique_ptr<orc::Reader> reader;
+    std::unique_ptr<TypeDescription> typeDesc;
     uint64_t batchSize;
 
   public:
@@ -44,7 +46,7 @@ class Reader : public ORCIterator
            std::list<std::string> = {});
     uint64_t len() const override;
     uint64_t numberOfStripes() const;
-    py::object schema();
+    TypeDescription& schema();
     Stripe readStripe(uint64_t);
 
     const orc::Reader& getORCReader() const { return *reader; }
