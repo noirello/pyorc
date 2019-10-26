@@ -48,14 +48,16 @@ PYBIND11_MODULE(_pyorc, m)
                     uint64_t,
                     int,
                     int,
-                    std::set<uint64_t>>(),
+                    std::set<uint64_t>,
+                    double>(),
            py::arg("fileo"),
            py::arg("str_schema"),
            py::arg_v("batch_size", 1024, "1024"),
            py::arg_v("stripe_size", 67108864, "67108864"),
            py::arg_v("compression", 1, "CompressionKind.ZLIB"),
            py::arg_v("compression_strategy", 0, "CompressionStrategy.SPEED"),
-           py::arg_v("bloom_filter_cols", std::set<uint64_t>{}, "None"))
+           py::arg_v("bloom_filter_columns", std::set<uint64_t>{}, "None"),
+           py::arg_v("bloom_filter_fpp", 0.05, "0.05"))
       .def("write", &Writer::write)
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);

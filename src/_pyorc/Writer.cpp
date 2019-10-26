@@ -7,7 +7,8 @@ Writer::Writer(py::object fileo,
                uint64_t stripe_size,
                int compression,
                int compression_strategy,
-               std::set<uint64_t> bloom_filter_cols)
+               std::set<uint64_t> bloom_filter_columns,
+               double bloom_filter_fpp)
 {
     currentRow = 0;
     batchItem = 0;
@@ -18,7 +19,8 @@ Writer::Writer(py::object fileo,
     options = options.setCompressionStrategy(
       static_cast<orc::CompressionStrategy>(compression_strategy));
     options = options.setStripeSize(stripe_size);
-    options = options.setColumnsUseBloomFilter(bloom_filter_cols);
+    options = options.setColumnsUseBloomFilter(bloom_filter_columns);
+    options = options.setBloomFilterFPP(bloom_filter_fpp);
 
     outStream = std::unique_ptr<orc::OutputStream>(new PyORCOutputStream(fileo));
     writer = createWriter(*schema, outStream.get(), options);
