@@ -2,7 +2,7 @@ from decimal import Decimal, localcontext
 
 def adjust_decimal(prec: int, scale: int, dec: Decimal) -> int:
     """
-    Adjust the Decimal number to thegiben precision and scale.
+    Adjust the Decimal number to the given precision and scale.
     Return the integer value of the number.
 
     :param int prec: the precision of the decimal

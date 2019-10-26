@@ -1,3 +1,3 @@
 from _pyorc import *
 
-from .enums import CompressionKind, CompressionStrategy
+from .enums import CompressionKind, CompressionStrategy, TypeKind
