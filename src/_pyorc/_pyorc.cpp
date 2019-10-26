@@ -1,6 +1,5 @@
-#include "Converter.h"
 #include "Reader.h"
-
+#include "TypeDescription.h"
 #include "Writer.h"
 
 namespace py = pybind11;
@@ -8,6 +7,25 @@ namespace py = pybind11;
 PYBIND11_MODULE(_pyorc, m)
 {
     m.doc() = "_pyorc c++ extension";
+    py::class_<TypeDescription>(m, "typedescription")
+      .def(py::init<std::string>(), py::arg("str_schema"))
+      .def(py::init<int>(), py::arg("kind"))
+      .def("__str__", [](TypeDescription& td) -> std::string { return td.str(); })
+      .def_property_readonly("kind", [](TypeDescription& td) { return td.getKind(); })
+      .def_property_readonly("column_id",
+                             [](TypeDescription& td) { return td.getColumnId(); })
+      .def_property("container_types",
+                    &TypeDescription::getContainerTypes,
+                    &TypeDescription::setContainerTypes)
+      .def_property(
+        "precision", &TypeDescription::getPrecision, &TypeDescription::setPrecision)
+      .def_property("scale", &TypeDescription::getScale, &TypeDescription::setScale)
+      .def_property(
+        "max_length", &TypeDescription::getMaxLength, &TypeDescription::setMaxLength)
+      .def_readonly("fields", &TypeDescription::fields, py::return_value_policy::copy)
+      .def("add_field", &TypeDescription::addField)
+      .def("remove_field", &TypeDescription::removeField)
+      .def("find_column_id", &TypeDescription::findColumnId);
     py::class_<Stripe>(m, "stripe")
       .def(
         py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }))
