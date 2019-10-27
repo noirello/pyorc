@@ -61,7 +61,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def_readonly("current_row", &Reader::currentRow);
     py::class_<Writer>(m, "writer")
       .def(py::init<py::object,
-                    std::string,
+                    TypeDescription&,
                     uint64_t,
                     uint64_t,
                     int,
@@ -69,7 +69,7 @@ PYBIND11_MODULE(_pyorc, m)
                     std::set<uint64_t>,
                     double>(),
            py::arg("fileo"),
-           py::arg("str_schema"),
+           py::arg("schema"),
            py::arg_v("batch_size", 1024, "1024"),
            py::arg_v("stripe_size", 67108864, "67108864"),
            py::arg_v("compression", 1, "CompressionKind.ZLIB"),

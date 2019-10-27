@@ -2,7 +2,7 @@
 #include "Writer.h"
 
 Writer::Writer(py::object fileo,
-               std::string schema_str,
+               TypeDescription& schema,
                uint64_t batch_size,
                uint64_t stripe_size,
                int compression,
@@ -12,7 +12,7 @@ Writer::Writer(py::object fileo,
 {
     currentRow = 0;
     batchItem = 0;
-    std::unique_ptr<orc::Type> schema(orc::Type::buildTypeFromString(schema_str));
+    std::unique_ptr<orc::Type> type = schema.buildType();
     orc::WriterOptions options;
 
     options = options.setCompression(static_cast<orc::CompressionKind>(compression));
@@ -23,10 +23,10 @@ Writer::Writer(py::object fileo,
     options = options.setBloomFilterFPP(bloom_filter_fpp);
 
     outStream = std::unique_ptr<orc::OutputStream>(new PyORCOutputStream(fileo));
-    writer = createWriter(*schema, outStream.get(), options);
+    writer = createWriter(*type, outStream.get(), options);
     batchSize = batch_size;
     batch = writer->createRowBatch(batchSize);
-    converter = createConverter(schema.get());
+    converter = createConverter(type.get());
 }
 
 void

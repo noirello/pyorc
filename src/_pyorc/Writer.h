@@ -7,6 +7,7 @@
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
+#include "TypeDescription.h"
 
 namespace py = pybind11;
 
@@ -24,7 +25,7 @@ class Writer
     uint64_t currentRow;
 
     Writer(py::object,
-           std::string,
+           TypeDescription&,
            uint64_t = 1024,
            uint64_t = 67108864,
            int = 1,

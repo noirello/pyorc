@@ -100,9 +100,9 @@ TESTDATA = [
 
 @pytest.mark.parametrize("expected,schema", TESTDATA, ids=idfn)
 def test_examples(expected, schema, output_file):
+    schema = pyorc.typedescription(schema)
     writer = pyorc.writer(output_file, schema)
     num = 0
-    schema = pyorc.typedescription(schema)
     for row in read_expected_json_record(get_full_path(expected)):
         orc_row = transform(schema, row)
         writer.write(orc_row)
@@ -120,7 +120,7 @@ def test_examples(expected, schema, output_file):
 
 
 def test_example_timestamp(output_file):
-    writer = pyorc.writer(output_file, "timestamp")
+    writer = pyorc.writer(output_file, pyorc.typedescription("timestamp"))
     num = 0
     for row in read_expected_json_record(
         get_full_path("TestOrcFile.testTimestamp.jsn.gz")
