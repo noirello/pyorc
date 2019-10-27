@@ -10,6 +10,7 @@ from decimal import Decimal
 from datetime import date, datetime, timezone
 
 import pyorc
+from pyorc.enums import TypeKind
 
 
 @pytest.fixture
@@ -21,64 +22,40 @@ def output_file():
     os.remove(testfile.name)
 
 
-def find_type(schema, col_name):
-    start_pos = schema.find("{0}:".format(col_name))
-    end_pos = schema.find(",", start_pos)
-    if "<" in schema[start_pos:end_pos]:
-        op = 1
-        cl = 0
-        for i, ch in enumerate(schema[start_pos:]):
-            if ch == "<":
-                op += 1
-            if ch == ">":
-                cl += 1
-            if cl == op:
-                return schema[start_pos : start_pos + i].split(":", 1)[-1]
+def transform(schema, value):
+    if schema.kind < 8:
+        # Primitive types, no transformation.
+        return value
+    elif schema.kind == TypeKind.STRUCT:
+        return {
+            col: transform(schema.fields[col], field) for col, field in value.items()
+        }
+    elif schema.kind == TypeKind.MAP:
+        return {
+            keypair["key"]: transform(schema.container_types[1], keypair["value"])
+            for keypair in value
+        }
+    elif schema.kind == TypeKind.LIST:
+        return [transform(schema.container_types[0], item) for item in value]
+    elif schema.kind == TypeKind.TIMESTAMP:
+        try:
+            ts = datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            ts = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        return ts.replace(tzinfo=timezone.utc)
+    elif schema.kind == TypeKind.DATE:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    elif schema.kind == TypeKind.BINARY:
+        return bytes(value)
+    elif schema.kind == TypeKind.DECIMAL:
+        if value is None:
+            return value
+        elif isinstance(value, float):
+            return Decimal.from_float(value)
+        else:
+            return Decimal(value)
     else:
-        return schema[start_pos:end_pos].split(":")[-1]
-
-
-def transform_json(schema, row):
-    if isinstance(row, dict):
-        transformed = {}
-        for col, value in row.items():
-            orc_type = find_type(schema, col)
-            if isinstance(value, dict) and orc_type.startswith("struct<"):
-                transformed[col] = transform_json("{0}:{1}".format(col, schema), value)
-            elif isinstance(value, list) and orc_type.startswith("map<"):
-                transformed[col] = {
-                    keypair["key"]: transform_json(
-                        "{0}:{1}".format(col, schema), keypair["value"]
-                    )
-                    for keypair in value
-                }
-            elif isinstance(value, list) and orc_type.startswith("array<"):
-                transformed[col] = [
-                    transform_json("{0}:{1}".format(col, schema), item)
-                    for item in value
-                ]
-            elif isinstance(value, str) and orc_type == "timestamp":
-                try:
-                    ts = datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
-                except ValueError:
-                    ts = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-                transformed[col] = ts.replace(tzinfo=timezone.utc)
-            elif isinstance(value, str) and orc_type == "date":
-                transformed[col] = datetime.strptime(value, "%Y-%m-%d").date()
-            elif isinstance(value, list) and orc_type == "binary":
-                transformed[col] = bytes(value)
-            elif "decimal" in orc_type:
-                if value is None:
-                    transformed[col] = value
-                elif isinstance(value, float):
-                    transformed[col] = Decimal.from_float(value)
-                else:
-                    transformed[col] = Decimal(value)
-            else:
-                transformed[col] = value
-        return transformed
-    else:
-        return row
+        return value
 
 
 def read_expected_json_record(path):
@@ -125,8 +102,9 @@ TESTDATA = [
 def test_examples(expected, schema, output_file):
     writer = pyorc.writer(output_file, schema)
     num = 0
+    schema = pyorc.typedescription(schema)
     for row in read_expected_json_record(get_full_path(expected)):
-        orc_row = transform_json(schema, row)
+        orc_row = transform(schema, row)
         writer.write(orc_row)
         num += 1
     assert num == writer.current_row
