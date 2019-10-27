@@ -7,6 +7,7 @@ Writer::Writer(py::object fileo,
                uint64_t stripe_size,
                int compression,
                int compression_strategy,
+               uint64_t compression_block_size,
                std::set<uint64_t> bloom_filter_columns,
                double bloom_filter_fpp)
 {
@@ -18,6 +19,7 @@ Writer::Writer(py::object fileo,
     options = options.setCompression(static_cast<orc::CompressionKind>(compression));
     options = options.setCompressionStrategy(
       static_cast<orc::CompressionStrategy>(compression_strategy));
+    options = options.setCompressionBlockSize(compression_block_size);
     options = options.setStripeSize(stripe_size);
     options = options.setColumnsUseBloomFilter(bloom_filter_columns);
     options = options.setBloomFilterFPP(bloom_filter_fpp);
