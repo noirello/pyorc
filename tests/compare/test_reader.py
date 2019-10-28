@@ -5,7 +5,7 @@ import gzip
 import os
 import math
 
-import pyorc
+import _pyorc
 
 from datetime import date, datetime
 from decimal import Decimal
@@ -80,7 +80,7 @@ def traverse_orc_row(schema, row, parent=""):
 
 def get_full_path(path):
     curdir = os.path.abspath(os.path.dirname(__file__))
-    projdir = os.path.abspath(os.path.join(curdir, os.pardir))
+    projdir = os.path.abspath(os.path.join(curdir, os.pardir, os.pardir))
     return os.path.join(projdir, "deps", "examples", path)
 
 
@@ -102,10 +102,10 @@ TESTDATA = [
 
 
 @pytest.mark.parametrize("example,expected", TESTDATA, ids=idfn)
-def test_examples(example, expected):
+def test_read(example, expected):
     exp_res = gzip.open(get_full_path(expected), "rb")
     with open(get_full_path(example), "rb") as fileo:
-        orc_res = pyorc.reader(fileo)
+        orc_res = _pyorc.reader(fileo)
         length = 0
         str_schema = str(orc_res.schema)
         for num, line in enumerate(exp_res):
@@ -147,12 +147,12 @@ def test_examples(example, expected):
     exp_res.close()
 
 
-def test_example_timestamp():
+def test_read_timestamp():
     exp_res = gzip.open(
         get_full_path("expected/TestOrcFile.testTimestamp.jsn.gz"), "rb"
     )
     with open(get_full_path("TestOrcFile.testTimestamp.orc"), "rb") as fileo:
-        orc_res = pyorc.reader(fileo)
+        orc_res = _pyorc.reader(fileo)
         length = 0
         for num, line in enumerate(exp_res):
             json_row = datetime.strptime(json.loads(line)[:26], "%Y-%m-%d %H:%M:%S.%f")

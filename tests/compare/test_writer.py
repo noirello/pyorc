@@ -9,7 +9,7 @@ import subprocess
 from decimal import Decimal
 from datetime import date, datetime, timezone
 
-import pyorc
+import _pyorc
 from pyorc.enums import TypeKind
 
 
@@ -66,7 +66,7 @@ def read_expected_json_record(path):
 
 def get_full_path(path):
     curdir = os.path.abspath(os.path.dirname(__file__))
-    projdir = os.path.abspath(os.path.join(curdir, os.pardir))
+    projdir = os.path.abspath(os.path.join(curdir, os.pardir, os.pardir))
     return os.path.join(projdir, "deps", "examples", "expected", path)
 
 
@@ -99,9 +99,9 @@ TESTDATA = [
 
 
 @pytest.mark.parametrize("expected,schema", TESTDATA, ids=idfn)
-def test_examples(expected, schema, output_file):
-    schema = pyorc.typedescription(schema)
-    writer = pyorc.writer(output_file, schema)
+def test_write(expected, schema, output_file):
+    schema = _pyorc.typedescription(schema)
+    writer = _pyorc.writer(output_file, schema)
     num = 0
     for row in read_expected_json_record(get_full_path(expected)):
         orc_row = transform(schema, row)
@@ -119,8 +119,8 @@ def test_examples(expected, schema, output_file):
         next(exp_res)
 
 
-def test_example_timestamp(output_file):
-    writer = pyorc.writer(output_file, pyorc.typedescription("timestamp"))
+def test_write_timestamp(output_file):
+    writer = _pyorc.writer(output_file, _pyorc.typedescription("timestamp"))
     num = 0
     for row in read_expected_json_record(
         get_full_path("TestOrcFile.testTimestamp.jsn.gz")
