@@ -13,7 +13,7 @@ PyORCInputStream::PyORCInputStream(py::object fp)
         throw py::type_error("File-like object must be seekable");
     }
     if (py::hasattr(fp, "name")) {
-        filename = py::cast<std::string>(fp.attr("name"));
+        filename = py::cast<std::string>(py::str(fp.attr("name")));
     } else {
         filename = py::cast<std::string>(py::repr(fp));
     }
@@ -76,7 +76,7 @@ PyORCOutputStream::PyORCOutputStream(py::object fp)
     pywrite = fp.attr("write");
     pyflush = fp.attr("flush");
     if (py::hasattr(fp, "name")) {
-        filename = py::cast<std::string>(fp.attr("name"));
+        filename = py::cast<std::string>(py::str(fp.attr("name")));
     } else {
         filename = py::cast<std::string>(py::repr(fp));
     }
