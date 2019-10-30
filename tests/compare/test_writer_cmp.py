@@ -9,7 +9,7 @@ import subprocess
 from decimal import Decimal
 from datetime import date, datetime, timezone
 
-import _pyorc
+import pyorc._pyorc
 from pyorc.enums import TypeKind
 
 
@@ -100,8 +100,8 @@ TESTDATA = [
 
 @pytest.mark.parametrize("expected,schema", TESTDATA, ids=idfn)
 def test_write(expected, schema, output_file):
-    schema = _pyorc.typedescription(schema)
-    writer = _pyorc.writer(output_file, schema)
+    schema = pyorc._pyorc.typedescription(schema)
+    writer = pyorc._pyorc.writer(output_file, schema)
     num = 0
     for row in read_expected_json_record(get_full_path(expected)):
         orc_row = transform(schema, row)
@@ -120,7 +120,7 @@ def test_write(expected, schema, output_file):
 
 
 def test_write_timestamp(output_file):
-    writer = _pyorc.writer(output_file, _pyorc.typedescription("timestamp"))
+    writer = pyorc._pyorc.writer(output_file, pyorc._pyorc.typedescription("timestamp"))
     num = 0
     for row in read_expected_json_record(
         get_full_path("TestOrcFile.testTimestamp.jsn.gz")

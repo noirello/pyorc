@@ -1,6 +1,6 @@
 from typing import Union, Optional, List, BinaryIO
 
-from _pyorc import writer, typedescription
+from pyorc._pyorc import writer, typedescription
 from .enums import CompressionKind, CompressionStrategy
 
 

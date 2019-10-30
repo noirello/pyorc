@@ -1,6 +1,6 @@
 from typing import Union, Optional, List, BinaryIO
 
-from _pyorc import reader
+from pyorc._pyorc import reader
 
 
 class Reader(reader):

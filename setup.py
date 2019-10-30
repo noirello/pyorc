@@ -131,7 +131,7 @@ LIBS = ["orc", "protobuf", "protoc", "lz4", "zstd", "z", "snappy", "pthread"]
 
 EXT_MODULES = [
     Extension(
-        "_pyorc",
+        "pyorc._pyorc",
         sources=SOURCES,
         depends=HEADERS,
         libraries=LIBS,
