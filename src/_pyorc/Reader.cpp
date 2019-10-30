@@ -29,13 +29,16 @@ ORCIterator::read(int64_t num)
 {
     int64_t i = 0;
     py::list res;
+    if (num < -1) {
+        throw py::value_error("Read length must be positive or -1");
+    }
     try {
         while (true) {
-            res.append(this->next());
-            ++i;
             if (num != -1 && i == num) {
                 return res;
             }
+            res.append(this->next());
+            ++i;
         }
     } catch (py::stop_iteration) {
         return res;
