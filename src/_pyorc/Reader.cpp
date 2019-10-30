@@ -25,15 +25,15 @@ ORCIterator::next()
 }
 
 py::object
-ORCIterator::read(uint64_t num)
+ORCIterator::read(int64_t num)
 {
-    uint64_t i = 0;
+    int64_t i = 0;
     py::list res;
     try {
         while (true) {
             res.append(this->next());
             ++i;
-            if (num != (uint64_t)-1 && i == num) {
+            if (num != -1 && i == num) {
                 return res;
             }
         }

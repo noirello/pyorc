@@ -25,7 +25,7 @@ class ORCIterator
     uint64_t firstRowOfStripe;
     virtual uint64_t len() const = 0;
     py::object next();
-    py::object read(uint64_t = -1);
+    py::object read(int64_t = -1);
     uint64_t seek(int64_t, uint16_t = 0);
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
 };
