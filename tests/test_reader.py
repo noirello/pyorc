@@ -1,8 +1,27 @@
 import pytest
 
 import io
+import string
 
 from pyorc import Reader, Writer, typedescription, TypeKind
+
+
+@pytest.fixture
+def orc_data():
+    def _init(row):
+        data = io.BytesIO()
+        with Writer(data, "struct<col0:int,col1:string>") as writer:
+            for i in range(row):
+                writer.write(
+                    {
+                        "col0": i,
+                        "col1": "Test {0}".format(string.ascii_uppercase[i % 26]),
+                    }
+                )
+        data.seek(0)
+        return data
+
+    return _init
 
 
 def test_next():
@@ -21,17 +40,13 @@ def test_next():
         next(reader)
 
 
-def test_iter():
-    data = io.BytesIO()
-    with Writer(data, "struct<col0:int,col1:string>") as writer:
-        for i in range(20):
-            writer.write({"col0": i, "col1": "Test"})
-    reader = Reader(data)
+def test_iter(orc_data):
+    reader = Reader(orc_data(20))
     result = [row for row in reader]
     assert len(result) == 20
-    assert {"col0": 0, "col1": "Test"} == result[0]
-    assert {"col0": 19, "col1": "Test"} == result[-1]
-    assert {"col0": 12, "col1": "Test"} in result
+    assert {"col0": 0, "col1": "Test A"} == result[0]
+    assert {"col0": 19, "col1": "Test T"} == result[-1]
+    assert {"col0": 12, "col1": "Test M"} in result
 
 
 def test_len():
@@ -72,14 +87,8 @@ def test_schema():
     assert schema.kind == TypeKind.STRUCT
 
 
-def test_current_row():
-    data = io.BytesIO()
-    with Writer(data, "struct<col0:int,col1:string>") as writer:
-        for i in range(20):
-            writer.write({"col0": i, "col1": "Test"})
-    data.seek(0)
-
-    reader = Reader(data)
+def test_current_row(orc_data):
+    reader = Reader(orc_data(20))
     assert reader.current_row == 0
     for _ in range(10):
         _ = next(reader)
@@ -96,13 +105,8 @@ def test_current_row():
         del reader.current_row
 
 
-def test_seek():
-    data = io.BytesIO()
-    with Writer(data, "struct<col0:int,col1:string>") as writer:
-        for i in range(50):
-            writer.write({"col0": i, "col1": "Test"})
-    data.seek(0)
-    reader = Reader(data)
+def test_seek(orc_data):
+    reader = Reader(orc_data(50))
     assert reader.seek(0) == 0
     assert reader.current_row == 0
     assert reader.seek(10) == 10
@@ -124,3 +128,43 @@ def test_seek():
         reader.seek(-1, 0)
     with pytest.raises(ValueError):
         reader.seek(10, 10)
+
+
+def test_read(orc_data):
+    reader = Reader(orc_data(80))
+    result = reader.read()
+    assert len(result) == len(reader)
+    assert {"col0": 0, "col1": "Test A"} == result[0]
+    assert {"col0": 25, "col1": "Test Z"} == result[25]
+    assert result[-1]["col0"] == 79
+    assert reader.current_row == 80
+    with pytest.raises(StopIteration):
+        _ = next(reader)
+    result = reader.read()
+    assert result == []
+
+    reader = Reader(orc_data(80))
+    with pytest.raises(ValueError):
+        _ = reader.read(-5)
+    with pytest.raises(TypeError):
+        _ = reader.read("a")
+    result = reader.read(10)
+    assert len(result) == 10
+    assert {"col0": 0, "col1": "Test A"} == result[0]
+    assert {"col0": 9, "col1": "Test J"} == result[-1]
+
+    result = reader.read(15)
+    assert len(result) == 15
+    assert {"col0": 10, "col1": "Test K"} == result[0]
+    assert {"col0": 24, "col1": "Test Y"} == result[-1]
+    assert reader.current_row == 25
+
+    result = reader.read()
+    assert len(result) == 55
+    assert {"col0": 25, "col1": "Test Z"} == result[0]
+
+    reader = Reader(orc_data(80))
+    result = reader.read(0)
+    assert result == []
+    result = reader.read(-1)
+    assert len(result) == len(reader)
