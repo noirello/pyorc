@@ -54,7 +54,9 @@ PyORCInputStream::read(void* buf, uint64_t length, uint64_t offset)
     py::object data = pyread(length);
     int rc = PyBytes_AsStringAndSize(data.release().ptr(), &src, &bytesRead);
     if (rc == -1) {
-        throw py::error_already_set();
+        PyErr_Clear();
+        throw orc::ParseError(
+          "Failed to read content as bytes. Stream might not be opened as binary");
     }
 
     if (static_cast<uint64_t>(bytesRead) != length) {
