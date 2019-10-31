@@ -101,8 +101,8 @@ TypeDescription::buildType()
                 auto elem = py::cast<TypeDescription>(containerTypes[0]);
                 return orc::createListType(elem.buildType());
             } catch (py::cast_error) {
-                throw py::value_error(
-                  "Items in container types must be a TypeDescription object.");
+                throw py::type_error(
+                  "Items in container types must be a TypeDescription object");
             }
         }
         case orc::MAP: {
@@ -111,8 +111,8 @@ TypeDescription::buildType()
                 auto val = py::cast<TypeDescription>(containerTypes[1]);
                 return orc::createMapType(key.buildType(), val.buildType());
             } catch (py::cast_error) {
-                throw py::value_error(
-                  "Items in container_types must be a TypeDescription object.");
+                throw py::type_error(
+                  "Items in container_types must be a TypeDescription object");
             }
         }
         case orc::STRUCT: {
@@ -125,8 +125,8 @@ TypeDescription::buildType()
                     std::stringstream errmsg;
                     errmsg
                       << "Field `" << name
-                      << "` has an invalid value. It must be a TypeDescription object.";
-                    throw py::value_error(errmsg.str());
+                      << "` has an invalid value. It must be a TypeDescription object";
+                    throw py::type_error(errmsg.str());
                 }
             }
             return type;
@@ -141,14 +141,14 @@ TypeDescription::buildType()
                     std::stringstream errmsg;
                     errmsg << "Item " << i
                            << " in container_types has an invalid value. It must be a "
-                              "TypeDescription object.";
-                    throw py::value_error(errmsg.str());
+                              "TypeDescription object";
+                    throw py::type_error(errmsg.str());
                 }
             }
             return type;
         }
         default:
-            throw py::value_error("Invalid TypeKind");
+            throw py::type_error("Invalid TypeKind");
     }
 }
 
@@ -156,7 +156,7 @@ void
 TypeDescription::addField(std::string name, TypeDescription type)
 {
     if (kind != orc::STRUCT) {
-        throw py::value_error("Not allowed to add field to a non struct type.");
+        throw py::type_error("Not allowed to add field to a non struct type");
     }
     if (!fields.contains(name)) {
         fieldNames.push_back(name);
@@ -169,7 +169,7 @@ void
 TypeDescription::removeField(std::string name)
 {
     if (kind != orc::STRUCT) {
-        throw py::value_error("Not allowed to remove field from a non struct type.");
+        throw py::type_error("Not allowed to remove field from a non struct type");
     }
     fieldNames.erase(std::remove(fieldNames.begin(), fieldNames.end(), name),
                      fieldNames.end());
@@ -203,26 +203,26 @@ TypeDescription::setContainerTypes(py::object obj)
 {
     py::list list(obj);
     if (kind != orc::LIST && kind != orc::MAP && kind != orc::UNION) {
-        throw py::value_error("Not allowed to set container_type");
+        throw py::type_error("Not allowed to set container_type");
     }
     if (kind == orc::LIST && list.size() != 1) {
         throw py::value_error(
-          "For list type container_types must contain one element.");
+          "For list type container_types must contain one element");
     }
     if (kind == orc::MAP && list.size() != 2) {
         throw py::value_error(
-          "For map type container_types must contain two elements.");
+          "For map type container_types must contain two elements");
     }
     if (kind == orc::UNION && list.size() == 0) {
-        throw py::value_error("For union type container_types cannot be empty.");
+        throw py::value_error("For union type container_types cannot be empty");
     }
     for (size_t i = 0; i < list.size(); ++i) {
         if (!py::isinstance<TypeDescription>(list[i])) {
             std::stringstream errmsg;
             errmsg << "Item " << i
                    << " in container_types has an invalid value. It must be a "
-                      "TypeDescription object.";
-            throw py::value_error(errmsg.str());
+                      "TypeDescription object";
+            throw py::type_error(errmsg.str());
         }
     }
     containerTypes = obj;
@@ -241,7 +241,7 @@ TypeDescription::setPrecision(uint64_t value)
     if (kind == orc::DECIMAL) {
         precision = py::cast<uint64_t>(value);
     } else {
-        throw py::value_error("Cannot set precision for a non Decimal type.");
+        throw py::type_error("Cannot set precision for a non Decimal type");
     }
 }
 
@@ -257,7 +257,7 @@ TypeDescription::setScale(uint64_t value)
     if (kind == orc::DECIMAL) {
         scale = py::cast<uint64_t>(value);
     } else {
-        throw py::value_error("Cannot set scale for a non Decimal type.");
+        throw py::type_error("Cannot set scale for a non Decimal type");
     }
 }
 
@@ -273,7 +273,7 @@ TypeDescription::setMaxLength(uint64_t value)
     if (kind == orc::CHAR || kind == orc::VARCHAR) {
         maxLength = py::cast<uint64_t>(value);
     } else {
-        throw py::value_error("Cannot set max_length for a non char or varchar type.");
+        throw py::type_error("Cannot set max_length for a non char or varchar type");
     }
 }
 

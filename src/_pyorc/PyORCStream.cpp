@@ -4,7 +4,7 @@ PyORCInputStream::PyORCInputStream(py::object fp)
 {
     if (!(py::hasattr(fp, "read") && py::hasattr(fp, "seek"))) {
         throw py::type_error("Parameter must be a file-like object, but `" +
-                             (std::string)(py::repr(fp)) + "` provided");
+                             (std::string)(py::str(fp.get_type())) + "` was provided");
     }
     pyread = fp.attr("read");
     pyseek = fp.attr("seek");
@@ -73,7 +73,7 @@ PyORCOutputStream::PyORCOutputStream(py::object fp)
     bytesWritten = 0;
     if (!(py::hasattr(fp, "write") && py::hasattr(fp, "flush"))) {
         throw py::type_error("Parameter must be a file-like object, but `" +
-                             (std::string)(py::repr(fp)) + "` provided");
+                             (std::string)(py::str(fp.get_type())) + "` was provided");
     }
     pywrite = fp.attr("write");
     pyflush = fp.attr("flush");
@@ -107,7 +107,7 @@ void
 PyORCOutputStream::write(const void* buf, size_t length)
 {
     if (closed) {
-        throw std::logic_error("Cannot write to closed stream.");
+        throw std::logic_error("Cannot write to closed stream");
     }
     py::bytes data = py::bytes(static_cast<const char*>(buf), length);
     size_t count = py::cast<size_t>(pywrite(data));

@@ -89,14 +89,14 @@ Reader::Reader(py::object fileo,
         try {
             rowReaderOpts = rowReaderOpts.include(col_indices);
         } catch (py::cast_error) {
-            throw py::value_error("col_indices must be a sequence of integers");
+            throw py::type_error("col_indices must be a sequence of integers");
         }
     }
     if (!col_names.empty()) {
         try {
             rowReaderOpts = rowReaderOpts.include(col_names);
         } catch (py::cast_error) {
-            throw py::value_error("col_names must be a sequence of strings");
+            throw py::type_error("col_names must be a sequence of strings");
         }
     }
     reader = createReader(
