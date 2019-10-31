@@ -7,6 +7,16 @@ namespace py = pybind11;
 PYBIND11_MODULE(_pyorc, m)
 {
     m.doc() = "_pyorc c++ extension";
+    py::register_exception_translator([](std::exception_ptr p) {
+        try {
+            if (p) {
+                std::rethrow_exception(p);
+            }
+        } catch (const orc::ParseError& e) {
+            py::object err = py::module::import("pyorc.errors").attr("ParseError");
+            PyErr_SetString(err.ptr(), e.what());
+        } 
+    });
     py::class_<TypeDescription>(m, "typedescription")
       .def(py::init<std::string>(), py::arg("str_schema"))
       .def(py::init<int>(), py::arg("kind"))
