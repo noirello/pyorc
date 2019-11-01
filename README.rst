@@ -1,7 +1,10 @@
 PyORC
 =====
 
-Python module for reading and writing `Apache ORC`_ file format. It uses the Apache ORC's Core C++ API.
+Python module for reading and writing `Apache ORC`_ file format. It uses the Apache ORC's Core C++ API
+under the hood, and provides a similar interface as the `csv module`_ in the Python standard library.
+
+Supports only Python 3.6 or newer and ORC 1.6.0.
 
 Example
 -------
@@ -29,3 +32,4 @@ And another for writing one:
 
 
 .. _Apache ORC: https://orc.apache.org/
+.. _csv module: https://docs.python.org/3/library/csv.html
