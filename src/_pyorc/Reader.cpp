@@ -117,9 +117,12 @@ Reader::numberOfStripes() const
 }
 
 Stripe
-Reader::readStripe(uint64_t num)
+Reader::readStripe(uint64_t idx)
 {
-    return Stripe(*this, num, reader->getStripe(num));
+    if (idx >= reader->getNumberOfStripes()) {
+        throw py::index_error("stripe index out of range");
+    }
+    return Stripe(*this, idx, reader->getStripe(idx));
 }
 
 TypeDescription&
@@ -129,13 +132,13 @@ Reader::schema()
 }
 
 Stripe::Stripe(const Reader& reader_,
-               uint64_t num,
+               uint64_t idx,
                std::unique_ptr<orc::StripeInformation> stripe)
   : reader(reader_)
 {
     batchItem = 0;
     currentRow = 0;
-    stripeIndex = num;
+    stripeIndex = idx;
     stripeInfo = std::move(stripe);
     rowReaderOpts = reader.getRowReaderOptions();
     rowReaderOpts =
