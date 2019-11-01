@@ -64,9 +64,9 @@ def test_decimal():
 
 def test_decimal_fail():
     descr = typedescription(TypeKind.VARCHAR)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         descr.precision = 3
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         descr.scale = 2
 
 
@@ -86,7 +86,7 @@ def test_varchar():
 
 def test_varchar_fail():
     descr = typedescription(TypeKind.LONG)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         descr.max_length = 3
 
 
@@ -102,7 +102,7 @@ def test_container_types():
     assert descr.container_types[0].column_id == 1
     with pytest.raises(ValueError):
         descr.container_types = (typedescription(TypeKind.STRING),)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         descr.container_types = (0, 1)
     descr = typedescription("array<string>")
     assert len(descr.container_types) == 1
@@ -119,13 +119,13 @@ def test_container_types():
         descr.container_types = []
     descr = typedescription("string")
     assert descr.container_types == []
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         descr.container_types = [typedescription(TypeKind.STRING)]
 
 
 def test_add_field():
     descr = typedescription("string")
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         descr.add_field("test", typedescription(TypeKind.INT))
     descr = typedescription(TypeKind.STRUCT)
     assert descr.fields == {}
@@ -142,7 +142,7 @@ def test_add_field():
 
 def test_remove_field():
     descr = typedescription("string")
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         descr.remove_field("test")
     descr = typedescription("struct<a:double,b:string>")
     assert descr.fields["b"].column_id == 2
