@@ -4,7 +4,7 @@ import io
 import tempfile
 from decimal import Decimal
 
-from pyorc import Writer, Reader, typedescription, ParseError
+from pyorc import Writer, Reader, typedescription, ParseError, TypeKind
 
 
 def test_open_file():
@@ -140,6 +140,7 @@ def test_write():
     reader = Reader(data)
     assert reader.read() == records
 
+
 TESTDATA = [
     ("string", 0),
     ("string", b"\x10\x13"),
@@ -170,16 +171,17 @@ def test_write_wrong_primitive_type(orc_type, value):
 def test_context_manager():
     data = io.BytesIO()
     records = [
-            {"col0": 1, "col1": "Test A", "col2": 2.13},
-            {"col0": 2, "col1": "Test B", "col2": 0.123213},
-            {"col0": 3, "col1": "Test C", "col2": 123.011234},
-        ]
+        {"col0": 1, "col1": "Test A", "col2": 2.13},
+        {"col0": 2, "col1": "Test B", "col2": 0.123213},
+        {"col0": 3, "col1": "Test C", "col2": 123.011234},
+    ]
     with Writer(data, "struct<col0:int,col1:string,col2:double>") as writer:
         for rec in records:
             writer.write(rec)
     data.seek(0)
     reader = Reader(data)
     assert reader.read() == records
+
 
 def test_current_row():
     data = io.BytesIO()
@@ -194,3 +196,20 @@ def test_current_row():
     data.seek(0)
     reader = Reader(data)
     assert writer.current_row == len(reader)
+
+
+def test_schema():
+    schema_str = "struct<col0:int,col1:string>"
+    data = io.BytesIO()
+    writer = Writer(data, schema_str)
+
+    assert str(writer.schema) == schema_str
+    with pytest.raises(AttributeError):
+        writer.schema = "fail"
+    with pytest.raises(AttributeError):
+        del writer.schema
+
+    schema = writer.schema
+    del writer
+    assert isinstance(schema, typedescription)
+    assert schema.kind == TypeKind.STRUCT
