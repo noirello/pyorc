@@ -15,7 +15,7 @@ PYBIND11_MODULE(_pyorc, m)
         } catch (const orc::ParseError& e) {
             py::object err = py::module::import("pyorc.errors").attr("ParseError");
             PyErr_SetString(err.ptr(), e.what());
-        } 
+        }
     });
     py::class_<TypeDescription>(m, "typedescription")
       .def(py::init<std::string>(), py::arg("str_schema"))
@@ -38,7 +38,8 @@ PYBIND11_MODULE(_pyorc, m)
       .def("find_column_id", &TypeDescription::findColumnId);
     py::class_<Stripe>(m, "stripe")
       .def(
-        py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }))
+        py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }),
+        py::keep_alive<0, 2>())
       .def("__next__", [](Stripe& s) -> py::object { return s.next(); })
       .def("__iter__", [](Stripe& s) -> Stripe& { return s; })
       .def("__len__", &Stripe::len)
