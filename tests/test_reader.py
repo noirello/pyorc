@@ -2,8 +2,9 @@ import pytest
 
 import io
 import string
+import tempfile
 
-from pyorc import Reader, Writer, typedescription, TypeKind
+from pyorc import Reader, Writer, typedescription, TypeKind, ParseError
 
 
 @pytest.fixture
@@ -22,6 +23,45 @@ def orc_data():
         return data
 
     return _init
+
+
+def test_init(orc_data):
+    with pytest.raises(TypeError):
+        _ = Reader(0)
+    with pytest.raises(TypeError):
+        _ = Reader(orc_data(1), "fail")
+    reader = Reader(orc_data(2), 1)
+    assert reader is not None
+
+
+def test_open_file():
+    with tempfile.NamedTemporaryFile(mode="wb") as fp:
+        with pytest.raises(ParseError):
+            _ = Reader(fp)
+        fp.write(b"TESTTORC\x08\x03\x10\x03")
+        fp.flush()
+        fp.seek(0)
+        with open(fp.name, "rb") as fp2:
+            with pytest.raises(ParseError):
+                _ = Reader(fp2)
+        fp.write(b'ORC\x08\x03\x10\x03"k\x08\x0c\x12\x0c\x01\x02\x03')
+        fp.flush()
+        fp.seek(0)
+        with open(fp.name, "rt") as fp2:
+            with pytest.raises(ParseError):
+                _ = Reader(fp2)
+        with open(fp.name, "rb") as fp2:
+            with pytest.raises(ParseError):
+                _ = Reader(fp2)
+        fp.seek(0)
+        Writer(fp, "struct<col0:int,col1:string>").close()
+        with open(fp.name, "ab") as fp2:
+            with pytest.raises(io.UnsupportedOperation):
+                _ = Reader(fp2)
+        with open(fp.name, "rb") as fp2:
+            reader = Reader(fp2)
+            assert reader is not None
+            assert len(reader) == 0
 
 
 def test_next():
@@ -168,3 +208,30 @@ def test_read(orc_data):
     assert result == []
     result = reader.read(-1)
     assert len(result) == len(reader)
+
+
+def test_include():
+    data = io.BytesIO()
+    record = {"col0": 1, "col1": "Test A", "col2": 3.14}
+    with Writer(data, "struct<col0:int,col1:string,col2:double>") as writer:
+        writer.write(record)
+    data.seek(0)
+    reader = Reader(data, column_indices=[0])
+    assert next(reader) == {"col0": 1}
+    reader = Reader(data, column_indices=[0, 2])
+    assert next(reader) == {"col0": 1, "col2": 3.14}
+    with pytest.raises(TypeError):
+        _ = Reader(data, column_indices=[0, "2"])
+    reader = Reader(data, column_names=["col0"])
+    assert next(reader) == {"col0": 1}
+    reader = Reader(data, column_names=["col1", "col2"])
+    assert next(reader) == {"col1": "Test A", "col2": 3.14}
+    with pytest.raises(TypeError):
+        _ = Reader(data, column_names=["col1", 2])
+    with pytest.raises(ValueError):
+        _ = Reader(data, column_indices=[10])
+    with pytest.raises(ValueError):
+        _ = Reader(data, column_names=["col5"])
+    with pytest.raises(ValueError):
+        _ = Reader(data, column_names=["col1"], column_indices=[2])
+
