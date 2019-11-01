@@ -1,4 +1,4 @@
-from pyorc._pyorc import typedescription
+from pyorc._pyorc import typedescription, stripe
 
 from .enums import CompressionKind, CompressionStrategy, TypeKind
 from .errors import *

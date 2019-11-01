@@ -4,7 +4,14 @@ import io
 import string
 import tempfile
 
-from pyorc import Reader, Writer, typedescription, TypeKind, ParseError
+from pyorc import (
+    Reader,
+    Writer,
+    typedescription,
+    TypeKind,
+    ParseError,
+    stripe as Stripe,
+)
 
 
 @pytest.fixture
@@ -19,6 +26,25 @@ def orc_data():
                         "col1": "Test {0}".format(string.ascii_uppercase[i % 26]),
                     }
                 )
+        data.seek(0)
+        return data
+
+    return _init
+
+
+@pytest.fixture
+def stripped_orc_data():
+    def _init(row):
+        data = io.BytesIO()
+        with Writer(
+            data,
+            "struct<col0:int>",
+            batch_size=65535,
+            stripe_size=128,
+            compression_block_size=128,
+        ) as writer:
+            for i in range(row):
+                writer.write({"col0": i})
         data.seek(0)
         return data
 
@@ -235,3 +261,30 @@ def test_include():
     with pytest.raises(ValueError):
         _ = Reader(data, column_names=["col1"], column_indices=[2])
 
+
+def test_num_of_stripes(stripped_orc_data):
+    reader = Reader(stripped_orc_data(655))
+    assert reader.num_of_stripes == 1
+    reader = Reader(stripped_orc_data(655350))
+    assert reader.num_of_stripes == 10
+
+
+def test_read_stripe(stripped_orc_data):
+    reader = Reader(stripped_orc_data(655350))
+    stripe = reader.read_stripe(0)
+    assert isinstance(stripe, Stripe)
+    with pytest.raises(IndexError):
+        _ = reader.read_stripe(11)
+    with pytest.raises(TypeError):
+        _ = reader.read_stripe(-1)
+    with pytest.raises(IndexError):
+        _ = reader.read_stripe(10)
+    stripe = reader.read_stripe(9)
+    assert isinstance(stripe, Stripe)
+
+
+def test_iter_stripe(stripped_orc_data):
+    reader = Reader(stripped_orc_data(655350))
+    stripes = list(reader.iter_stripes())
+    assert len(stripes) == reader.num_of_stripes
+    assert all(isinstance(stripe, Stripe) for stripe in reader.iter_stripes())

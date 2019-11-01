@@ -151,5 +151,5 @@ def test_remove_field():
     assert "a" not in descr.fields
     with pytest.raises(KeyError):
         descr.remove_field("c")
-    assert descr.fields["b"].column_id == 1 
+    assert descr.fields["b"].column_id == 1
     assert str(descr) == "struct<b:string>"
