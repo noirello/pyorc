@@ -86,18 +86,10 @@ Reader::Reader(py::object fileo,
           "Either col_indices or col_names can be set to select columns");
     }
     if (!col_indices.empty()) {
-        try {
-            rowReaderOpts = rowReaderOpts.include(col_indices);
-        } catch (py::cast_error) {
-            throw py::type_error("col_indices must be a sequence of integers");
-        }
+        rowReaderOpts = rowReaderOpts.include(col_indices);
     }
     if (!col_names.empty()) {
-        try {
-            rowReaderOpts = rowReaderOpts.include(col_names);
-        } catch (py::cast_error) {
-            throw py::type_error("col_names must be a sequence of strings");
-        }
+        rowReaderOpts = rowReaderOpts.include(col_names);
     }
     reader = createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
