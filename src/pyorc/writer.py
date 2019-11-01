@@ -20,13 +20,17 @@ class Writer(writer):
         if isinstance(schema, str):
             schema = typedescription(schema)
         elif not isinstance(schema, typedescription):
-            raise TypeError("Invalid `schema` type, mustbe string or typedescription.")
+            raise TypeError("Invalid `schema` type, must be string or typedescription")
+        if 0.0 >= bloom_filter_fpp or bloom_filter_fpp >= 1.0:
+            raise ValueError("False positive probability should be > 0.0 & < 1.0")
         self.__schema = schema
+        comp = CompressionKind(compression)
+        comp_strat = CompressionStrategy(compression_strategy)
         bf_set = set()
         if bloom_filter_columns:
             if any(not isinstance(item, (int, str)) for item in bloom_filter_columns):
                 raise ValueError(
-                    "All items in `bloom_filter_columns` mut be string or int."
+                    "All items in `bloom_filter_columns` mut be string or int"
                 )
             for item in bloom_filter_columns:
                 if isinstance(item, int):
@@ -38,8 +42,8 @@ class Writer(writer):
             self.__schema,
             batch_size,
             stripe_size,
-            compression,
-            compression_strategy,
+            comp,
+            comp_strat,
             compression_block_size,
             bf_set,
             bloom_filter_fpp,

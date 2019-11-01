@@ -305,8 +305,15 @@ BoolConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
         longBatch->hasNulls = true;
         longBatch->notNull[rowId] = 0;
     } else {
-        longBatch->data[rowId] = py::cast<int64_t>(elem);
-        longBatch->notNull[rowId] = 1;
+        try {
+            longBatch->data[rowId] = py::cast<int64_t>(elem);
+            longBatch->notNull[rowId] = 1;
+        } catch (py::cast_error) {
+            std::stringstream errmsg;
+            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                   << " cannot be cast to long int (for boolean)";
+            throw py::type_error(errmsg.str());
+        }
     }
     longBatch->numElements = rowId + 1;
 }
@@ -336,8 +343,15 @@ LongConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
         longBatch->hasNulls = true;
         longBatch->notNull[rowId] = 0;
     } else {
-        longBatch->data[rowId] = py::cast<int64_t>(elem);
-        longBatch->notNull[rowId] = 1;
+        try {
+            longBatch->data[rowId] = py::cast<int64_t>(elem);
+            longBatch->notNull[rowId] = 1;
+        } catch (py::cast_error) {
+            std::stringstream errmsg;
+            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                   << " cannot be cast to long int";
+            throw py::type_error(errmsg.str());
+        }
     }
     longBatch->numElements = rowId + 1;
 }
@@ -367,8 +381,15 @@ DoubleConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
         doubleBatch->hasNulls = true;
         doubleBatch->notNull[rowId] = 0;
     } else {
-        doubleBatch->data[rowId] = py::cast<double>(elem);
-        doubleBatch->notNull[rowId] = 1;
+        try {
+            doubleBatch->data[rowId] = py::cast<double>(elem);
+            doubleBatch->notNull[rowId] = 1;
+        } catch (py::cast_error) {
+            std::stringstream errmsg;
+            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                   << " cannot be cast to double";
+            throw py::type_error(errmsg.str());
+        }
     }
     doubleBatch->numElements = rowId + 1;
 }
@@ -403,7 +424,15 @@ StringConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
         Py_ssize_t length = 0;
         char* src = PyUnicode_AsUTF8AndSize(elem.ptr(), &length);
         if (src == nullptr) {
-            throw py::error_already_set();
+            if (PyErr_ExceptionMatches(PyExc_TypeError) == 1) {
+                PyErr_Clear();
+                std::stringstream errmsg;
+                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                       << " cannot be cast to string";
+                throw py::type_error(errmsg.str());
+            } else {
+                throw py::error_already_set();
+            }
         }
         buffer.push_back(elem);
         strBatch->data[rowId] = src;
@@ -450,7 +479,15 @@ BinaryConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
         Py_ssize_t length = 0;
         int rc = PyBytes_AsStringAndSize(elem.ptr(), &src, &length);
         if (rc == -1) {
-            throw py::error_already_set();
+            if (PyErr_ExceptionMatches(PyExc_TypeError) == 1) {
+                PyErr_Clear();
+                std::stringstream errmsg;
+                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                       << " cannot be cast to bytes";
+                throw py::type_error(errmsg.str());
+            } else {
+                throw py::error_already_set();
+            }
         }
         buffer.push_back(elem);
         bytesBatch->data[rowId] = src;
@@ -506,12 +543,24 @@ TimestampConverter::write(orc::ColumnVectorBatch* batch,
         tsBatch->hasNulls = true;
         tsBatch->notNull[rowId] = 0;
     } else {
-        py::object touts(
-          (elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
-        py::object microseconds(elem.attr("microsecond"));
-        tsBatch->data[rowId] = static_cast<int64_t>(py::cast<double>(touts()));
-        tsBatch->nanoseconds[rowId] = py::cast<int64_t>(microseconds) * 1000;
-        tsBatch->notNull[rowId] = 1;
+        try {
+            py::object touts(
+            (elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
+            py::object microseconds(elem.attr("microsecond"));
+            tsBatch->data[rowId] = static_cast<int64_t>(py::cast<double>(touts()));
+            tsBatch->nanoseconds[rowId] = py::cast<int64_t>(microseconds) * 1000;
+            tsBatch->notNull[rowId] = 1;
+        } catch (py::error_already_set& ex) {
+            if (!ex.matches(PyExc_AttributeError)) {
+                throw;
+            } else {
+                PyErr_Clear();
+                std::stringstream errmsg;
+                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                       << " cannot be cast to timestamp";
+                throw py::type_error(errmsg.str());
+            }
+        }
     }
     tsBatch->numElements = rowId + 1;
 }
@@ -629,8 +678,15 @@ Decimal64Converter::write(orc::ColumnVectorBatch* batch,
         decBatch->notNull[rowId] = 0;
     } else {
         py::object value = adjustDec(decBatch->precision, decBatch->scale, elem);
-        decBatch->values[rowId] = py::cast<int64_t>(value);
-        decBatch->notNull[rowId] = 1;
+        try {
+            decBatch->values[rowId] = py::cast<int64_t>(value);
+            decBatch->notNull[rowId] = 1;
+        } catch (py::cast_error) {
+            std::stringstream errmsg;
+            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                   << " cannot be cast to long int (for decimal)";
+            throw py::type_error(errmsg.str());
+        }
     }
     decBatch->numElements = rowId + 1;
 }
@@ -677,8 +733,15 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
         decBatch->notNull[rowId] = 0;
     } else {
         py::object value = adjustDec(decBatch->precision, decBatch->scale, elem);
-        decBatch->values[rowId] = orc::Int128(py::cast<int64_t>(value));
-        decBatch->notNull[rowId] = 1;
+        try {
+            decBatch->values[rowId] = orc::Int128(py::cast<int64_t>(value));
+            decBatch->notNull[rowId] = 1;
+        } catch (py::cast_error) {
+            std::stringstream errmsg;
+            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                   << " cannot be cast to long int (for decimal)";
+            throw py::type_error(errmsg.str());
+        }
     }
     decBatch->numElements = rowId + 1;
 }

@@ -12,14 +12,17 @@ def adjust_decimal(prec: int, scale: int, dec: Decimal) -> int:
     :rtype: int
     """
     with localcontext() as ctx:
-        ctx.prec = prec
-        coefficent = Decimal("1.{0}".format("0" * scale))
-        dec = dec.quantize(coefficent)
-        dec_tup = dec.as_tuple()
-        integer = sum(dig * 10 ** exp for exp, dig in enumerate(reversed(dec_tup.digits)))
-        if dec_tup.exponent > 0:
-            integer = integer * 10 ** dec_tup.exponent
-        if dec_tup.sign == 1:
-            return integer * -1
-        else:
-            return integer
+        try:
+            ctx.prec = prec
+            coefficent = Decimal("1.{0}".format("0" * scale))
+            dec = dec.quantize(coefficent)
+            dec_tup = dec.as_tuple()
+            integer = sum(dig * 10 ** exp for exp, dig in enumerate(reversed(dec_tup.digits)))
+            if dec_tup.exponent > 0:
+                integer = integer * 10 ** dec_tup.exponent
+            if dec_tup.sign == 1:
+                return integer * -1
+            else:
+                return integer
+        except AttributeError:
+            raise TypeError("Item {0} cannot be cast as a decimal".format(type(dec))) from None
