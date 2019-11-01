@@ -109,20 +109,37 @@ PyORCOutputStream::write(const void* buf, size_t length)
     if (closed) {
         throw std::logic_error("Cannot write to closed stream");
     }
-    py::bytes data = py::bytes(static_cast<const char*>(buf), length);
-    size_t count = py::cast<size_t>(pywrite(data));
-    pyflush();
-    if (count != length) {
-        throw orc::ParseError("Shorter write of " + filename);
+    try {
+        py::bytes data = py::bytes(static_cast<const char*>(buf), length);
+        size_t count = py::cast<size_t>(pywrite(data));
+        pyflush();
+
+        if (count != length) {
+            throw orc::ParseError("Shorter write of " + filename);
+        }
+        bytesWritten += static_cast<uint64_t>(count);
+    } catch (py::error_already_set& err) {
+        if (!err.matches(PyExc_TypeError)) {
+            throw;
+        }
+        throw orc::ParseError(
+          "Failed to write content as bytes. Stream might not be opened as binary");
     }
-    bytesWritten += static_cast<uint64_t>(count);
 }
 
 void
 PyORCOutputStream::close()
 {
     if (!closed) {
-        pyflush();
+        try {
+            pyflush();
+        } catch (py::error_already_set& err) {
+            if (!err.matches(PyExc_ValueError)) {
+                throw;
+            }
+            // ValueError is raised when try to flush on a closed file, let's ignore.
+            PyErr_Clear();
+        }
         closed = true;
     }
 }
