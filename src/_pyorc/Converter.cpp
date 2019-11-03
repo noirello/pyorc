@@ -422,7 +422,7 @@ StringConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
         strBatch->notNull[rowId] = 0;
     } else {
         Py_ssize_t length = 0;
-        char* src = PyUnicode_AsUTF8AndSize(elem.ptr(), &length);
+        const char* src = PyUnicode_AsUTF8AndSize(elem.ptr(), &length);
         if (src == nullptr) {
             if (PyErr_ExceptionMatches(PyExc_TypeError) == 1) {
                 PyErr_Clear();
@@ -435,7 +435,7 @@ StringConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
             }
         }
         buffer.push_back(elem);
-        strBatch->data[rowId] = src;
+        strBatch->data[rowId] = const_cast<char*>(src);
         strBatch->length[rowId] = static_cast<int64_t>(length);
         strBatch->notNull[rowId] = 1;
     }
