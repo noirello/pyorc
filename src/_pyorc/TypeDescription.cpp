@@ -9,7 +9,7 @@ TypeDescription::TypeDescription(std::string schema)
     try {
         auto orcType = orc::Type::buildTypeFromString(schema);
         setType(*orcType);
-    } catch (std::logic_error err) {
+    } catch (std::logic_error &err) {
         throw py::value_error(err.what());
     }
 }
@@ -100,7 +100,7 @@ TypeDescription::buildType()
             try {
                 auto elem = py::cast<TypeDescription>(containerTypes[0]);
                 return orc::createListType(elem.buildType());
-            } catch (py::cast_error) {
+            } catch (py::cast_error&) {
                 throw py::type_error(
                   "Items in container types must be a TypeDescription object");
             }
@@ -110,7 +110,7 @@ TypeDescription::buildType()
                 auto key = py::cast<TypeDescription>(containerTypes[0]);
                 auto val = py::cast<TypeDescription>(containerTypes[1]);
                 return orc::createMapType(key.buildType(), val.buildType());
-            } catch (py::cast_error) {
+            } catch (py::cast_error&) {
                 throw py::type_error(
                   "Items in container_types must be a TypeDescription object");
             }
@@ -121,7 +121,7 @@ TypeDescription::buildType()
                 try {
                     auto field = py::cast<TypeDescription>(fields[name.c_str()]);
                     type->addStructField(name, field.buildType());
-                } catch (py::cast_error) {
+                } catch (py::cast_error&) {
                     std::stringstream errmsg;
                     errmsg
                       << "Field `" << name
@@ -137,7 +137,7 @@ TypeDescription::buildType()
                 try {
                     auto field = py::cast<TypeDescription>(containerTypes[i]);
                     type->addUnionChild(field.buildType());
-                } catch (py::cast_error) {
+                } catch (py::cast_error&) {
                     std::stringstream errmsg;
                     errmsg << "Item " << i
                            << " in container_types has an invalid value. It must be a "

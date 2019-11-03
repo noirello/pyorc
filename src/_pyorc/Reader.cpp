@@ -40,7 +40,7 @@ ORCIterator::read(int64_t num)
             res.append(this->next());
             ++i;
         }
-    } catch (py::stop_iteration) {
+    } catch (py::stop_iteration&) {
         return res;
     }
 }
@@ -99,7 +99,7 @@ Reader::Reader(py::object fileo,
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
         converter = createConverter(&rowReader->getSelectedType());
-    } catch (orc::ParseError err) {
+    } catch (orc::ParseError &err) {
         throw py::value_error(err.what());
     }
 }

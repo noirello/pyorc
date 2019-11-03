@@ -308,7 +308,7 @@ BoolConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
         try {
             longBatch->data[rowId] = py::cast<int64_t>(elem);
             longBatch->notNull[rowId] = 1;
-        } catch (py::cast_error) {
+        } catch (py::cast_error&) {
             std::stringstream errmsg;
             errmsg << "Item " << (std::string)(py::str(elem.get_type()))
                    << " cannot be cast to long int (for boolean)";
@@ -346,7 +346,7 @@ LongConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
         try {
             longBatch->data[rowId] = py::cast<int64_t>(elem);
             longBatch->notNull[rowId] = 1;
-        } catch (py::cast_error) {
+        } catch (py::cast_error&) {
             std::stringstream errmsg;
             errmsg << "Item " << (std::string)(py::str(elem.get_type()))
                    << " cannot be cast to long int";
@@ -384,7 +384,7 @@ DoubleConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
         try {
             doubleBatch->data[rowId] = py::cast<double>(elem);
             doubleBatch->notNull[rowId] = 1;
-        } catch (py::cast_error) {
+        } catch (py::cast_error&) {
             std::stringstream errmsg;
             errmsg << "Item " << (std::string)(py::str(elem.get_type()))
                    << " cannot be cast to double";
@@ -545,7 +545,7 @@ TimestampConverter::write(orc::ColumnVectorBatch* batch,
     } else {
         try {
             py::object touts(
-            (elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
+              (elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
             py::object microseconds(elem.attr("microsecond"));
             tsBatch->data[rowId] = static_cast<int64_t>(py::cast<double>(touts()));
             tsBatch->nanoseconds[rowId] = py::cast<int64_t>(microseconds) * 1000;
@@ -681,7 +681,7 @@ Decimal64Converter::write(orc::ColumnVectorBatch* batch,
         try {
             decBatch->values[rowId] = py::cast<int64_t>(value);
             decBatch->notNull[rowId] = 1;
-        } catch (py::cast_error) {
+        } catch (py::cast_error&) {
             std::stringstream errmsg;
             errmsg << "Item " << (std::string)(py::str(elem.get_type()))
                    << " cannot be cast to long int (for decimal)";
@@ -736,7 +736,7 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
         try {
             decBatch->values[rowId] = orc::Int128(py::cast<int64_t>(value));
             decBatch->notNull[rowId] = 1;
-        } catch (py::cast_error) {
+        } catch (py::cast_error&) {
             std::stringstream errmsg;
             errmsg << "Item " << (std::string)(py::str(elem.get_type()))
                    << " cannot be cast to long int (for decimal)";
