@@ -13,6 +13,8 @@ import pyorc._pyorc
 from pyorc.enums import TypeKind
 
 
+ORC_CONTENTS_PATH = "deps/bin/orc-contents"
+
 @pytest.fixture
 def output_file():
     testfile = tempfile.NamedTemporaryFile(
@@ -111,7 +113,7 @@ def test_write(expected, schema, output_file):
     writer.close()
     exp_res = read_expected_json_record(get_full_path(expected))
     with subprocess.Popen(
-        ["deps/tools/orc-contents", output_file.name], stdout=subprocess.PIPE
+        [ORC_CONTENTS_PATH, output_file.name], stdout=subprocess.PIPE
     ) as proc:
         for line in proc.stdout:
             assert json.loads(line) == next(exp_res)
@@ -135,7 +137,7 @@ def test_write_timestamp(output_file):
         get_full_path("TestOrcFile.testTimestamp.jsn.gz")
     )
     with subprocess.Popen(
-        ["deps/tools/orc-contents", output_file.name], stdout=subprocess.PIPE
+        [ORC_CONTENTS_PATH, output_file.name], stdout=subprocess.PIPE
     ) as proc:
         for line in proc.stdout:
             assert datetime.strptime(
