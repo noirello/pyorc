@@ -31,13 +31,15 @@ class BuildORCLib(Command):
         ("orc-version=", None, "the version of the ORC lib"),
         ("output-dir=", None, "the output directory"),
         ("source-url=", None, "the HTTP url for downloading the ORC source"),
+        ("build-type=", None, "set build type for ORC lib"),
     ]
 
     def initialize_options(self):
         """Set default values for options."""
-        self.orc_version = "1.6.0"
+        self.orc_version = "1.6.1"
         self.output_dir = "deps/"
         self.source_url = "https://www-us.apache.org/dist/orc/"
+        self.build_type = "debug"
 
     def finalize_options(self):
         """Post-process options."""
@@ -53,9 +55,9 @@ class BuildORCLib(Command):
         pack_dir = os.path.join(
             build_dir,
             "_CPack_Packages",
-            "Linux",  # XXX: Platform independency
+            sys.platform.title(),
             "TGZ",
-            "ORC-{ver}-Linux".format(ver=self.orc_version),
+            "ORC-{ver}-{plat}".format(ver=self.orc_version, plat=sys.platform.title()),
         )
         log.info("Move artifacts to the %s folder" % self.output_dir)
         try:
@@ -89,8 +91,9 @@ class BuildORCLib(Command):
 
     def _build_with_cmake(self) -> str:
         cmake_args = [
-            "-DCMAKE_BUILD_TYPE=DEBUG",
+            "-DCMAKE_BUILD_TYPE={0}".format(self.build_type.upper()),
             "-DBUILD_JAVA=OFF",
+            "-DBUILD_LIBHDFSPP=OFF",
             "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
         ]
         compiler_flags = ["CFLAGS=-fPIC", "CXXFLAGS=-fPIC"]
