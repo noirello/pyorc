@@ -172,6 +172,8 @@ def cpp_flag(compiler):
     The newer version is prefered over c++11 (when it is available).
     """
     flags = ["-std=c++17", "-std=c++14", "-std=c++11"]
+    if sys.platform == "darwin":
+        flags.remove("-std=c++17")  # Pybind11 fails with C++17 on MacOS.
 
     for flag in flags:
         if has_flag(compiler, flag):
