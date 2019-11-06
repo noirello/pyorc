@@ -33,7 +33,6 @@ class TypeDescription
     void addField(std::string, TypeDescription);
     void removeField(std::string);
     uint64_t getColumnId();
-    void setColumnId(uint64_t);
     py::object getContainerTypes();
     void setContainerTypes(py::object);
     py::object getPrecision();

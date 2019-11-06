@@ -186,12 +186,6 @@ TypeDescription::getColumnId()
     return columnId;
 }
 
-void
-TypeDescription::setColumnId(uint64_t col)
-{
-    columnId = col;
-}
-
 py::object
 TypeDescription::getContainerTypes()
 {
