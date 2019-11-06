@@ -1,0 +1,32 @@
+steps:
+- script: |
+    echo $(pythonbin)
+    $(pythonbin) --version
+  displayName: Check Python path
+- script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov
+  displayName: Install dependencies
+
+- script: $(pythonbin) setup.py build_orc --build-type=debug
+  displayName: Build ORC Lib
+- script: CFLAGS="-coverage" $(pythonbin) setup.py install --user
+  displayName: Install package
+
+- script: |
+    INSTALLDIR=$($(pythonbin) -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
+    echo $INSTALLDIR
+    $(pythonbin) -m pytest -vs --junitxml=./test-results.xml --cov="$INSTALLDIR" tests/
+  displayName: Run pytest
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFiles: test-results.xml
+    testRunTitle: Tests on Python $(python.version)
+  condition: succeededOrFailed()
+
+- script: |
+      PATH=$HOME/.local/bin:$PATH
+      codecov
+  env:
+    CODECOV_TOKEN: $(codecov)
+  displayName: Report Coverage
+  condition: succeeded()

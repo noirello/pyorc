@@ -1,0 +1,140 @@
+trigger:
+- master
+
+stages:
+- stage: Test
+  jobs:
+  - job: Ubuntu
+    pool:
+      vmImage: "ubuntu-18.04"
+    strategy:
+      matrix:
+        Python36:
+          python.version: '3.6'
+        Python37:
+          python.version: '3.7'
+        Python38:
+          python.version: '3.8'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+      condition: not(in(variables['python.version'], '3.8'))
+      name: pybin
+    - script: |
+        PYTHONBIN=$(pybin.pythonLocation)/bin/python
+        echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
+      condition: not(in(variables['python.version'], '3.8'))
+      displayName: Set Python $(python.version)
+    - script: |
+        sudo add-apt-repository ppa:deadsnakes
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends python$(python.version)-dev python$(python.version)-distutils
+        curl https://bootstrap.pypa.io/get-pip.py | sudo python$(python.version)
+        python$(python.version) -m pip install -U pip
+        PYTHONBIN=python$(python.version)
+        echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
+      condition: in(variables['python.version'], '3.8')
+      displayName: Set Python $(python.version)
+    - template: .azure-pipelines/build-run-tests.yml
+  - job: MacOS
+    pool:
+      vmImage: 'macOS-10.14'
+    strategy:
+      matrix:
+        Python36:
+          python.version: '3.6'
+        Python37:
+          python.version: '3.7'
+        Python38:
+          python.version: '3.8'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+      name: pybin
+    - script: |
+        PYTHONBIN=$(pybin.pythonLocation)/bin/python
+        echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
+      displayName: Set Python $(python.version)
+    - template: .azure-pipelines/build-run-tests.yml
+- stage: Build
+  jobs:
+  - job: manylinux_wheels
+    pool:
+      vmImage: "ubuntu-18.04"
+    strategy:
+      matrix:
+        Python36:
+          cpython.version: cp36-cp36m
+        Python37:
+          cpython.version: cp37-cp37m
+        Python38:
+          cpython.version: cp38-cp38
+    container:
+      image: quay.io/pypa/manylinux2010_x86_64:latest
+    steps:
+    - bash: /opt/python/$(cpython.version)/bin/python -m pip install --user cmake pybind11
+      displayName: Install dependencies
+    - bash: PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH cmake --version
+      displayName: Check cmake
+    - bash: |
+        PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH
+        /opt/python/$(cpython.version)/bin/python setup.py build_orc --build-type=release
+      displayName: Build ORC Lib
+    - bash: /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel
+      displayName: Build wheel
+    - bash: auditwheel repair dist/pyorc-*.whl
+      displayName: Repair wheel
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)/wheelhouse/'
+        contents: '*'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: wheels
+  - job: macos_wheels
+    pool:
+      vmImage: 'macOS-10.14'
+    strategy:
+      matrix:
+        Python36:
+          python.version: '3.6'
+        Python37:
+          python.version: '3.7'
+        Python38:
+          python.version: '3.8'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+      name: pybin
+    - script: |
+        PYTHONBIN=$(pybin.pythonLocation)/bin/python
+        echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
+      displayName: Set Python $(python.version)
+    - script: |
+        echo $(pythonbin)
+        $(pythonbin) --version
+      displayName: Check Python path
+    - script: $(pythonbin) -m pip install --user -U pybind11 wheel
+      displayName: Install dependencies
+
+    - script: $(pythonbin) setup.py build_orc --build-type=release
+      displayName: Build ORC Lib
+    - script: $(pythonbin) setup.py bdist_wheel
+      displayName: Build wheel
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)/dist/'
+        contents: '*'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: wheels
