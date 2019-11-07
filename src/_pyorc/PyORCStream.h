@@ -20,7 +20,7 @@ class PyORCInputStream : public orc::InputStream
     ~PyORCInputStream() override;
     uint64_t getLength() const override;
     uint64_t getNaturalReadSize() const override;
-    void read(void*, uint64_t, uint64_t);
+    void read(void*, uint64_t, uint64_t) override;
     const std::string& getName() const override;
 };
 
@@ -39,7 +39,7 @@ class PyORCOutputStream : public orc::OutputStream
     uint64_t getLength() const override;
     uint64_t getNaturalWriteSize() const override;
     const std::string& getName() const override;
-    void write(const void*, size_t);
+    void write(const void*, size_t) override;
     void close() override;
 };
 
