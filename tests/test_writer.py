@@ -2,6 +2,8 @@ import pytest
 
 import io
 import tempfile
+import math
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from pyorc import Writer, Reader, typedescription, ParseError, TypeKind
@@ -166,6 +168,42 @@ def test_write_wrong_primitive_type(orc_type, value):
     writer = Writer(data, orc_type)
     with pytest.raises(TypeError):
         writer.write(value)
+
+
+TESTDATA = [
+    ("string", "Not so very very very long text"),
+    ("binary", b"\x10\x13\x45\x95\xa4"),
+    ("int", 100),
+    ("bigint", 3123213123),
+    ("float", 3.14),
+    ("double", 3.14159265359),
+    ("boolean", False),
+    ("boolean", True),
+    ("timestamp", datetime(2019, 4, 19, 12, 58, 59, tzinfo=timezone.utc)),
+    ("timestamp", datetime(1914, 6, 28, 10, 45, 0, tzinfo=timezone.utc)),
+    ("date", date(1909, 12, 8)),
+    ("date", date(2038, 10, 11)),
+    ("decimal(10,5)", Decimal("10012.1234")),
+    ("decimal(36,8)", Decimal("999989898.123456")),
+    ("decimal(10,7)", Decimal("0.999999")),
+]
+
+
+@pytest.mark.parametrize("orc_type,value", TESTDATA)
+def test_write_primitive_type(orc_type, value):
+    data = io.BytesIO()
+    writer = Writer(data, orc_type)
+    writer.write(value)
+    writer.close()
+
+    data.seek(0)
+    reader = Reader(data)
+    if orc_type == "float":
+        assert math.isclose(reader.read()[0], value, rel_tol=1e-07, abs_tol=0.0)
+    elif orc_type == "timestamp":
+        assert reader.read() == [value.replace(tzinfo=None)]
+    else:
+        assert reader.read() == [value]
 
 
 def test_context_manager():
