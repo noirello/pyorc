@@ -1,6 +1,14 @@
 PyORC
 =====
 
+.. image:: https://dev.azure.com/noirello/pyorc/_apis/build/status/noirello.pyorc?branchName=master
+    :target: https://dev.azure.com/noirello/pyorc/_build?definitionId=1
+    :alt: Azure Pipelines Status
+
+.. image:: https://codecov.io/gh/noirello/pyorc/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/noirello/pyorc
+    :alt: Codecov code coverage
+
 Python module for reading and writing `Apache ORC`_ file format. It uses the Apache ORC's Core C++ API
 under the hood, and provides a similar interface as the `csv module`_ in the Python standard library.
 
