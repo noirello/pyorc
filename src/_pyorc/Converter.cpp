@@ -734,12 +734,13 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
     } else {
         py::object value = adjustDec(decBatch->precision, decBatch->scale, elem);
         try {
-            decBatch->values[rowId] = orc::Int128(py::cast<int64_t>(value));
+            std::string strVal = py::cast<std::string>(py::str(value));
+            decBatch->values[rowId] = orc::Int128(strVal);
             decBatch->notNull[rowId] = 1;
         } catch (py::cast_error&) {
             std::stringstream errmsg;
             errmsg << "Item " << (std::string)(py::str(elem.get_type()))
-                   << " cannot be cast to long int (for decimal)";
+                   << " cannot be cast to decimal128";
             throw py::type_error(errmsg.str());
         }
     }
