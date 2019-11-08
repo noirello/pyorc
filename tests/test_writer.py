@@ -171,39 +171,58 @@ def test_write_wrong_primitive_type(orc_type, value):
 
 
 TESTDATA = [
-    ("string", "Not so very very very long text"),
-    ("binary", b"\x10\x13\x45\x95\xa4"),
-    ("int", 100),
-    ("bigint", 3123213123),
-    ("float", 3.14),
-    ("double", 3.14159265359),
-    ("boolean", False),
-    ("boolean", True),
-    ("timestamp", datetime(2019, 4, 19, 12, 58, 59, tzinfo=timezone.utc)),
-    ("timestamp", datetime(1914, 6, 28, 10, 45, 0, tzinfo=timezone.utc)),
-    ("date", date(1909, 12, 8)),
-    ("date", date(2038, 10, 11)),
-    ("decimal(10,5)", Decimal("10012.1234")),
-    ("decimal(36,8)", Decimal("999989898.123456")),
-    ("decimal(10,7)", Decimal("0.999999")),
+    ("string", ["Not so very very very long text", "Another text", None, "Onemore"]),
+    ("binary", [b"\x10\x13\x45\x95\xa4", b"\x34\x56\x45", None, b"\44\x23\x34\xa2"]),
+    ("int", [100, None, 1231, 1234]),
+    ("bigint", [3123213123, 12321344, 1231238384, None]),
+    ("float", [3.14, 2.1, None, 5.5]),
+    ("double", [3.14159265359, None, 4.12345678, 4.863723423]),
+    ("boolean", [None, False, True, False]),
+    (
+        "timestamp",
+        [
+            datetime(2019, 4, 19, 12, 58, 59, tzinfo=timezone.utc),
+            datetime(1914, 6, 28, 10, 45, 0, tzinfo=timezone.utc),
+            None,
+            datetime(2001, 3, 12, 10, 45, 21, 12, tzinfo=timezone.utc),
+        ],
+    ),
+    ("date", [date(1909, 12, 8), None, date(2038, 10, 11), date(2019, 11, 11)]),
+    (
+        "decimal(10,7)",
+        [None, Decimal("0.999999"), Decimal("123.4567890"), Decimal("99.1780000")],
+    ),
+    (
+        "decimal(38,6)",
+        [Decimal("999989898.1234"), Decimal("1.245678e24"), None, Decimal("1.2145e28")],
+    ),
 ]
 
 
-@pytest.mark.parametrize("orc_type,value", TESTDATA)
-def test_write_primitive_type(orc_type, value):
+@pytest.mark.parametrize("orc_type,values", TESTDATA)
+def test_write_primitive_type(orc_type, values):
     data = io.BytesIO()
     writer = Writer(data, orc_type)
-    writer.write(value)
+    for rec in values:
+        writer.write(rec)
     writer.close()
 
     data.seek(0)
     reader = Reader(data)
     if orc_type == "float":
-        assert math.isclose(reader.read()[0], value, rel_tol=1e-07, abs_tol=0.0)
+        result = reader.read()
+        assert len(result) == len(values)
+        for res, exp in zip(result, values):
+            if exp is None:
+                assert res is None
+            else:
+                assert math.isclose(res, exp, rel_tol=1e-07, abs_tol=0.0)
     elif orc_type == "timestamp":
-        assert reader.read() == [value.replace(tzinfo=None)]
+        assert reader.read() == [
+            val.replace(tzinfo=None) if val is not None else None for val in values
+        ]
     else:
-        assert reader.read() == [value]
+        assert reader.read() == values
 
 
 def test_context_manager():
