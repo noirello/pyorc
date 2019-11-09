@@ -187,6 +187,23 @@ class MapConverter : public Converter
     void clear() override;
 };
 
+class UnionConverter : public Converter
+{
+  private:
+    const unsigned char* tags;
+    const uint64_t* offsets;
+    std::vector<Converter*> fieldConverters;
+    std::map<unsigned char, uint64_t> lastRecord;
+
+  public:
+    UnionConverter(const orc::Type& type);
+    virtual ~UnionConverter() override;
+    py::object toPython(uint64_t rowId) override;
+    void reset(const orc::ColumnVectorBatch& batch) override;
+    void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
+    void clear() override;
+};
+
 class StructConverter : public Converter
 {
   private:
@@ -207,7 +224,7 @@ createConverter(const orc::Type* type)
 {
     Converter* result = nullptr;
     if (type == nullptr) {
-        result = nullptr;
+        throw py::value_error("Received an invalid type");
     } else {
         switch (static_cast<int64_t>(type->getKind())) {
             case orc::BOOLEAN:
@@ -256,10 +273,10 @@ createConverter(const orc::Type* type)
                 result = new DateConverter();
                 break;
             case orc::UNION:
-                result = nullptr; // new UnionColumnPrinter(buffer, *type);
+                result = new UnionConverter(*type);
                 break;
             default:
-                throw std::logic_error("unknown batch type");
+                throw py::value_error("unknown batch type");
         }
     }
     return std::unique_ptr<Converter>(result);
@@ -872,6 +889,89 @@ MapConverter::clear()
 {
     keyConverter->clear();
     elementConverter->clear();
+}
+
+UnionConverter::UnionConverter(const orc::Type& type)
+  : Converter()
+  , tags(nullptr)
+  , offsets(nullptr)
+{
+    for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
+        fieldConverters.push_back(createConverter(type.getSubtype(i)).release());
+        lastRecord[static_cast<unsigned char>(i)] = 0;
+    }
+}
+
+UnionConverter::~UnionConverter()
+{
+    for (size_t i = 0; i < fieldConverters.size(); i++) {
+        delete fieldConverters[i];
+    }
+}
+
+void
+UnionConverter::reset(const orc::ColumnVectorBatch& batch)
+{
+    Converter::reset(batch);
+    const auto& unionBatch = dynamic_cast<const orc::UnionVectorBatch&>(batch);
+    tags = unionBatch.tags.data();
+    offsets = unionBatch.offsets.data();
+    for (size_t i = 0; i < fieldConverters.size(); ++i) {
+        fieldConverters[i]->reset(*(unionBatch.children[i]));
+    }
+}
+
+py::object
+UnionConverter::toPython(uint64_t rowId)
+{
+    if (hasNulls && !notNull[rowId]) {
+        return py::none();
+    } else {
+        return fieldConverters[tags[rowId]]->toPython(offsets[rowId]);
+    }
+}
+
+void
+UnionConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
+{
+    auto* unionBatch = dynamic_cast<orc::UnionVectorBatch*>(batch);
+    if (elem.is(py::none())) {
+        unionBatch->hasNulls = true;
+        unionBatch->notNull[rowId] = 0;
+    } else {
+        for (size_t i = 0; i < fieldConverters.size(); ++i) {
+            uint64_t offset = lastRecord[static_cast<unsigned char>(i)];
+            if (unionBatch->children[i]->capacity <= offset) {
+                unionBatch->children[i]->resize(2 * offset);
+            }
+            try {
+                fieldConverters[i]->write(unionBatch->children[i], offset, elem);
+                unionBatch->tags[rowId] = static_cast<unsigned char>(i);
+                unionBatch->offsets[rowId] = offset;
+                lastRecord[static_cast<unsigned char>(i)] = offset + 1;
+                break;
+            } catch (py::type_error &err) {
+                if (i == fieldConverters.size() - 1) {
+                    throw err;
+                }
+                continue;
+            } catch (py::value_error &err) {
+                if (i == fieldConverters.size() - 1) {
+                    throw err;
+                }
+                continue;
+            }
+        }
+    }
+    unionBatch->numElements = rowId + 1;
+}
+
+void
+UnionConverter::clear()
+{
+    for (size_t i = 0; i < fieldConverters.size(); ++i) {
+        fieldConverters[i]->clear();
+    }
 }
 
 StructConverter::StructConverter(const orc::Type& type)
