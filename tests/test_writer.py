@@ -233,6 +233,9 @@ TESTDATA = [
     ("array<int>", 0),
     ("array<string>", [False, True, False]),
     ("array<boolean>", "false"),
+    ("uniontype<int,float>", "string"),
+    ("uniontype<int,string>", 2.4),
+    ("uniontype<string,boolean>", [0, 2]),
     ("struct<col0:int,col1:string>", "string"),
     ("struct<col0:string,col1:int>", 0),
     ("struct<col0:string,col1:int>", [0, 1, 2]),
@@ -274,6 +277,7 @@ TESTDATA = [
             ["Seventh text", "Last text"],
         ],
     ),
+    ("uniontype<int,string>", ["string", 1, "text", 2, None]),
     (
         "struct<col0:int,col1:string>",
         [
