@@ -5,77 +5,57 @@ import gzip
 import os
 import math
 
+from pyorc import TypeKind
 import pyorc._pyorc
 
 from datetime import date, datetime
 from decimal import Decimal
 
 
-def find_type(schema, col_name):
-    start_pos = schema.find("{0}:".format(col_name))
-    end_pos = schema.find(",", start_pos)
-    if "<" in schema[start_pos:end_pos]:
-        op = 1
-        cl = 0
-        for i, ch in enumerate(schema[start_pos:]):
-            if ch == "<":
-                op += 1
-            if ch == ">":
-                cl += 1
-            if cl == op:
-                return schema[start_pos : start_pos + i].split(":", 1)[-1]
-    else:
-        return schema[start_pos:end_pos].split(":")[-1]
-
-
-def traverse_json_row(schema, row, parent=""):
-    for col, value in row.items():
-        orc_type = find_type(schema, col)
-        if isinstance(value, dict):
+def traverse_json_row(schema, value, parent=""):
+    if schema.kind < 8:
+        # Primitive types, no transformation.
+        yield schema.kind, parent, value
+    elif schema.kind == TypeKind.STRUCT:
+        for key, val in value.items():
             yield from traverse_json_row(
-                "{0}:{1}".format(col, schema), value, "{0}.{1}".format(parent, col)
+                schema.fields[key], val, "{0}.{1}".format(parent, key)
             )
-        elif isinstance(value, list) and orc_type.startswith("map<"):
-            for keypair in value:
-                yield from traverse_json_row(
-                    "{0}:{1}".format(col, schema),
-                    keypair["value"],
-                    "{0}.{1}['{2}']".format(parent, col, keypair["key"]),
-                )
-        elif isinstance(value, list) and orc_type.startswith("array<"):
-            for idx, item in enumerate(value):
-                yield from traverse_json_row(
-                    "{0}:{1}".format(col, schema),
-                    item,
-                    "{0}.{1}[{2}]".format(parent, col, idx),
-                )
-        else:
-            yield orc_type, "{0}.{1}".format(parent, col), value
+    elif schema.kind == TypeKind.MAP:
+        for keypair in value:
+            yield from traverse_json_row(
+                schema.container_types[1],
+                keypair["value"],
+                "{0}['{1}']".format(parent, keypair["key"]),
+            )
+    elif schema.kind == TypeKind.LIST:
+        for idx, item in enumerate(value):
+            yield from traverse_json_row(
+                schema.container_types[0], item, "{0}[{1}]".format(parent, idx)
+            )
+    elif schema.kind == TypeKind.UNION:
+        yield schema.kind, parent, value["value"] if value is not None else None
 
 
-def traverse_orc_row(schema, row, parent=""):
-    for col, value in row.items():
-        orc_type = find_type(schema, col)
-        if isinstance(value, dict) and orc_type.startswith("struct<"):
+def traverse_orc_row(schema, value, parent=""):
+    if schema.kind < 8 or schema.kind == TypeKind.UNION:
+        # Primitive types, no transformation.
+        yield schema.kind, parent, value
+    elif schema.kind == TypeKind.STRUCT:
+        for key, val in value.items():
             yield from traverse_orc_row(
-                "{0}:{1}".format(col, schema), value, "{0}.{1}".format(parent, col)
+                schema.fields[key], val, "{0}.{1}".format(parent, key)
             )
-        elif isinstance(value, dict) and orc_type.startswith("map<"):
-            for key, val in value.items():
-                yield from traverse_orc_row(
-                    "{0}:{1}".format(col, schema),
-                    val,
-                    "{0}.{1}['{2}']".format(parent, col, key),
-                )
-        elif isinstance(value, list) and orc_type.startswith("array<"):
-            for idx, item in enumerate(value):
-                yield from traverse_orc_row(
-                    "{0}:{1}".format(col, schema),
-                    item,
-                    "{0}.{1}[{2}]".format(parent, col, idx),
-                )
-        else:
-            yield orc_type, "{0}.{1}".format(parent, col), value
+    elif schema.kind == TypeKind.MAP:
+        for key, val in value.items():
+            yield from traverse_orc_row(
+                schema.container_types[1], val, "{0}['{1}']".format(parent, key)
+            )
+    elif schema.kind == TypeKind.LIST:
+        for idx, item in enumerate(value):
+            yield from traverse_orc_row(
+                schema.container_types[0], item, "{0}[{1}]".format(parent, idx)
+            )
 
 
 def get_full_path(path):
@@ -95,6 +75,11 @@ TESTDATA = [
     ("TestOrcFile.testDate2038.orc", "expected/TestOrcFile.testDate2038.jsn.gz"),
     ("TestOrcFile.testSeek.orc", "expected/TestOrcFile.testSeek.jsn.gz"),
     ("TestOrcFile.testSnappy.orc", "expected/TestOrcFile.testSnappy.jsn.gz"),
+    ("TestOrcFile.testTimestamp.orc", "expected/TestOrcFile.testTimestamp.jsn.gz"),
+    (
+        "TestOrcFile.testUnionAndTimestamp.orc",
+        "expected/TestOrcFile.testUnionAndTimestamp.jsn.gz",
+    ),
     ("nulls-at-end-snappy.orc", "expected/nulls-at-end-snappy.jsn.gz"),
     ("demo-12-zlib.orc", "expected/demo-12-zlib.jsn.gz"),
     ("decimal.orc", "expected/decimal.jsn.gz"),
@@ -107,37 +92,38 @@ def test_read(example, expected):
     with open(get_full_path(example), "rb") as fileo:
         orc_res = pyorc._pyorc.reader(fileo)
         length = 0
-        str_schema = str(orc_res.schema)
         for num, line in enumerate(exp_res):
-            json_row = traverse_json_row(str_schema, json.loads(line))
-            orc_row = traverse_orc_row(str_schema, next(orc_res))
+            json_row = traverse_json_row(orc_res.schema, json.loads(line))
+            orc_row = traverse_orc_row(orc_res.schema, next(orc_res))
             for _, exp_path, exp_val in json_row:
                 otype, act_path, act_val = next(orc_row)
                 assert exp_path == act_path
                 if exp_val is None:
                     assert act_val is None
-                elif otype == "binary":
+                elif otype == TypeKind.BINARY:
                     assert exp_val == [
                         int(i) for i in act_val
                     ], "Row #{num}, Column: `{path}`".format(num=num + 1, path=act_path)
-                elif otype == "double" or otype == "float":
+                elif otype == TypeKind.DOUBLE or otype == TypeKind.FLOAT:
                     assert math.isclose(
                         exp_val,
                         act_val,
                         abs_tol=0.005,  # Extermely permissive float comparing.
                     ), "Row #{num}, Column: `{path}`".format(num=num + 1, path=act_path)
-                elif otype == "timestamp":
+                elif otype == TypeKind.TIMESTAMP:
                     assert exp_val == act_val.strftime("%Y-%m-%d %H:%M:%S.%f").rstrip(
                         "0"
                     ), "Row #{num}, Column: `{path}`".format(num=num + 1, path=act_path)
-                elif otype == "date":
+                elif otype == TypeKind.DATE:
                     assert (
                         exp_val == act_val.isoformat()
                     ), "Row #{num}, Column: `{path}`".format(num=num + 1, path=act_path)
-                elif "decimal(" in otype:
-                    assert (
-                        exp_val == float(act_val)  # Not the best comparing.
-                    ), "Row #{num}, Column: `{path}`".format(num=num + 1, path=act_path)
+                elif otype == TypeKind.DECIMAL:
+                    assert exp_val == float(
+                        act_val
+                    ), "Row #{num}, Column: `{path}`".format(  # Not the best comparing.
+                        num=num + 1, path=act_path
+                    )
                 else:
                     assert exp_val == act_val, "Row #{num}, Column: `{path}`".format(
                         num=num + 1, path=act_path
@@ -145,18 +131,3 @@ def test_read(example, expected):
             length = num + 1
         assert len(orc_res) == length, "ORC file has a different number of row"
     exp_res.close()
-
-
-def test_read_timestamp():
-    exp_res = gzip.open(
-        get_full_path("expected/TestOrcFile.testTimestamp.jsn.gz"), "rb"
-    )
-    with open(get_full_path("TestOrcFile.testTimestamp.orc"), "rb") as fileo:
-        orc_res = pyorc._pyorc.reader(fileo)
-        length = 0
-        for num, line in enumerate(exp_res):
-            json_row = datetime.strptime(json.loads(line)[:26], "%Y-%m-%d %H:%M:%S.%f")
-            orc_row = next(orc_res)
-            assert json_row == orc_row
-            length = num + 1
-        assert len(orc_res) == length
