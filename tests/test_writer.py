@@ -225,6 +225,80 @@ def test_write_primitive_type(orc_type, values):
         assert reader.read() == values
 
 
+TESTDATA = [
+    ("map<string,string>", "string"),
+    ("map<string,int>", False),
+    ("map<int,string>", ["a", "b", "c"]),
+    ("map<int,string>", {"0": 0, "1": 1}),
+    ("array<int>", 0),
+    ("array<string>", [False, True, False]),
+    ("array<boolean>", "false"),
+    ("struct<col0:int,col1:string>", "string"),
+    ("struct<col0:string,col1:int>", 0),
+    ("struct<col0:string,col1:int>", [0, 1, 2]),
+    ("struct<col0:string,col1:int>", {"col0": 0, "col1": "string"}),
+]
+
+
+@pytest.mark.parametrize("orc_type,value", TESTDATA)
+def test_write_wrong_complex_type(orc_type, value):
+    data = io.BytesIO()
+    writer = Writer(data, orc_type)
+    with pytest.raises(
+        (TypeError, ValueError)
+    ):  # Dict construction might raise ValueError as well.
+        writer.write(value)
+
+
+TESTDATA = [
+    (
+        "map<string,string>",
+        [{"a": "b", "c": "d"}, {"e": "f", "g": "h", "i": "j"}, None, {"k": "l"}],
+    ),
+    (
+        "map<string,int>",
+        [
+            {"zero": 0, "one": 1},
+            None,
+            {"two": 2, "tree": 3},
+            {"one": 1, "two": 2, "nill": None},
+        ],
+    ),
+    ("array<int>", [[0, 1, 2, 3], [4, 5, 6, 7, 8], None, [9, 10, 11, 12]]),
+    (
+        "array<string>",
+        [
+            ["First text", "Second text", "Third text", None],
+            None,
+            ["Fourth text", "Fifth text", "Sixth text"],
+            ["Seventh text", "Last text"],
+        ],
+    ),
+    (
+        "struct<col0:int,col1:string>",
+        [
+            {"col0": 0, "col1": "String"},
+            {"col0": 1, "col1": "String 2"},
+            None,
+            {"col0": 2, "col1": None},
+        ],
+    ),
+]
+
+
+@pytest.mark.parametrize("orc_type,values", TESTDATA)
+def test_write_complex_type(orc_type, values):
+    data = io.BytesIO()
+    writer = Writer(data, orc_type)
+    for rec in values:
+        writer.write(rec)
+    writer.close()
+
+    data.seek(0)
+    reader = Reader(data)
+    assert reader.read() == values
+
+
 def test_context_manager():
     data = io.BytesIO()
     records = [
