@@ -17,7 +17,7 @@ class Converter
     Converter() = default;
     virtual ~Converter() = default;
     virtual pybind11::object toPython(uint64_t) = 0;
-    virtual void write(orc::ColumnVectorBatch*, uint64_t, pybind11::object);
+    virtual void write(orc::ColumnVectorBatch*, uint64_t, pybind11::object) = 0;
     virtual void reset(const orc::ColumnVectorBatch&);
     virtual void clear(){};
 };

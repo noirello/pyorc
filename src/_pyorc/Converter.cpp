@@ -277,10 +277,6 @@ Converter::reset(const orc::ColumnVectorBatch& batch)
 }
 
 void
-Converter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
-{}
-
-void
 BoolConverter::reset(const orc::ColumnVectorBatch& batch)
 {
     Converter::reset(batch);
