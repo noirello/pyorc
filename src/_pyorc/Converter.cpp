@@ -193,7 +193,7 @@ class UnionConverter : public Converter
     const unsigned char* tags;
     const uint64_t* offsets;
     std::vector<Converter*> fieldConverters;
-    std::map<unsigned char, uint64_t> lastRecord;
+    std::map<unsigned char, uint64_t> childOffsets;
 
   public:
     UnionConverter(const orc::Type& type);
@@ -898,7 +898,7 @@ UnionConverter::UnionConverter(const orc::Type& type)
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
         fieldConverters.push_back(createConverter(type.getSubtype(i)).release());
-        lastRecord[static_cast<unsigned char>(i)] = 0;
+        childOffsets[static_cast<unsigned char>(i)] = 0;
     }
 }
 
@@ -940,28 +940,27 @@ UnionConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object 
         unionBatch->notNull[rowId] = 0;
     } else {
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
-            uint64_t offset = lastRecord[static_cast<unsigned char>(i)];
-            if (unionBatch->children[i]->capacity <= offset) {
-                unionBatch->children[i]->resize(2 * offset);
-            }
+            unsigned char tag = static_cast<unsigned char>(i);
+            uint64_t offset = childOffsets[tag];
             try {
                 fieldConverters[i]->write(unionBatch->children[i], offset, elem);
-                unionBatch->tags[rowId] = static_cast<unsigned char>(i);
+                unionBatch->tags[rowId] = tag;
                 unionBatch->offsets[rowId] = offset;
-                lastRecord[static_cast<unsigned char>(i)] = offset + 1;
+                childOffsets[tag] = offset + 1;
                 break;
-            } catch (py::type_error &err) {
+            } catch (py::type_error& err) {
                 if (i == fieldConverters.size() - 1) {
                     throw err;
                 }
                 continue;
-            } catch (py::value_error &err) {
+            } catch (py::value_error& err) {
                 if (i == fieldConverters.size() - 1) {
                     throw err;
                 }
                 continue;
             }
         }
+        unionBatch->notNull[rowId] = 1;
     }
     unionBatch->numElements = rowId + 1;
 }
@@ -971,6 +970,7 @@ UnionConverter::clear()
 {
     for (size_t i = 0; i < fieldConverters.size(); ++i) {
         fieldConverters[i]->clear();
+        childOffsets[static_cast<unsigned char>(i)] = 0;
     }
 }
 
