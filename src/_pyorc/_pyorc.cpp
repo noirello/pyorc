@@ -54,12 +54,16 @@ PYBIND11_MODULE(_pyorc, m)
       .def_readonly("current_row", &Stripe::currentRow)
       .def_readonly("row_offset", &Stripe::firstRowOfStripe);
     py::class_<Reader>(m, "reader")
-      .def(
-        py::init<py::object, uint64_t, std::list<uint64_t>, std::list<std::string>>(),
-        py::arg("fileo"),
-        py::arg_v("batch_size", 1024, "1024"),
-        py::arg_v("col_indices", std::list<uint64_t>{}, "None"),
-        py::arg_v("col_names", std::list<std::string>{}, "None"))
+      .def(py::init<py::object,
+                    uint64_t,
+                    std::list<uint64_t>,
+                    std::list<std::string>,
+                    unsigned int>(),
+           py::arg("fileo"),
+           py::arg_v("batch_size", 1024, "1024"),
+           py::arg_v("col_indices", std::list<uint64_t>{}, "None"),
+           py::arg_v("col_names", std::list<std::string>{}, "None"),
+           py::arg_v("struct_repr", 0, "StructRepr.TUPLE"))
       .def("__next__", [](Reader& r) -> py::object { return r.next(); })
       .def("__iter__", [](Reader& r) -> Reader& { return r; })
       .def("__len__", &Reader::len)
@@ -79,7 +83,8 @@ PYBIND11_MODULE(_pyorc, m)
                     int,
                     uint64_t,
                     std::set<uint64_t>,
-                    double>(),
+                    double,
+                    unsigned int>(),
            py::arg("fileo"),
            py::arg("schema"),
            py::arg_v("batch_size", 1024, "1024"),
@@ -88,7 +93,8 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("compression_strategy", 0, "CompressionStrategy.SPEED"),
            py::arg_v("compression_block_size", 65536, "65536"),
            py::arg_v("bloom_filter_columns", std::set<uint64_t>{}, "None"),
-           py::arg_v("bloom_filter_fpp", 0.05, "0.05"))
+           py::arg_v("bloom_filter_fpp", 0.05, "0.05"),
+           py::arg_v("struct_repr", 0, "StructRepr.TUPLE"))
       .def("write", &Writer::write)
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);

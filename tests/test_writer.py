@@ -6,7 +6,7 @@ import math
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from pyorc import Writer, Reader, typedescription, ParseError, TypeKind
+from pyorc import Writer, Reader, typedescription, ParseError, TypeKind, StructRepr
 
 
 def test_open_file():
@@ -130,11 +130,7 @@ def test_init():
 def test_write():
     data = io.BytesIO()
     writer = Writer(data, "struct<col0:int,col1:string,col2:double>")
-    records = [
-        {"col0": 1, "col1": "Test A", "col2": 2.13},
-        {"col0": 2, "col1": "Test B", "col2": 0.123213},
-        {"col0": 3, "col1": "Test C", "col2": 123.011234},
-    ]
+    records = [(1, "Test A", 2.13), (2, "Test B", 0.123213), (3, "Test C", 123.011234)]
     for rec in records:
         writer.write(rec)
     writer.close()
@@ -239,7 +235,7 @@ TESTDATA = [
     ("struct<col0:int,col1:string>", "string"),
     ("struct<col0:string,col1:int>", 0),
     ("struct<col0:string,col1:int>", [0, 1, 2]),
-    ("struct<col0:string,col1:int>", {"col0": 0, "col1": "string"}),
+    ("struct<col0:string,col1:int>", (0,)),
 ]
 
 
@@ -293,13 +289,13 @@ TESTDATA = [
 @pytest.mark.parametrize("orc_type,values", TESTDATA)
 def test_write_complex_type(orc_type, values):
     data = io.BytesIO()
-    writer = Writer(data, orc_type)
+    writer = Writer(data, orc_type, struct_repr=StructRepr.DICT)
     for rec in values:
         writer.write(rec)
     writer.close()
 
     data.seek(0)
-    reader = Reader(data)
+    reader = Reader(data, struct_repr=StructRepr.DICT)
     assert reader.read() == values
 
 
@@ -316,7 +312,7 @@ TESTDATA = [
     ("decimal(10,0)", Decimal("1000000000")),
     ("array<int>", [0, 1, 2, 3]),
     ("map<string,string>", {"test": "example"}),
-    ("struct<col0:int,col1:string>", {"col0": 0, "col1": "test"}),
+    ("struct<col0:int,col1:string>", (0, "test")),
 ]
 
 
@@ -355,11 +351,13 @@ def test_context_manager():
         {"col0": 2, "col1": "Test B", "col2": 0.123213},
         {"col0": 3, "col1": "Test C", "col2": 123.011234},
     ]
-    with Writer(data, "struct<col0:int,col1:string,col2:double>") as writer:
+    with Writer(
+        data, "struct<col0:int,col1:string,col2:double>", struct_repr=StructRepr.DICT
+    ) as writer:
         for rec in records:
             writer.write(rec)
     data.seek(0)
-    reader = Reader(data)
+    reader = Reader(data, struct_repr=StructRepr.DICT)
     assert reader.read() == records
 
 
@@ -367,10 +365,10 @@ def test_current_row():
     data = io.BytesIO()
     writer = Writer(data, "struct<col0:int,col1:string,col2:double>")
     assert writer.current_row == 0
-    writer.write({"col0": 0, "col1": "Test A", "col2": 0.0001})
+    writer.write((0, "Test A", 0.0001))
     assert writer.current_row == 1
     for i in range(10):
-        writer.write({"col0": i, "col1": "Test A", "col2": 0.0001})
+        writer.write((i, "Test A", 0.0001))
     assert writer.current_row == 11
     writer.close()
     data.seek(0)
@@ -398,7 +396,7 @@ def test_schema():
 def test_writerows():
     data = io.BytesIO()
     writer = Writer(data, "int")
-    rows = (0,1,2,3,4,5,6,7,8,9)
+    rows = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     res = writer.writerows(rows)
     writer.close()
     assert res == len(rows)

@@ -34,3 +34,8 @@ class TypeKind(enum.IntEnum):
     DATE = 15
     VARCHAR = 16
     CHAR = 17
+
+
+class StructRepr(enum.IntEnum):
+    TUPLE = 0
+    DICT = 1

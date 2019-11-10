@@ -75,12 +75,14 @@ ORCIterator::seek(int64_t row, uint16_t whence)
 Reader::Reader(py::object fileo,
                uint64_t batch_size,
                std::list<uint64_t> col_indices,
-               std::list<std::string> col_names)
+               std::list<std::string> col_names,
+               unsigned int struct_repr)
 {
     orc::ReaderOptions readerOpts;
     batchItem = 0;
     currentRow = 0;
     firstRowOfStripe = 0;
+    structKind = struct_repr;
     if (!col_indices.empty() && !col_names.empty()) {
         throw py::value_error(
           "Either col_indices or col_names can be set to select columns");
@@ -98,8 +100,8 @@ Reader::Reader(py::object fileo,
         batchSize = batch_size;
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
-        converter = createConverter(&rowReader->getSelectedType());
-    } catch (orc::ParseError &err) {
+        converter = createConverter(&rowReader->getSelectedType(), structKind);
+    } catch (orc::ParseError& err) {
         throw py::value_error(err.what());
     }
 }
@@ -145,7 +147,7 @@ Stripe::Stripe(const Reader& reader_,
       rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
     rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
-    converter = createConverter(&rowReader->getSelectedType());
+    converter = createConverter(&rowReader->getSelectedType(), reader.getStructKind());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 

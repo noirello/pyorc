@@ -38,12 +38,14 @@ class Reader : public ORCIterator
     std::unique_ptr<orc::Reader> reader;
     std::unique_ptr<TypeDescription> typeDesc;
     uint64_t batchSize;
+    unsigned int structKind;
 
   public:
     Reader(py::object,
            uint64_t = 1024,
            std::list<uint64_t> = {},
-           std::list<std::string> = {});
+           std::list<std::string> = {},
+           unsigned int = 0);
     uint64_t len() const override;
     uint64_t numberOfStripes() const;
     TypeDescription& schema();
@@ -51,6 +53,7 @@ class Reader : public ORCIterator
 
     const orc::Reader& getORCReader() const { return *reader; }
     const uint64_t getBatchSize() const { return batchSize; }
+    const unsigned int getStructKind() const { return structKind; }
 };
 
 class Stripe : public ORCIterator

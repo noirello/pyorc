@@ -23,6 +23,6 @@ class Converter
 };
 
 std::unique_ptr<Converter>
-createConverter(const orc::Type*);
+createConverter(const orc::Type*, unsigned int);
 
 #endif

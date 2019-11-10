@@ -1,7 +1,7 @@
 from typing import Union, Optional, List, BinaryIO, Iterable
 
 from pyorc._pyorc import writer, typedescription
-from .enums import CompressionKind, CompressionStrategy
+from .enums import CompressionKind, CompressionStrategy, StructRepr
 
 
 class Writer(writer):
@@ -16,6 +16,7 @@ class Writer(writer):
         compression_block_size: int = 65536,
         bloom_filter_columns: Optional[List] = None,
         bloom_filter_fpp: float = 0.05,
+        struct_repr: StructRepr = StructRepr.TUPLE,
     ) -> None:
         if isinstance(schema, str):
             schema = typedescription(schema)
@@ -47,6 +48,7 @@ class Writer(writer):
             compression_block_size,
             bf_set,
             bloom_filter_fpp,
+            struct_repr,
         )
 
     def __enter__(self):

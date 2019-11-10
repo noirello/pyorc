@@ -163,7 +163,7 @@ class ListConverter : public Converter
     std::unique_ptr<Converter> elementConverter;
 
   public:
-    ListConverter(const orc::Type& type);
+    ListConverter(const orc::Type& type, unsigned int structKind);
     virtual ~ListConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -179,7 +179,7 @@ class MapConverter : public Converter
     std::unique_ptr<Converter> elementConverter;
 
   public:
-    MapConverter(const orc::Type& type);
+    MapConverter(const orc::Type& type, unsigned int structKind);
     virtual ~MapConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -196,7 +196,7 @@ class UnionConverter : public Converter
     std::map<unsigned char, uint64_t> childOffsets;
 
   public:
-    UnionConverter(const orc::Type& type);
+    UnionConverter(const orc::Type& type, unsigned int structKind);
     virtual ~UnionConverter() override;
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -209,9 +209,10 @@ class StructConverter : public Converter
   private:
     std::vector<Converter*> fieldConverters;
     std::vector<py::str> fieldNames;
+    unsigned int kind;
 
   public:
-    StructConverter(const orc::Type& type);
+    StructConverter(const orc::Type& type, unsigned int kind_);
     virtual ~StructConverter() override;
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -220,7 +221,7 @@ class StructConverter : public Converter
 };
 
 std::unique_ptr<Converter>
-createConverter(const orc::Type* type)
+createConverter(const orc::Type* type, unsigned int structKind)
 {
     Converter* result = nullptr;
     if (type == nullptr) {
@@ -252,13 +253,13 @@ createConverter(const orc::Type* type)
                 result = new TimestampConverter();
                 break;
             case orc::LIST:
-                result = new ListConverter(*type);
+                result = new ListConverter(*type, structKind);
                 break;
             case orc::MAP:
-                result = new MapConverter(*type);
+                result = new MapConverter(*type, structKind);
                 break;
             case orc::STRUCT:
-                result = new StructConverter(*type);
+                result = new StructConverter(*type, structKind);
                 break;
             case orc::DECIMAL:
                 if (type->getPrecision() == 0 || type->getPrecision() > 18) {
@@ -273,7 +274,7 @@ createConverter(const orc::Type* type)
                 result = new DateConverter();
                 break;
             case orc::UNION:
-                result = new UnionConverter(*type);
+                result = new UnionConverter(*type, structKind);
                 break;
             default:
                 throw py::value_error("unknown batch type");
@@ -760,11 +761,11 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
     decBatch->numElements = rowId + 1;
 }
 
-ListConverter::ListConverter(const orc::Type& type)
+ListConverter::ListConverter(const orc::Type& type, unsigned int structKind)
   : Converter()
   , offsets(nullptr)
 {
-    elementConverter = createConverter(type.getSubtype(0));
+    elementConverter = createConverter(type.getSubtype(0), structKind);
 }
 
 void
@@ -821,12 +822,12 @@ ListConverter::clear()
     elementConverter->clear();
 }
 
-MapConverter::MapConverter(const orc::Type& type)
+MapConverter::MapConverter(const orc::Type& type, unsigned int structKind)
   : Converter()
   , offsets(nullptr)
 {
-    keyConverter = createConverter(type.getSubtype(0));
-    elementConverter = createConverter(type.getSubtype(1));
+    keyConverter = createConverter(type.getSubtype(0), structKind);
+    elementConverter = createConverter(type.getSubtype(1), structKind);
 }
 
 void
@@ -891,13 +892,14 @@ MapConverter::clear()
     elementConverter->clear();
 }
 
-UnionConverter::UnionConverter(const orc::Type& type)
+UnionConverter::UnionConverter(const orc::Type& type, unsigned int structKind)
   : Converter()
   , tags(nullptr)
   , offsets(nullptr)
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
-        fieldConverters.push_back(createConverter(type.getSubtype(i)).release());
+        fieldConverters.push_back(
+          createConverter(type.getSubtype(i), structKind).release());
         childOffsets[static_cast<unsigned char>(i)] = 0;
     }
 }
@@ -974,10 +976,12 @@ UnionConverter::clear()
     }
 }
 
-StructConverter::StructConverter(const orc::Type& type)
+StructConverter::StructConverter(const orc::Type& type, unsigned int kind_)
+  : Converter()
+  , kind(kind_)
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
-        fieldConverters.push_back(createConverter(type.getSubtype(i)).release());
+        fieldConverters.push_back(createConverter(type.getSubtype(i), kind).release());
         fieldNames.push_back(py::str(type.getFieldName(i)));
     }
 }
@@ -1005,13 +1009,19 @@ StructConverter::toPython(uint64_t rowId)
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        // py::tuple result = py::tuple(fieldConverters.size());
-        py::dict result;
-        for (size_t i = 0; i < fieldConverters.size(); ++i) {
-            // result[i] = fieldConverters[i]->toPython(rowId);
-            result[fieldNames[i]] = fieldConverters[i]->toPython(rowId);
+        if (kind == 0) {
+            py::tuple result = py::tuple(fieldConverters.size());
+            for (size_t i = 0; i < fieldConverters.size(); ++i) {
+                result[i] = fieldConverters[i]->toPython(rowId);
+            }
+            return result;
+        } else {
+            py::dict result;
+            for (size_t i = 0; i < fieldConverters.size(); ++i) {
+                result[fieldNames[i]] = fieldConverters[i]->toPython(rowId);
+            }
+            return result;
         }
-        return result;
     }
 }
 
@@ -1030,14 +1040,27 @@ StructConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
             fieldConverters[i]->write(structBatch->fields[i], rowId, elem);
         }
     } else {
-        py::dict dict(elem);
-        for (size_t i = 0; i < fieldConverters.size(); ++i) {
-            if (structBatch->fields[i]->capacity <=
-                structBatch->fields[i]->numElements) {
-                structBatch->fields[i]->resize(2 * structBatch->fields[i]->capacity);
+        if (kind == 0) {
+            py::tuple tuple(elem);
+            for (size_t i = 0; i < fieldConverters.size(); ++i) {
+                if (structBatch->fields[i]->capacity <=
+                    structBatch->fields[i]->numElements) {
+                    structBatch->fields[i]->resize(2 *
+                                                   structBatch->fields[i]->capacity);
+                }
+                fieldConverters[i]->write(structBatch->fields[i], rowId, tuple[i]);
             }
-            fieldConverters[i]->write(
-              structBatch->fields[i], rowId, dict[fieldNames[i]]);
+        } else {
+            py::dict dict(elem);
+            for (size_t i = 0; i < fieldConverters.size(); ++i) {
+                if (structBatch->fields[i]->capacity <=
+                    structBatch->fields[i]->numElements) {
+                    structBatch->fields[i]->resize(2 *
+                                                   structBatch->fields[i]->capacity);
+                }
+                fieldConverters[i]->write(
+                  structBatch->fields[i], rowId, dict[fieldNames[i]]);
+            }
         }
         structBatch->notNull[rowId] = 1;
     }

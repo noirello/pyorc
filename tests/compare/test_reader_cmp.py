@@ -5,7 +5,7 @@ import gzip
 import os
 import math
 
-from pyorc import TypeKind
+from pyorc import TypeKind, StructRepr
 import pyorc._pyorc
 
 from datetime import date, datetime
@@ -90,7 +90,7 @@ TESTDATA = [
 def test_read(example, expected):
     exp_res = gzip.open(get_full_path(expected), "rb")
     with open(get_full_path(example), "rb") as fileo:
-        orc_res = pyorc._pyorc.reader(fileo)
+        orc_res = pyorc._pyorc.reader(fileo, struct_repr=StructRepr.DICT)
         length = 0
         for num, line in enumerate(exp_res):
             json_row = traverse_json_row(orc_res.schema, json.loads(line))

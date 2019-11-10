@@ -9,6 +9,7 @@ from pyorc import (
     Writer,
     typedescription,
     TypeKind,
+    StructRepr,
     ParseError,
     stripe as Stripe,
 )
@@ -18,7 +19,9 @@ from pyorc import (
 def orc_data():
     def _init(row):
         data = io.BytesIO()
-        with Writer(data, "struct<col0:int,col1:string>") as writer:
+        with Writer(
+            data, "struct<col0:int,col1:string>", struct_repr=StructRepr.DICT
+        ) as writer:
             for i in range(row):
                 writer.write(
                     {
@@ -44,7 +47,7 @@ def stripped_orc_data():
             compression_block_size=128,
         ) as writer:
             for i in range(row):
-                writer.write({"col0": i})
+                writer.write((i,))
         data.seek(0)
         return data
 
@@ -96,7 +99,7 @@ def test_next():
     with pytest.raises(StopIteration):
         reader = Reader(data)
         next(reader)
-    expected = {"col0": 0, "col1": "Test A"}
+    expected = (0, "Test A")
     data = io.BytesIO()
     with Writer(data, "struct<col0:int,col1:string>") as writer:
         writer.write(expected)
@@ -110,9 +113,9 @@ def test_iter(orc_data):
     reader = Reader(orc_data(20))
     result = [row for row in reader]
     assert len(result) == 20
-    assert {"col0": 0, "col1": "Test A"} == result[0]
-    assert {"col0": 19, "col1": "Test T"} == result[-1]
-    assert {"col0": 12, "col1": "Test M"} in result
+    assert (0, "Test A") == result[0]
+    assert (19, "Test T") == result[-1]
+    assert (12, "Test M") in result
 
 
 def test_len():
@@ -123,14 +126,14 @@ def test_len():
 
     data = io.BytesIO()
     with Writer(data, "struct<col0:int,col1:string>") as writer:
-        writer.write({"col0": 0, "col1": "Test A"})
+        writer.write((0, "Test A"))
     reader = Reader(data)
     assert len(reader) == 1
 
     data = io.BytesIO()
     with Writer(data, "struct<col0:int,col1:string>") as writer:
         for i in range(10):
-            writer.write({"col0": i, "col1": "Test"})
+            writer.write((i, "Test"))
     reader = Reader(data)
     assert len(reader) == 10
 
@@ -161,7 +164,7 @@ def test_current_row(orc_data):
     assert reader.current_row == 10
     res = next(reader)
     assert reader.current_row == 11
-    assert res["col0"] == 10
+    assert res[0] == 10
     _ = [_ for _ in reader]
     assert reader.current_row == len(reader)
 
@@ -177,19 +180,19 @@ def test_seek(orc_data):
     assert reader.current_row == 0
     assert reader.seek(10) == 10
     assert reader.current_row == 10
-    assert next(reader)["col0"] == 10
+    assert next(reader)[0] == 10
     assert reader.seek(0, 2) == len(reader)
     with pytest.raises(StopIteration):
-        _ = next(reader)["col0"]
+        _ = next(reader)[0]
     assert reader.seek(-1, 2) == 49
-    assert next(reader)["col0"] == 49
+    assert next(reader)[0] == 49
     assert reader.seek(-10, 2) == 40
     assert reader.seek(1, 1) == 41
-    assert next(reader)["col0"] == 41
+    assert next(reader)[0] == 41
     reader.seek(10)
     assert reader.seek(8, 1) == 18
     assert reader.seek(-5, 1) == 13
-    assert next(reader)["col0"] == 13
+    assert next(reader)[0] == 13
     with pytest.raises(ValueError):
         reader.seek(-1, 0)
     with pytest.raises(ValueError):
@@ -200,9 +203,9 @@ def test_read(orc_data):
     reader = Reader(orc_data(80))
     result = reader.read()
     assert len(result) == len(reader)
-    assert {"col0": 0, "col1": "Test A"} == result[0]
-    assert {"col0": 25, "col1": "Test Z"} == result[25]
-    assert result[-1]["col0"] == 79
+    assert (0, "Test A") == result[0]
+    assert (25, "Test Z") == result[25]
+    assert result[-1][0] == 79
     assert reader.current_row == 80
     with pytest.raises(StopIteration):
         _ = next(reader)
@@ -216,18 +219,18 @@ def test_read(orc_data):
         _ = reader.read("a")
     result = reader.read(10)
     assert len(result) == 10
-    assert {"col0": 0, "col1": "Test A"} == result[0]
-    assert {"col0": 9, "col1": "Test J"} == result[-1]
+    assert (0, "Test A") == result[0]
+    assert (9, "Test J") == result[-1]
 
     result = reader.read(15)
     assert len(result) == 15
-    assert {"col0": 10, "col1": "Test K"} == result[0]
-    assert {"col0": 24, "col1": "Test Y"} == result[-1]
+    assert (10, "Test K") == result[0]
+    assert (24, "Test Y") == result[-1]
     assert reader.current_row == 25
 
     result = reader.read()
     assert len(result) == 55
-    assert {"col0": 25, "col1": "Test Z"} == result[0]
+    assert (25, "Test Z") == result[0]
 
     reader = Reader(orc_data(80))
     result = reader.read(0)
@@ -239,27 +242,31 @@ def test_read(orc_data):
 def test_include():
     data = io.BytesIO()
     record = {"col0": 1, "col1": "Test A", "col2": 3.14}
-    with Writer(data, "struct<col0:int,col1:string,col2:double>") as writer:
+    with Writer(
+        data, "struct<col0:int,col1:string,col2:double>", struct_repr=StructRepr.DICT
+    ) as writer:
         writer.write(record)
     data.seek(0)
-    reader = Reader(data, column_indices=[0])
+    reader = Reader(data, column_indices=[0], struct_repr=StructRepr.DICT)
     assert next(reader) == {"col0": 1}
-    reader = Reader(data, column_indices=[0, 2])
+    reader = Reader(data, column_indices=[0, 2], struct_repr=StructRepr.DICT)
     assert next(reader) == {"col0": 1, "col2": 3.14}
     with pytest.raises(TypeError):
-        _ = Reader(data, column_indices=[0, "2"])
-    reader = Reader(data, column_names=["col0"])
+        _ = Reader(data, column_indices=[0, "2"], struct_repr=StructRepr.DICT)
+    reader = Reader(data, column_names=["col0"], struct_repr=StructRepr.DICT)
     assert next(reader) == {"col0": 1}
-    reader = Reader(data, column_names=["col1", "col2"])
+    reader = Reader(data, column_names=["col1", "col2"], struct_repr=StructRepr.DICT)
     assert next(reader) == {"col1": "Test A", "col2": 3.14}
     with pytest.raises(TypeError):
-        _ = Reader(data, column_names=["col1", 2])
+        _ = Reader(data, column_names=["col1", 2], struct_repr=StructRepr.DICT)
     with pytest.raises(ValueError):
-        _ = Reader(data, column_indices=[10])
+        _ = Reader(data, column_indices=[10], struct_repr=StructRepr.DICT)
     with pytest.raises(ValueError):
-        _ = Reader(data, column_names=["col5"])
+        _ = Reader(data, column_names=["col5"], struct_repr=StructRepr.DICT)
     with pytest.raises(ValueError):
-        _ = Reader(data, column_names=["col1"], column_indices=[2])
+        _ = Reader(
+            data, column_names=["col1"], column_indices=[2], struct_repr=StructRepr.DICT
+        )
 
 
 def test_num_of_stripes(stripped_orc_data):

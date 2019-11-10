@@ -9,7 +9,8 @@ Writer::Writer(py::object fileo,
                int compression_strategy,
                uint64_t compression_block_size,
                std::set<uint64_t> bloom_filter_columns,
-               double bloom_filter_fpp)
+               double bloom_filter_fpp,
+               unsigned int struct_repr)
 {
     currentRow = 0;
     batchItem = 0;
@@ -28,7 +29,7 @@ Writer::Writer(py::object fileo,
     writer = createWriter(*type, outStream.get(), options);
     batchSize = batch_size;
     batch = writer->createRowBatch(batchSize);
-    converter = createConverter(type.get());
+    converter = createConverter(type.get(), struct_repr);
 }
 
 void
