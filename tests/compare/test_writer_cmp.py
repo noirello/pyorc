@@ -15,6 +15,7 @@ from pyorc.enums import TypeKind
 
 ORC_CONTENTS_PATH = "deps/bin/orc-contents"
 
+
 @pytest.fixture
 def output_file():
     testfile = tempfile.NamedTemporaryFile(
@@ -40,10 +41,12 @@ def transform(schema, value):
     elif schema.kind == TypeKind.LIST:
         return [transform(schema.container_types[0], item) for item in value]
     elif schema.kind == TypeKind.TIMESTAMP:
+        if value is None:
+            return value
         try:
-            ts = datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+            ts = datetime.strptime(value[:26], "%Y-%m-%d %H:%M:%S")
         except ValueError:
-            ts = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            ts = datetime.strptime(value[:26], "%Y-%m-%d %H:%M:%S.%f")
         return ts.replace(tzinfo=timezone.utc)
     elif schema.kind == TypeKind.DATE:
         return datetime.strptime(value, "%Y-%m-%d").date()

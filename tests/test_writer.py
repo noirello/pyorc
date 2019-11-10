@@ -303,6 +303,51 @@ def test_write_complex_type(orc_type, values):
     assert reader.read() == values
 
 
+TESTDATA = [
+    ("int", 42),
+    ("bigint", 560000000000001),
+    ("float", 3.14),
+    ("double", math.e),
+    ("string", "test"),
+    ("binary", b"\x23\x45\x45"),
+    ("varchar(4)", "four"),
+    ("timestamp", datetime(2019, 11, 10, 12, 59, 59, 100, tzinfo=timezone.utc)),
+    ("date", date(2010, 9, 1)),
+    ("decimal(10,0)", Decimal("1000000000")),
+    ("array<int>", [0, 1, 2, 3]),
+    ("map<string,string>", {"test": "example"}),
+    ("struct<col0:int,col1:string>", {"col0": 0, "col1": "test"}),
+]
+
+
+@pytest.mark.parametrize("orc_type,value", TESTDATA)
+def test_write_nones(orc_type, value):
+    data = io.BytesIO()
+    writer = Writer(data, orc_type, batch_size=20)
+    for _ in range(100):
+        writer.write(value)
+    for _ in range(100):
+        writer.write(None)
+    writer.close()
+
+    data.seek(0)
+    reader = Reader(data, batch_size=30)
+    non_nones = reader.read(100)
+    nones = reader.read(100)
+    assert len(reader) == 200
+    if orc_type in ("float", "double"):
+        assert math.isclose(non_nones[0], value, rel_tol=1e-07, abs_tol=0.0)
+        assert math.isclose(non_nones[-1], value, rel_tol=1e-07, abs_tol=0.0)
+    elif orc_type == "timestamp":
+        assert non_nones[0] == value.replace(tzinfo=None)
+        assert non_nones[-1] == value.replace(tzinfo=None)
+    else:
+        assert non_nones[0] == value
+        assert non_nones[-1] == value
+    assert all(row is not None for row in non_nones)
+    assert all(row is None for row in nones)
+
+
 def test_context_manager():
     data = io.BytesIO()
     records = [
