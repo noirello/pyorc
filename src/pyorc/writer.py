@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, BinaryIO
+from typing import Union, Optional, List, BinaryIO, Iterable
 
 from pyorc._pyorc import writer, typedescription
 from .enums import CompressionKind, CompressionStrategy
@@ -58,3 +58,10 @@ class Writer(writer):
     @property
     def schema(self) -> typedescription:
         return self.__schema
+
+    def writerows(self, rows: Iterable):
+        num = 0
+        for row in rows:
+            self.write(row)
+            num += 1
+        return num

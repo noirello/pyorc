@@ -393,3 +393,16 @@ def test_schema():
     del writer
     assert isinstance(schema, typedescription)
     assert schema.kind == TypeKind.STRUCT
+
+
+def test_writerows():
+    data = io.BytesIO()
+    writer = Writer(data, "int")
+    rows = (0,1,2,3,4,5,6,7,8,9)
+    res = writer.writerows(rows)
+    writer.close()
+    assert res == len(rows)
+
+    data.seek(0)
+    reader = Reader(data)
+    assert list(rows) == reader.read()
