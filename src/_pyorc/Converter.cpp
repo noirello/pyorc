@@ -224,6 +224,9 @@ std::unique_ptr<Converter>
 createConverter(const orc::Type* type, unsigned int structKind)
 {
     Converter* result = nullptr;
+    if (structKind > 1) {
+        throw py::value_error("Invalid struct kind");
+    }
     if (type == nullptr) {
         throw py::value_error("Received an invalid type");
     } else {

@@ -17,6 +17,7 @@ class Reader(reader):
             column_indices = []
         if column_names is None:
             column_names = []
+        struct_repr = StructRepr(struct_repr)
         super().__init__(fileo, batch_size, column_indices, column_names, struct_repr)
 
     def iter_stripes(self):
