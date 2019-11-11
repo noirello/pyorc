@@ -36,7 +36,7 @@ And another for writing one:
 
         with open("./new_data.orc", "wb") as data:
             with pyorc.Writer(data, "struct<col0:int,col1:string>") as writer:
-                writer.write({"col0": 1, "col1": "ORC from Python"})
+                writer.write((1, "ORC from Python"))
 
 
 .. _Apache ORC: https://orc.apache.org/
