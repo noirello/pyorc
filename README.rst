@@ -14,6 +14,15 @@ under the hood, and provides a similar interface as the `csv module`_ in the Pyt
 
 Supports only Python 3.6 or newer and ORC 1.6.0.
 
+Features
+--------
+
+- Reading ORC files.
+- Writing ORC files.
+- While using Python's stream/file-like object IO interface.
+
+That sums up quite well the purpose of this project.
+
 Example
 -------
 
@@ -38,6 +47,12 @@ And another for writing one:
             with pyorc.Writer(data, "struct<col0:int,col1:string>") as writer:
                 writer.write((1, "ORC from Python"))
 
+Contribution
+============
+
+Any contributions are welcome. If you would like to help in development fork
+or report issue here on Github. You can also help in improving the
+documentation.
 
 .. _Apache ORC: https://orc.apache.org/
 .. _csv module: https://docs.python.org/3/library/csv.html
