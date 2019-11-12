@@ -3,13 +3,31 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to PyORC's documentation!
-=================================
+PyORC's documentation
+*********************
+
+PyORC is a Python module for reading and writing `Apache ORC`_ file format.
+It uses the Apache ORC's Core C++ API under the hood, and provides a similar
+interface as the `csv module`_ in the Python standard library.
+
+.. note::
+    The module is compatible with Python 3.6 or newer releases.
+
+
+Features
+--------
+
+- Reading ORC files.
+- Writing ORC files.
+- While using Python's stream/file-like object IO interface.
+
+That sums up quite well the purpose of this project.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   changelog
 
 
 Indices and tables
@@ -18,3 +36,14 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Contribution
+============
+
+Any contributions are welcome. If you would like to help in development fork
+or report issue on the project's `GitHub site`_. You can also help in
+improving the documentation.
+
+.. _github site: https://github.com/noirello/pyorc
+.. _Apache ORC: https://orc.apache.org/
+.. _csv module: https://docs.python.org/3/library/csv.html
