@@ -3,6 +3,7 @@
 build/
 deps/
 dist/
+docs/_build/
 pyorc.egg-info/
 .pytest_cache/
 __pycache__/
