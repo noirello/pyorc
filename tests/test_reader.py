@@ -36,7 +36,7 @@ def orc_data():
 
 
 @pytest.fixture
-def stripped_orc_data():
+def striped_orc_data():
     def _init(row):
         data = io.BytesIO()
         with Writer(
@@ -269,15 +269,15 @@ def test_include():
         )
 
 
-def test_num_of_stripes(stripped_orc_data):
-    reader = Reader(stripped_orc_data(655))
+def test_num_of_stripes(striped_orc_data):
+    reader = Reader(striped_orc_data(655))
     assert reader.num_of_stripes == 1
-    reader = Reader(stripped_orc_data(655350))
+    reader = Reader(striped_orc_data(655350))
     assert reader.num_of_stripes == 10
 
 
-def test_read_stripe(stripped_orc_data):
-    reader = Reader(stripped_orc_data(655350))
+def test_read_stripe(striped_orc_data):
+    reader = Reader(striped_orc_data(655350))
     stripe = reader.read_stripe(0)
     assert isinstance(stripe, Stripe)
     with pytest.raises(IndexError):
@@ -290,8 +290,8 @@ def test_read_stripe(stripped_orc_data):
     assert isinstance(stripe, Stripe)
 
 
-def test_iter_stripe(stripped_orc_data):
-    reader = Reader(stripped_orc_data(655350))
+def test_iter_stripe(striped_orc_data):
+    reader = Reader(striped_orc_data(655350))
     stripes = list(reader.iter_stripes())
     assert len(stripes) == reader.num_of_stripes
     assert all(isinstance(stripe, Stripe) for stripe in reader.iter_stripes())
