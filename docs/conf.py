@@ -45,7 +45,7 @@ copyright = "2019, noirello"
 author = "noirello"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.0"
+release = pyorc.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -76,3 +76,4 @@ html_theme = "alabaster"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+master_doc = "index"
