@@ -110,7 +110,7 @@ Writing
 -------
 
 To write a new ORC file we need to open a binary file-like object and pass
-to a Writer object with an ORC schema description. The schema cna be a 
+to a Writer object with an ORC schema description. The schema can be a 
 typedescription or a simple string ORC schema definition::
 
     >>> output = open("./new.orc", "wb")

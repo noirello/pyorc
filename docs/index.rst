@@ -27,6 +27,9 @@ That sums up quite well the purpose of this project.
    :maxdepth: 2
    :caption: Contents:
 
+   install
+   tutorial
+   api
    changelog
 
 
