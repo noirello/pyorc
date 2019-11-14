@@ -2,6 +2,8 @@ import enum
 
 
 class CompressionKind(enum.IntEnum):
+    """ The compression kind for the ORC file. """
+
     NONE = 0
     ZLIB = 1
     SNAPPY = 2
@@ -11,11 +13,15 @@ class CompressionKind(enum.IntEnum):
 
 
 class CompressionStrategy(enum.IntEnum):
+    """ Compression strategy for the ORC file. """
+
     SPEED = 0
     COMPRESSION = 1
 
 
 class TypeKind(enum.IntEnum):
+    """ The type kinds for an ORC schema. """
+
     BOOLEAN = 0
     BYTE = 1
     SHORT = 2
@@ -37,5 +43,8 @@ class TypeKind(enum.IntEnum):
 
 
 class StructRepr(enum.IntEnum):
-    TUPLE = 0
-    DICT = 1
+    """ Enumeration for ORC struct representation. """
+
+    TUPLE = 0  #: For tuple.
+    DICT = 1  #: For dictionary.
+

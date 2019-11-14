@@ -12,7 +12,7 @@ class Reader(reader):
         column_indices: Optional[List[int]] = None,
         column_names: Optional[List[str]] = None,
         struct_repr: StructRepr = StructRepr.TUPLE,
-    ):
+    ) -> None:
         if column_indices is None:
             column_indices = []
         if column_names is None:
