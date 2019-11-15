@@ -1,13 +1,10 @@
 API documentation
 *****************
 
-pyorc
-=====
-
 .. automodule:: pyorc
 
 :class:`Reader`
----------------
+===============
 
 .. class:: Reader(fileo, batch_size=1024, column_indices=None, \
                   column_names=None, struct_repr=StructRepr.TUPLE)
@@ -83,7 +80,7 @@ pyorc
 
 
 :class:`stripe`
----------------
+===============
 
 .. class:: stripe(reader, idx)
 
@@ -143,7 +140,7 @@ pyorc
     The timezone information of the writer.
 
 :class:`typedescription`
-------------------------
+========================
 
 .. class:: typedescription(str_schema)
 
@@ -202,7 +199,7 @@ pyorc
     decimal then it's None.
 
 :class:`Writer`
----------------
+===============
 
 .. class:: Writer(fileo, schema, batch_size=1024, \
                   stripe_size=67108864, compression=CompressionKind.ZLIB, \
