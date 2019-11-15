@@ -145,6 +145,61 @@ pyorc
 :class:`typedescription`
 ------------------------
 
+.. class:: typedescription(str_schema)
+
+    It represents an ORC schema, the hierarchy of the types in the file.
+
+.. method:: typedescription.__str__()
+
+    Get the string representation of the schema.
+
+.. method:: typedescription.add_field(name, type)
+
+    Add a new field to the type, when the current type is a struct.
+
+.. method:: typedescription.find_column_id(name)
+
+    Find the its id of a column by its name.
+
+.. method:: typedescription.remove_field(name)
+
+    Remove an existing field from the type, when the current type is a
+    struct.
+
+.. attribute:: typedescription.column_id
+
+    The id of the column.
+
+.. attribute:: typedescription.container_types
+
+    If the current type is a container type, it returns a list of subtypes
+    in the container as typedescription objects. For List it's a single
+    list, for Map a pair. Uniontype can have multiple items.
+
+.. attribute:: typedescription.fields
+
+    A read-only dictionary of teh struct's fields, where the keys are the
+    fields names and teh values are typedescription objects.
+
+.. attribute:: typedescription.kind
+
+    The kind of the current typedescription. It has to be one of the
+    :class:`pyorc.TypeKind` enum values.
+
+.. attribute:: typedescription.max_length
+
+    The maximal length for a varchar type. If the typedescription is not a
+    varchar then it's None.
+
+.. attribute:: typedescription.precision
+
+    The precision of a decimal type. If the typedescription is not a
+    decimal then it's None.
+
+.. attribute:: typedescription.scale
+
+    The scale of a decimal type. If the typedescription is not a
+    decimal then it's None.
 
 :class:`Writer`
 ---------------
