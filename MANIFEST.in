@@ -1,0 +1,7 @@
+recursive-include src *.cpp *.h *.py
+recursive-include tests *.py
+recursive-include docs *.rst *.py *.css Makefile make.bat
+include README.rst
+include LICENSE
+include CHANGELOG.rst
+recursive-exclude docs/_build *

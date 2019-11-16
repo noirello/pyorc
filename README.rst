@@ -9,6 +9,10 @@ PyORC
     :target: https://codecov.io/gh/noirello/pyorc
     :alt: Codecov code coverage
 
+.. image:: https://readthedocs.org/projects/pyorc/badge/?version=latest
+    :target: https://pyorc.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 Python module for reading and writing `Apache ORC`_ file format. It uses the Apache ORC's Core C++ API
 under the hood, and provides a similar interface as the `csv module`_ in the Python standard library.
 

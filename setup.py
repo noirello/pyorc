@@ -209,6 +209,9 @@ class BuildExt(build_ext):
         build_ext.build_extensions(self)
 
 
+with open("README.rst") as file:
+    LONG_DESC = file.read()
+
 setup(
     name="pyorc",
     version="0.1.0",
@@ -216,7 +219,7 @@ setup(
     author="noirello",
     author_email="noirello@gmail.com",
     url="https://github.com/noirello/pyorc",
-    long_description="",
+    long_description=LONG_DESC,
     license="Apache License, Version 2.0",
     ext_modules=EXT_MODULES,
     package_dir={"pyorc": "src/pyorc"},
@@ -225,6 +228,17 @@ setup(
     install_requires=["pybind11>=2.4"],
     setup_requires=["pybind11>=2.4"],
     cmdclass={"build_ext": BuildExt, "build_orc": BuildORCLib},
-    keywords=[],
-    classifiers=[],
+    keywords=["python3", "orc", "apache-orc"],
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: C++",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+    ],
+    python_requires=">=3.6",
 )
