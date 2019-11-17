@@ -14,7 +14,7 @@ Install from source
 -------------------
 
 To install the module from source you need to build the Apache ORC C++ Core
-library with its dependecies first, which requires `cmake` -- in addition of
+library with its dependencies first, which requires `cmake` -- in addition of
 a suitable C++ complier.
 
 To make that easier, the project's `setup.py` file also contains a

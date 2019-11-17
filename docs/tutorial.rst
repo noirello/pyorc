@@ -39,13 +39,13 @@ iteration::
 
 Iterating over the file's content to process its rows is the preferable way,
 but we can also read the entire file into the memory with the read method.
-This method has an optional parameter to controll the maximal number of rows
+This method has an optional parameter to control the maximal number of rows
 to read::
 
     >>> rows = reader.read(10000)
     >>> rows
     ... (10000, 'F', 'U', 'Advanced Degree', 1500, 'Unknown', 1, 0, 0), (10001, 'M', 'M', 'Unknown', 1500, 'Unknown', 1, 0, 0), (10002, 'F', 'M', 'Unknown', 1500, 'Unknown', 1, 0, 0)]
-    >>> reader.read()  # This call freezed the interpreter for several minutes!
+    >>> reader.read()  # This call froze the interpreter for several minutes!
     ... (1920799, 'M', 'U', 'Unknown', 10000, 'Unknown', 6, 6, 6), (1920800, 'F', 'U', 'Unknown', 10000, 'Unknown', 6, 6, 6)]
 
 Using this optional parameter for larger ORC file is highly recommended!
@@ -76,8 +76,8 @@ We can also change the representation of a struct from tuple to dictionary::
 Stripes
 -------
 
-ORC files are divided in to stripes. Stipes are independent of each other.
-Let's openan other ORC files that has multiple stripes in it::
+ORC files are divided in to stripes. Stripes are independent of each other.
+Let's open an other ORC files that has multiple stripes in it::
 
     >>> example = open("./deps/examples/TestOrcFile.testStripeLevelStats.orc", "rb")
     >>> reader = pyorc.Reader(example)
@@ -92,7 +92,8 @@ the file. We can read a certain stripes using the `read_stripe` method::
     <pyorc._pyorc.stripe object at 0x7f9784e09ce0>
 
 The stripe object also an iterable object and has the same methods for
-reading and seeking rows, but only in the boundries of the selected stripe::
+reading and seeking rows, but only in the boundaries of the selected
+stripe::
 
     >>> next(stripe2)
     (3, 'three')
@@ -128,7 +129,7 @@ otherwise it won't be a valid ORC file.
 
     >>> writer.close()
 
-For simpler use the Writer object can be used as a contextmanager and you
+For simpler use the Writer object can be used as a context manager and you
 can also change the struct representation as well:
 
 .. code-block:: python

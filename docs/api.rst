@@ -101,7 +101,7 @@ API documentation
 
 .. method:: stripe.seek(row, whence=0)
 
-    Jump to a certain row position in the stripe. For possibe `whence`
+    Jump to a certain row position in the stripe. For possible `whence`
     values see :meth:`Reader.seek`.
 
     :return: number of the absolute row position in the stripe.
@@ -209,7 +209,7 @@ API documentation
 
     An object to write ORC files. The `fileo` must be a binary stream.
     The `schema` must be :class:`typedescription` or a valid ORC schema
-    defintion as a string.
+    definition as a string.
 
     With the `bloom_filter_columns` a list of column ids or field names
     can be set to create a Bloom filter for the column. Nested structure
@@ -217,7 +217,7 @@ API documentation
     ``struct<first:struct<second:int>>`` schema the second column can be
     selected as ``["first.second"]``.
 
-    :param object fileo: a writable binary file-like object.
+    :param object fileo: a writeable binary file-like object.
     :param typedescription|str schema: the ORC schema of the file.
     :param int batch_size: the batch size for the ORC file.
     :param int stripe_size: the stripes size in bytes.
@@ -240,7 +240,7 @@ API documentation
 
 .. method:: Writer.close()
 
-    Close an ORC file and write put the metadata after the rows have been added.
+    Close an ORC file and write out the metadata after the rows have been added.
     Must be called to get a valid ORC file.
 
 .. method:: Writer.write(row)
