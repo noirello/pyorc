@@ -213,10 +213,6 @@ def test_write_primitive_type(orc_type, values):
                 assert res is None
             else:
                 assert math.isclose(res, exp, rel_tol=1e-07, abs_tol=0.0)
-    elif orc_type == "timestamp":
-        assert reader.read() == [
-            val.replace(tzinfo=None) if val is not None else None for val in values
-        ]
     else:
         assert reader.read() == values
 
@@ -334,9 +330,6 @@ def test_write_nones(orc_type, value):
     if orc_type in ("float", "double"):
         assert math.isclose(non_nones[0], value, rel_tol=1e-07, abs_tol=0.0)
         assert math.isclose(non_nones[-1], value, rel_tol=1e-07, abs_tol=0.0)
-    elif orc_type == "timestamp":
-        assert non_nones[0] == value.replace(tzinfo=None)
-        assert non_nones[-1] == value.replace(tzinfo=None)
     else:
         assert non_nones[0] == value
         assert non_nones[-1] == value
