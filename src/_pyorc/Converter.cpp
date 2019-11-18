@@ -98,6 +98,7 @@ class TimestampConverter : public Converter
     const int64_t* seconds;
     const int64_t* nanoseconds;
     py::object datetime;
+    py::object utc;
 
   public:
     TimestampConverter();
@@ -526,7 +527,9 @@ TimestampConverter::TimestampConverter()
   , nanoseconds(nullptr)
 {
     py::object dt = py::module::import("datetime").attr("datetime");
-    datetime = dt.attr("utcfromtimestamp");
+    py::object tz = py::module::import("datetime").attr("timezone");
+    datetime = dt.attr("fromtimestamp");
+    utc = tz.attr("utc");
 }
 
 void
@@ -544,7 +547,7 @@ TimestampConverter::toPython(uint64_t rowId)
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        py::object date = datetime(seconds[rowId]);
+        py::object date = datetime(seconds[rowId], utc);
         py::object replace(date.attr("replace"));
         return replace(py::arg("microsecond") = (nanoseconds[rowId] / 1000));
     }
