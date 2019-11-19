@@ -30,7 +30,9 @@ class ORCIterator
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
 };
 
-class Stripe; /* Forward declaration */
+/* Forward declarations */
+class Stripe;
+class Column;
 
 class Reader : public ORCIterator
 {
@@ -69,6 +71,7 @@ class Stripe : public ORCIterator
   public:
     Stripe(const Reader&, uint64_t, std::unique_ptr<orc::StripeInformation>);
     py::object bloomFilterColumns();
+    Column getItem(uint64_t);
     uint64_t len() const override;
     uint64_t length() const;
     uint64_t offset() const;

@@ -1,5 +1,6 @@
 #include <pybind11/stl.h>
 
+#include "Column.h"
 #include "PyORCStream.h"
 #include "Reader.h"
 
@@ -174,6 +175,16 @@ Stripe::bloomFilterColumns()
         ++idx;
     }
     return result;
+}
+
+Column
+Stripe::getItem(uint64_t num)
+{
+    std::set<uint32_t> singleSet = { static_cast<uint32_t>(num) };
+    std::map<uint32_t, orc::BloomFilterIndex> bloomFilters =
+      reader.getORCReader().getBloomFilters(static_cast<uint32_t>(stripeIndex),
+                                            singleSet);
+    return Column(*this, num, bloomFilters);
 }
 
 uint64_t
