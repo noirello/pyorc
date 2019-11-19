@@ -16,13 +16,21 @@ from setuptools.command.build_clib import build_clib
 SOURCES = [
     "_pyorc.cpp",
     "Converter.cpp",
+    "Column.cpp",
     "PyORCStream.cpp",
     "Reader.cpp",
     "TypeDescription.cpp",
     "Writer.cpp",
 ]
 
-HEADERS = ["Converter.h", "PyORCStream.h", "Reader.h", "TypeDescription.h", "Writer.h"]
+HEADERS = [
+    "Converter.h",
+    "Column.h",
+    "PyORCStream.h",
+    "Reader.h",
+    "TypeDescription.h",
+    "Writer.h",
+]
 
 
 class BuildORCLib(Command):

@@ -1,3 +1,4 @@
+#include "Column.h"
 #include "Reader.h"
 #include "TypeDescription.h"
 #include "Writer.h"
@@ -36,6 +37,20 @@ PYBIND11_MODULE(_pyorc, m)
       .def("add_field", &TypeDescription::addField)
       .def("remove_field", &TypeDescription::removeField)
       .def("find_column_id", &TypeDescription::findColumnId);
+    py::class_<Column>(m, "column")
+      .def(py::init([](Stripe& stripe, uint64_t num) { return stripe.getItem(num); }),
+           py::keep_alive<0, 2>())
+      .def("__next__", [](Column& c) -> py::object { return c.next(); })
+      .def("__iter__", [](Column& c) -> Column& { return c; })
+      .def("__len__", &Column::len)
+      .def("__contains__", &Column::contains)
+      .def("read", &Column::read)
+      .def("seek", &Column::seek)
+      .def_property_readonly("has_null", &Column::hasNull)
+      .def_property_readonly("num_of_values", &Column::numberOfValues)
+      .def_property_readonly("statistics", &Column::statistics)
+      .def_readonly("current_row", &Column::currentRow)
+      .def_readonly("row_offset", &Column::firstRowOfStripe);
     py::class_<Stripe>(m, "stripe")
       .def(
         py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }),
