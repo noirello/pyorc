@@ -63,7 +63,7 @@ Column::testBloomFilter(py::object item)
         case orc::STRING:
         case orc::VARCHAR:
         case orc::CHAR:
-            data = PyUnicode_AsUTF8AndSize(item.ptr(), &length);
+            data = const_cast<char*>(PyUnicode_AsUTF8AndSize(item.ptr(), &length));
             for (auto entry : bloomFilter->entries) {
                 if (entry->testBytes(data, static_cast<int64_t>(length)) == true) {
                     return true;
