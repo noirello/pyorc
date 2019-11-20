@@ -128,6 +128,20 @@ Column::len() const
     return numOfRows;
 }
 
+static py::object
+toDatetime(int64_t millisec)
+{
+    int64_t seconds = millisec / 1000;
+    int64_t microsec = (millisec % 1000) * 1000;
+    py::object dt = py::module::import("datetime").attr("datetime");
+    py::object tz = py::module::import("datetime").attr("timezone");
+    py::object datetime = dt.attr("fromtimestamp");
+    py::object utc = tz.attr("utc");
+    py::object result = datetime(seconds, utc);
+    py::object replace(result.attr("replace"));
+    return replace(py::arg("microsecond") = microsec);
+}
+
 py::object
 Column::statistics()
 {
@@ -212,16 +226,16 @@ Column::statistics()
         case orc::TIMESTAMP: {
             auto* timeStat = dynamic_cast<orc::TimestampColumnStatistics*>(stats.get());
             if (timeStat->hasMinimum()) {
-                result["minimum"] = py::cast(timeStat->getMinimum());
+                result["minimum"] = toDatetime(timeStat->getMinimum());
             }
             if (timeStat->hasMaximum()) {
-                result["maximum"] = py::cast(timeStat->getMaximum());
+                result["maximum"] = toDatetime(timeStat->getMaximum());
             }
             if (timeStat->hasLowerBound()) {
-                result["lower_bound"] = py::cast(timeStat->getLowerBound());
+                result["lower_bound"] = toDatetime(timeStat->getLowerBound());
             }
             if (timeStat->hasUpperBound()) {
-                result["upper_bound"] = py::cast(timeStat->getUpperBound());
+                result["upper_bound"] = toDatetime(timeStat->getUpperBound());
             }
             return result;
         }
