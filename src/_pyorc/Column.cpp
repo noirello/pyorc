@@ -142,6 +142,21 @@ toDatetime(int64_t millisec)
     return replace(py::arg("microsecond") = microsec);
 }
 
+static py::object
+toDate(int64_t days)
+{
+    py::object date = py::module::import("datetime").attr("date");
+    py::object from_ts(date.attr("fromtimestamp"));
+    return from_ts(days * 24 * 60 * 60);
+}
+
+static py::object
+toDecimal(orc::Decimal dec)
+{
+    py::object decimal = py::module::import("decimal").attr("Decimal");
+    return decimal(dec.toString());
+}
+
 py::object
 Column::statistics()
 {
@@ -216,10 +231,10 @@ Column::statistics()
         case orc::DATE: {
             auto* dateStat = dynamic_cast<orc::DateColumnStatistics*>(stats.get());
             if (dateStat->hasMinimum()) {
-                result["minimum"] = py::cast(dateStat->getMinimum());
+                result["minimum"] = toDate(dateStat->getMinimum());
             }
             if (dateStat->hasMaximum()) {
-                result["maximum"] = py::cast(dateStat->getMaximum());
+                result["maximum"] = toDate(dateStat->getMaximum());
             }
             return result;
         }
@@ -242,13 +257,13 @@ Column::statistics()
         case orc::DECIMAL: {
             auto* decStat = dynamic_cast<orc::DecimalColumnStatistics*>(stats.get());
             if (decStat->hasMinimum()) {
-                result["minimum"] = py::cast(decStat->getMinimum());
+                result["minimum"] = toDecimal(decStat->getMinimum());
             }
             if (decStat->hasMaximum()) {
-                result["maximum"] = py::cast(decStat->getMaximum());
+                result["maximum"] =toDecimal(decStat->getMaximum());
             }
             if (decStat->hasSum()) {
-                result["sum"] = py::cast(decStat->getSum());
+                result["sum"] = toDecimal(decStat->getSum());
             }
             return result;
         }
