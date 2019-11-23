@@ -1,5 +1,14 @@
 Changelog
 ==========
+[0.2.0] - UNRELEASED
+--------------------
+
+Changed
+~~~~~~~
+
+- Use timezone-aware datetimes (in UTC) for ORC timestamps.
+
+
 [0.1.0] - 2019-11-16
 --------------------
 
