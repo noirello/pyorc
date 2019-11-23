@@ -33,33 +33,32 @@ Column::Column(const Stripe& stripe_,
 bool
 Column::testBloomFilter(py::object item)
 {
-    int rc = -1;
     char* data = nullptr;
     Py_ssize_t length = 0;
-    int64_t longItem;
-    double floatItem;
     switch (typeKind) {
         case orc::BOOLEAN:
         case orc::BYTE:
         case orc::SHORT:
         case orc::INT:
-        case orc::LONG:
-            longItem = py::cast<int64_t>(item);
+        case orc::LONG: {
+            int64_t longItem = py::cast<int64_t>(item);
             for (auto entry : bloomFilter->entries) {
                 if (entry->testLong(longItem) == true) {
                     return true;
                 }
             }
             break;
+        }
         case orc::FLOAT:
-        case orc::DOUBLE:
-            floatItem = py::cast<double>(item);
+        case orc::DOUBLE: {
+            double floatItem = py::cast<double>(item);
             for (auto entry : bloomFilter->entries) {
                 if (entry->testDouble(floatItem) == true) {
                     return true;
                 }
             }
             break;
+        }
         case orc::STRING:
         case orc::VARCHAR:
         case orc::CHAR:
@@ -70,8 +69,8 @@ Column::testBloomFilter(py::object item)
                 }
             }
             break;
-        case orc::BINARY:
-            rc = PyBytes_AsStringAndSize(item.ptr(), &data, &length);
+        case orc::BINARY: {
+            int rc = PyBytes_AsStringAndSize(item.ptr(), &data, &length);
             if (rc == -1) {
                 throw py::error_already_set();
             }
@@ -81,11 +80,13 @@ Column::testBloomFilter(py::object item)
                 }
             }
             break;
+        }
         default:
             return true;
     }
     return false;
 }
+
 bool
 Column::contains(py::object item)
 {
@@ -260,7 +261,7 @@ Column::statistics()
                 result["minimum"] = toDecimal(decStat->getMinimum());
             }
             if (decStat->hasMaximum()) {
-                result["maximum"] =toDecimal(decStat->getMaximum());
+                result["maximum"] = toDecimal(decStat->getMaximum());
             }
             if (decStat->hasSum()) {
                 result["sum"] = toDecimal(decStat->getSum());
@@ -271,6 +272,7 @@ Column::statistics()
             return result;
     }
 }
+
 const orc::Type*
 Column::findColumnType(const orc::Type* type)
 {
@@ -334,6 +336,7 @@ Column::selectBatch(const orc::Type& type, orc::ColumnVectorBatch* batch)
         }
     }
 }
+
 py::object
 Column::next()
 {
