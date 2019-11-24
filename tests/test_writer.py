@@ -232,6 +232,7 @@ TESTDATA = [
     ("struct<col0:string,col1:int>", 0),
     ("struct<col0:string,col1:int>", [0, 1, 2]),
     ("struct<col0:string,col1:int>", (0,)),
+    ("struct<col0:string,col1:int>", {"col0": "a", "col1": 0}),
 ]
 
 

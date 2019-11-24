@@ -1047,25 +1047,39 @@ StructConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
         }
     } else {
         if (kind == 0) {
-            py::tuple tuple(elem);
-            for (size_t i = 0; i < fieldConverters.size(); ++i) {
-                if (structBatch->fields[i]->capacity <=
-                    structBatch->fields[i]->numElements) {
-                    structBatch->fields[i]->resize(2 *
-                                                   structBatch->fields[i]->capacity);
+            if (py::isinstance<py::tuple>(elem)) {
+                py::tuple tuple(elem);
+                for (size_t i = 0; i < fieldConverters.size(); ++i) {
+                    if (structBatch->fields[i]->capacity <=
+                        structBatch->fields[i]->numElements) {
+                        structBatch->fields[i]->resize(
+                          2 * structBatch->fields[i]->capacity);
+                    }
+                    fieldConverters[i]->write(structBatch->fields[i], rowId, tuple[i]);
                 }
-                fieldConverters[i]->write(structBatch->fields[i], rowId, tuple[i]);
+            } else {
+                std::stringstream errmsg;
+                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                       << " is not an instance of tuple";
+                throw py::type_error(errmsg.str());
             }
         } else {
-            py::dict dict(elem);
-            for (size_t i = 0; i < fieldConverters.size(); ++i) {
-                if (structBatch->fields[i]->capacity <=
-                    structBatch->fields[i]->numElements) {
-                    structBatch->fields[i]->resize(2 *
-                                                   structBatch->fields[i]->capacity);
+            if (py::isinstance<py::dict>(elem)) {
+                py::dict dict(elem);
+                for (size_t i = 0; i < fieldConverters.size(); ++i) {
+                    if (structBatch->fields[i]->capacity <=
+                        structBatch->fields[i]->numElements) {
+                        structBatch->fields[i]->resize(
+                          2 * structBatch->fields[i]->capacity);
+                    }
+                    fieldConverters[i]->write(
+                      structBatch->fields[i], rowId, dict[fieldNames[i]]);
                 }
-                fieldConverters[i]->write(
-                  structBatch->fields[i], rowId, dict[fieldNames[i]]);
+            } else {
+                std::stringstream errmsg;
+                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                       << " is not an instance of dictionary";
+                throw py::type_error(errmsg.str());
             }
         }
         structBatch->notNull[rowId] = 1;
