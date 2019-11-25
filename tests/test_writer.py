@@ -398,3 +398,13 @@ def test_writerows():
     data.seek(0)
     reader = Reader(data)
     assert list(rows) == reader.read()
+
+
+def test_struct_repr():
+    data = io.BytesIO()
+    writer = Writer(data, "struct<a:int>")
+    with pytest.raises(TypeError):
+        writer.write({"a": 1})
+    writer = Writer(data, "struct<a:int>", struct_repr=StructRepr.DICT)
+    with pytest.raises(TypeError):
+        writer.write((1,))
