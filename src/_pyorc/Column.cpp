@@ -25,7 +25,6 @@ Column::Column(const Stripe& stripe_,
     const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
     converter = createConverter(type, stripe.getReader().getStructKind());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
-    numOfRows = stripe.len();
     typeKind = static_cast<int64_t>(type->getKind());
     selectedBatch = this->selectBatch(rowReader->getSelectedType(), batch.get());
 }
@@ -111,22 +110,10 @@ Column::contains(py::object item)
     }
 }
 
-bool
-Column::hasNull() const
-{
-    return stats->hasNull();
-}
-
-uint64_t
-Column::numberOfValues() const
-{
-    return stats->getNumberOfValues();
-}
-
 uint64_t
 Column::len() const
 {
-    return numOfRows;
+    return 0;
 }
 
 static py::object
@@ -162,9 +149,10 @@ py::object
 Column::statistics()
 {
     py::dict result;
+    result["has_null"] = py::cast(stats->hasNull());
+    result["number_of_values"] = py::cast(stats->getNumberOfValues());
     switch (typeKind) {
         case orc::BOOLEAN: {
-            std::cout << stats->toString();
             auto& boolStat = dynamic_cast<orc::BooleanColumnStatistics&>(*stats);
             if (boolStat.hasCount()) {
                 result["false_count"] = py::cast(boolStat.getFalseCount());

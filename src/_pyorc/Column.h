@@ -4,7 +4,6 @@ class Column : public ORCIterator
 {
   private:
     uint64_t columnIndex;
-    uint64_t numOfRows;
     std::unique_ptr<orc::ColumnStatistics> stats;
     std::unique_ptr<orc::BloomFilterIndex> bloomFilter;
     int64_t typeKind;
