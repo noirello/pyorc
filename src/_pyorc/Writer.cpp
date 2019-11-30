@@ -10,12 +10,22 @@ Writer::Writer(py::object fileo,
                uint64_t compression_block_size,
                std::set<uint64_t> bloom_filter_columns,
                double bloom_filter_fpp,
-               unsigned int struct_repr)
+               unsigned int struct_repr,
+               py::object conv_)
 {
     currentRow = 0;
     batchItem = 0;
     std::unique_ptr<orc::Type> type = schema.buildType();
     orc::WriterOptions options;
+    py::dict defaultConv =
+      py::module::import("pyorc.helpers").attr("DEFAULT_CONVERTERS");
+    py::dict converters(defaultConv);
+
+    if (py::isinstance<py::dict>(conv_)) {
+        converters.attr("Update")(conv_);
+    } else if (!conv_.is(py::none())) {
+        throw py::type_error("The conv parameter must be a dictionary");
+    }
 
     options = options.setCompression(static_cast<orc::CompressionKind>(compression));
     options = options.setCompressionStrategy(
@@ -29,7 +39,7 @@ Writer::Writer(py::object fileo,
     writer = createWriter(*type, outStream.get(), options);
     batchSize = batch_size;
     batch = writer->createRowBatch(batchSize);
-    converter = createConverter(type.get(), struct_repr);
+    converter = createConverter(type.get(), struct_repr, converters);
 }
 
 void

@@ -58,12 +58,14 @@ PYBIND11_MODULE(_pyorc, m)
                     uint64_t,
                     std::list<uint64_t>,
                     std::list<std::string>,
-                    unsigned int>(),
+                    unsigned int,
+                    py::object>(),
            py::arg("fileo"),
            py::arg_v("batch_size", 1024, "1024"),
            py::arg_v("col_indices", std::list<uint64_t>{}, "None"),
            py::arg_v("col_names", std::list<std::string>{}, "None"),
-           py::arg_v("struct_repr", 0, "StructRepr.TUPLE"))
+           py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
+           py::arg_v("conv", py::none(), "None"))
       .def("__next__", [](Reader& r) -> py::object { return r.next(); })
       .def("__iter__", [](Reader& r) -> Reader& { return r; })
       .def("__len__", &Reader::len)
@@ -84,7 +86,8 @@ PYBIND11_MODULE(_pyorc, m)
                     uint64_t,
                     std::set<uint64_t>,
                     double,
-                    unsigned int>(),
+                    unsigned int,
+                    py::object>(),
            py::arg("fileo"),
            py::arg("schema"),
            py::arg_v("batch_size", 1024, "1024"),
@@ -94,7 +97,8 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("compression_block_size", 65536, "65536"),
            py::arg_v("bloom_filter_columns", std::set<uint64_t>{}, "None"),
            py::arg_v("bloom_filter_fpp", 0.05, "0.05"),
-           py::arg_v("struct_repr", 0, "StructRepr.TUPLE"))
+           py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
+           py::arg_v("conv", py::none(), "None"))
       .def("write", &Writer::write)
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);

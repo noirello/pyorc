@@ -97,11 +97,11 @@ class TimestampConverter : public Converter
   private:
     const int64_t* seconds;
     const int64_t* nanoseconds;
-    py::object datetime;
-    py::object utc;
+    py::object to_orc;
+    py::object from_orc;
 
   public:
-    TimestampConverter();
+    TimestampConverter(py::dict conv);
     virtual ~TimestampConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -112,11 +112,11 @@ class DateConverter : public Converter
 {
   private:
     const int64_t* data;
-    py::object date;
-    py::object epochDate;
+    py::object to_orc;
+    py::object from_orc;
 
   public:
-    DateConverter();
+    DateConverter(py::dict conv);
     virtual ~DateConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -129,11 +129,11 @@ class Decimal64Converter : public Converter
     const int64_t* data;
     uint64_t prec;
     int32_t scale;
-    py::object decimal;
-    py::object adjustDec;
+    py::object to_orc;
+    py::object from_orc;
 
   public:
-    Decimal64Converter(uint64_t prec_, uint64_t scale_);
+    Decimal64Converter(uint64_t prec_, uint64_t scale_, py::dict conv);
     virtual ~Decimal64Converter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -146,11 +146,11 @@ class Decimal128Converter : public Converter
     const orc::Int128* data;
     uint64_t prec;
     int32_t scale;
-    py::object decimal;
-    py::object adjustDec;
+    py::object to_orc;
+    py::object from_orc;
 
   public:
-    Decimal128Converter(uint64_t prec_, uint64_t scale_);
+    Decimal128Converter(uint64_t prec_, uint64_t scale_, py::dict conv);
     virtual ~Decimal128Converter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -164,7 +164,7 @@ class ListConverter : public Converter
     std::unique_ptr<Converter> elementConverter;
 
   public:
-    ListConverter(const orc::Type& type, unsigned int structKind);
+    ListConverter(const orc::Type& type, unsigned int structKind, py::dict conv);
     virtual ~ListConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -180,7 +180,7 @@ class MapConverter : public Converter
     std::unique_ptr<Converter> elementConverter;
 
   public:
-    MapConverter(const orc::Type& type, unsigned int structKind);
+    MapConverter(const orc::Type& type, unsigned int structKind, py::dict conv);
     virtual ~MapConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -197,7 +197,7 @@ class UnionConverter : public Converter
     std::map<unsigned char, uint64_t> childOffsets;
 
   public:
-    UnionConverter(const orc::Type& type, unsigned int structKind);
+    UnionConverter(const orc::Type& type, unsigned int structKind, py::dict conv);
     virtual ~UnionConverter() override;
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -213,7 +213,7 @@ class StructConverter : public Converter
     unsigned int kind;
 
   public:
-    StructConverter(const orc::Type& type, unsigned int kind_);
+    StructConverter(const orc::Type& type, unsigned int kind_, py::dict conv);
     virtual ~StructConverter() override;
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -222,7 +222,7 @@ class StructConverter : public Converter
 };
 
 std::unique_ptr<Converter>
-createConverter(const orc::Type* type, unsigned int structKind)
+createConverter(const orc::Type* type, unsigned int structKind, py::dict conv)
 {
     Converter* result = nullptr;
     if (structKind > 1) {
@@ -254,31 +254,31 @@ createConverter(const orc::Type* type, unsigned int structKind)
                 result = new BinaryConverter();
                 break;
             case orc::TIMESTAMP:
-                result = new TimestampConverter();
+                result = new TimestampConverter(conv);
                 break;
             case orc::LIST:
-                result = new ListConverter(*type, structKind);
+                result = new ListConverter(*type, structKind, conv);
                 break;
             case orc::MAP:
-                result = new MapConverter(*type, structKind);
+                result = new MapConverter(*type, structKind, conv);
                 break;
             case orc::STRUCT:
-                result = new StructConverter(*type, structKind);
+                result = new StructConverter(*type, structKind, conv);
                 break;
             case orc::DECIMAL:
                 if (type->getPrecision() == 0 || type->getPrecision() > 18) {
-                    result =
-                      new Decimal128Converter(type->getPrecision(), type->getScale());
+                    result = new Decimal128Converter(
+                      type->getPrecision(), type->getScale(), conv);
                 } else {
-                    result =
-                      new Decimal64Converter(type->getPrecision(), type->getScale());
+                    result = new Decimal64Converter(
+                      type->getPrecision(), type->getScale(), conv);
                 }
                 break;
             case orc::DATE:
-                result = new DateConverter();
+                result = new DateConverter(conv);
                 break;
             case orc::UNION:
-                result = new UnionConverter(*type, structKind);
+                result = new UnionConverter(*type, structKind, conv);
                 break;
             default:
                 throw py::value_error("unknown batch type");
@@ -521,15 +521,14 @@ BinaryConverter::clear()
     buffer.clear();
 }
 
-TimestampConverter::TimestampConverter()
+TimestampConverter::TimestampConverter(py::dict conv)
   : Converter()
   , seconds(nullptr)
   , nanoseconds(nullptr)
 {
-    py::object dt = py::module::import("datetime").attr("datetime");
-    py::object tz = py::module::import("datetime").attr("timezone");
-    datetime = dt.attr("fromtimestamp");
-    utc = tz.attr("utc");
+    py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
+    from_orc = conv[idx].attr("from_orc");
+    to_orc = conv[idx].attr("to_orc");
 }
 
 void
@@ -547,9 +546,7 @@ TimestampConverter::toPython(uint64_t rowId)
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        py::object date = datetime(seconds[rowId], utc);
-        py::object replace(date.attr("replace"));
-        return replace(py::arg("microsecond") = (nanoseconds[rowId] / 1000));
+        return from_orc(seconds[rowId], nanoseconds[rowId]);
     }
 }
 
@@ -564,11 +561,9 @@ TimestampConverter::write(orc::ColumnVectorBatch* batch,
         tsBatch->notNull[rowId] = 0;
     } else {
         try {
-            py::object touts(
-              (elem.attr("replace")(py::arg("microsecond") = 0)).attr("timestamp"));
-            py::object microseconds(elem.attr("microsecond"));
-            tsBatch->data[rowId] = static_cast<int64_t>(py::cast<double>(touts()));
-            tsBatch->nanoseconds[rowId] = py::cast<int64_t>(microseconds) * 1000;
+            py::tuple res = to_orc(elem);
+            tsBatch->data[rowId] = py::cast<int64_t>(res[0]);
+            tsBatch->nanoseconds[rowId] = py::cast<int64_t>(res[1]);
             tsBatch->notNull[rowId] = 1;
         } catch (py::error_already_set& ex) {
             if (!ex.matches(PyExc_AttributeError)) {
@@ -585,12 +580,13 @@ TimestampConverter::write(orc::ColumnVectorBatch* batch,
     tsBatch->numElements = rowId + 1;
 }
 
-DateConverter::DateConverter()
+DateConverter::DateConverter(py::dict conv)
   : Converter()
   , data(nullptr)
 {
-    date = py::module::import("datetime").attr("date");
-    epochDate = date(1970, 1, 1);
+    py::object idx(py::int_(static_cast<int>(orc::DATE)));
+    from_orc = conv[idx].attr("from_orc");
+    to_orc = conv[idx].attr("to_orc");
 }
 
 void
@@ -606,8 +602,7 @@ DateConverter::toPython(uint64_t rowId)
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        py::object pyfromts(date.attr("fromtimestamp"));
-        return pyfromts(data[rowId] * 24 * 60 * 60);
+        return from_orc(data[rowId]);
     }
 }
 
@@ -619,21 +614,21 @@ DateConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
         dBatch->hasNulls = true;
         dBatch->notNull[rowId] = 0;
     } else {
-        py::object delta = elem - epochDate;
-        dBatch->data[rowId] = py::cast<int64_t>(delta.attr("days"));
+        dBatch->data[rowId] = py::cast<int64_t>(to_orc(elem));
         dBatch->notNull[rowId] = 1;
     }
     dBatch->numElements = rowId + 1;
 }
 
-Decimal64Converter::Decimal64Converter(uint64_t prec_, uint64_t scale_)
+Decimal64Converter::Decimal64Converter(uint64_t prec_, uint64_t scale_, py::dict conv)
   : Converter()
   , data(nullptr)
   , prec(prec_)
   , scale(scale_)
 {
-    decimal = py::module::import("decimal").attr("Decimal");
-    adjustDec = py::module::import("pyorc.helpers").attr("adjust_decimal");
+    py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
+    from_orc = conv[idx].attr("from_orc");
+    to_orc = conv[idx].attr("to_orc");
 }
 
 void
@@ -681,7 +676,7 @@ Decimal64Converter::toPython(uint64_t rowId)
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        return decimal(toDecimalString(data[rowId], scale));
+        return from_orc(toDecimalString(data[rowId], scale));
     }
 }
 
@@ -697,7 +692,7 @@ Decimal64Converter::write(orc::ColumnVectorBatch* batch,
         decBatch->hasNulls = true;
         decBatch->notNull[rowId] = 0;
     } else {
-        py::object value = adjustDec(decBatch->precision, decBatch->scale, elem);
+        py::object value = to_orc(decBatch->precision, decBatch->scale, elem);
         try {
             decBatch->values[rowId] = py::cast<int64_t>(value);
             decBatch->notNull[rowId] = 1;
@@ -711,14 +706,15 @@ Decimal64Converter::write(orc::ColumnVectorBatch* batch,
     decBatch->numElements = rowId + 1;
 }
 
-Decimal128Converter::Decimal128Converter(uint64_t prec_, uint64_t scale_)
+Decimal128Converter::Decimal128Converter(uint64_t prec_, uint64_t scale_, py::dict conv)
   : Converter()
   , data(nullptr)
   , prec(prec_)
   , scale(scale_)
 {
-    decimal = py::module::import("decimal").attr("Decimal");
-    adjustDec = py::module::import("pyorc.helpers").attr("adjust_decimal");
+    py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
+    from_orc = conv[idx].attr("from_orc");
+    to_orc = conv[idx].attr("to_orc");
 }
 
 void
@@ -736,7 +732,7 @@ Decimal128Converter::toPython(uint64_t rowId)
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        return decimal(data[rowId].toDecimalString(scale));
+        return from_orc(data[rowId].toDecimalString(scale));
     }
 }
 
@@ -752,7 +748,7 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
         decBatch->hasNulls = true;
         decBatch->notNull[rowId] = 0;
     } else {
-        py::object value = adjustDec(decBatch->precision, decBatch->scale, elem);
+        py::object value = to_orc(decBatch->precision, decBatch->scale, elem);
         try {
             std::string strVal = py::cast<std::string>(py::str(value));
             decBatch->values[rowId] = orc::Int128(strVal);
@@ -767,11 +763,13 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
     decBatch->numElements = rowId + 1;
 }
 
-ListConverter::ListConverter(const orc::Type& type, unsigned int structKind)
+ListConverter::ListConverter(const orc::Type& type,
+                             unsigned int structKind,
+                             py::dict conv)
   : Converter()
   , offsets(nullptr)
 {
-    elementConverter = createConverter(type.getSubtype(0), structKind);
+    elementConverter = createConverter(type.getSubtype(0), structKind, conv);
 }
 
 void
@@ -828,12 +826,14 @@ ListConverter::clear()
     elementConverter->clear();
 }
 
-MapConverter::MapConverter(const orc::Type& type, unsigned int structKind)
+MapConverter::MapConverter(const orc::Type& type,
+                           unsigned int structKind,
+                           py::dict conv)
   : Converter()
   , offsets(nullptr)
 {
-    keyConverter = createConverter(type.getSubtype(0), structKind);
-    elementConverter = createConverter(type.getSubtype(1), structKind);
+    keyConverter = createConverter(type.getSubtype(0), structKind, conv);
+    elementConverter = createConverter(type.getSubtype(1), structKind, conv);
 }
 
 void
@@ -898,14 +898,16 @@ MapConverter::clear()
     elementConverter->clear();
 }
 
-UnionConverter::UnionConverter(const orc::Type& type, unsigned int structKind)
+UnionConverter::UnionConverter(const orc::Type& type,
+                               unsigned int structKind,
+                               py::dict conv)
   : Converter()
   , tags(nullptr)
   , offsets(nullptr)
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
         fieldConverters.push_back(
-          createConverter(type.getSubtype(i), structKind).release());
+          createConverter(type.getSubtype(i), structKind, conv).release());
         childOffsets[static_cast<unsigned char>(i)] = 0;
     }
 }
@@ -982,12 +984,15 @@ UnionConverter::clear()
     }
 }
 
-StructConverter::StructConverter(const orc::Type& type, unsigned int kind_)
+StructConverter::StructConverter(const orc::Type& type,
+                                 unsigned int kind_,
+                                 py::dict conv)
   : Converter()
   , kind(kind_)
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
-        fieldConverters.push_back(createConverter(type.getSubtype(i), kind).release());
+        fieldConverters.push_back(
+          createConverter(type.getSubtype(i), kind, conv).release());
         fieldNames.push_back(py::str(type.getFieldName(i)));
     }
 }
