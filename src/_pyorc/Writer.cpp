@@ -11,20 +11,20 @@ Writer::Writer(py::object fileo,
                std::set<uint64_t> bloom_filter_columns,
                double bloom_filter_fpp,
                unsigned int struct_repr,
-               py::object conv_)
+               py::object conv)
 {
     currentRow = 0;
     batchItem = 0;
     std::unique_ptr<orc::Type> type = schema.buildType();
     orc::WriterOptions options;
-    py::dict defaultConv =
-      py::module::import("pyorc.helpers").attr("DEFAULT_CONVERTERS");
-    py::dict converters(defaultConv);
+    py::dict converters;
 
-    if (py::isinstance<py::dict>(conv_)) {
-        converters.attr("Update")(conv_);
-    } else if (!conv_.is(py::none())) {
-        throw py::type_error("The conv parameter must be a dictionary");
+    if (conv.is(py::none())) {
+        py::dict defaultConv =
+          py::module::import("pyorc.converters").attr("DEFAULT_CONVERTERS");
+        converters = py::dict(defaultConv);
+    } else {
+        converters = conv;
     }
 
     options = options.setCompression(static_cast<orc::CompressionKind>(compression));

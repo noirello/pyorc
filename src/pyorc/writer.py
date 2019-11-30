@@ -1,6 +1,7 @@
 from typing import Union, Optional, List, BinaryIO, Iterable
 
 from pyorc._pyorc import writer, typedescription
+from .converters import DEFAULT_CONVERTERS
 from .enums import CompressionKind, CompressionStrategy, StructRepr
 
 
@@ -39,6 +40,11 @@ class Writer(writer):
                     bf_set.add(item)
                 elif isinstance(item, str):
                     bf_set.add(self.__schema.find_column_id(item))
+        if converters:
+            conv = DEFAULT_CONVERTERS.copy()
+            conv.update(converters)
+        else:
+            conv = converters
         super().__init__(
             fileo,
             self.__schema,
@@ -50,7 +56,7 @@ class Writer(writer):
             bf_set,
             bloom_filter_fpp,
             struct_repr,
-            converters,
+            conv,
         )
 
     def __enter__(self):

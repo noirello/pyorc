@@ -75,7 +75,7 @@ class DecimalConverter(ORCConverter):
                     return integer
             except AttributeError:
                 raise TypeError(
-                    "Item {0} cannot be cast as a decimal".format(type(dec))
+                    "Item {0} cannot be cast as a decimal".format(type(obj))
                 ) from None
 
 

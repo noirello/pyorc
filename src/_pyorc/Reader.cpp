@@ -77,16 +77,13 @@ Reader::Reader(py::object fileo,
                std::list<uint64_t> col_indices,
                std::list<std::string> col_names,
                unsigned int struct_repr,
-               py::object conv_)
+               py::object conv)
 {
     orc::ReaderOptions readerOpts;
     batchItem = 0;
     currentRow = 0;
     firstRowOfStripe = 0;
     structKind = struct_repr;
-    py::dict defaultConv =
-      py::module::import("pyorc.helpers").attr("DEFAULT_CONVERTERS");
-    py::dict converters(defaultConv);
     if (!col_indices.empty() && !col_names.empty()) {
         throw py::value_error(
           "Either col_indices or col_names can be set to select columns");
@@ -97,20 +94,22 @@ Reader::Reader(py::object fileo,
     if (!col_names.empty()) {
         rowReaderOpts = rowReaderOpts.include(col_names);
     }
-    if (py::isinstance<py::dict>(conv_)) {
-        converters.attr("Update")(conv_);
-    } else if (!conv_.is(py::none())) {
-        throw py::type_error("The conv parameter must be a dictionary");
+    if (conv.is(py::none())) {
+        py::dict defaultConv =
+          py::module::import("pyorc.converters").attr("DEFAULT_CONVERTERS");
+        converters = py::dict(defaultConv);
+    } else {
+        converters = conv;
     }
     reader = createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
     typeDesc = std::make_unique<TypeDescription>(reader->getType());
     try {
-        conv = converters;
         batchSize = batch_size;
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
-        converter = createConverter(&rowReader->getSelectedType(), structKind, conv);
+        converter =
+          createConverter(&rowReader->getSelectedType(), structKind, converters);
     } catch (orc::ParseError& err) {
         throw py::value_error(err.what());
     }
@@ -158,7 +157,7 @@ Stripe::Stripe(const Reader& reader_,
     rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
     converter = createConverter(
-      &rowReader->getSelectedType(), reader.getStructKind(), reader.getConverter());
+      &rowReader->getSelectedType(), reader.getStructKind(), reader.getConverters());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 

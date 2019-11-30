@@ -39,7 +39,7 @@ class Reader : public ORCIterator
     std::unique_ptr<TypeDescription> typeDesc;
     uint64_t batchSize;
     unsigned int structKind;
-    py::dict conv;
+    py::dict converters;
 
   public:
     Reader(py::object,
@@ -56,7 +56,7 @@ class Reader : public ORCIterator
     const orc::Reader& getORCReader() const { return *reader; }
     const uint64_t getBatchSize() const { return batchSize; }
     const unsigned int getStructKind() const { return structKind; }
-    const py::dict getConverter() const { return conv; }
+    const py::dict getConverters() const { return converters; }
 };
 
 class Stripe : public ORCIterator
