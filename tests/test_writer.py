@@ -7,6 +7,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from pyorc import Writer, Reader, typedescription, ParseError, TypeKind, StructRepr
+from pyorc.converters import ORCConverter
 
 
 def test_open_file():
@@ -408,3 +409,38 @@ def test_struct_repr():
     writer = Writer(data, "struct<a:int>", struct_repr=StructRepr.DICT)
     with pytest.raises(TypeError):
         writer.write((1,))
+
+
+class TestConverter(ORCConverter):
+    @staticmethod
+    def to_orc(obj):
+        seconds, nanoseconds = obj
+        return (seconds, nanoseconds)
+
+    @staticmethod
+    def from_orc(seconds, nanoseconds):
+        pass
+
+
+def test_converter():
+    data = io.BytesIO()
+    seconds = 1500000
+    nanoseconds = 101000
+    exp_date = date(2000, 1, 1)
+    record = ((seconds, nanoseconds), exp_date)
+    with Writer(
+        data,
+        "struct<col0:timestamp,col1:date>",
+        converters={TypeKind.TIMESTAMP: TestConverter},
+    ) as writer:
+        writer.write(record)
+
+    data.seek(0)
+    reader = Reader(data)
+    assert next(reader) == (
+        datetime.fromtimestamp(seconds, timezone.utc).replace(
+            microsecond=nanoseconds // 1000
+        ),
+        exp_date,
+    )
+

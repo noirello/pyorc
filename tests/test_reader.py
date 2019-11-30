@@ -3,6 +3,7 @@ import pytest
 import io
 import string
 import tempfile
+from datetime import datetime, date, timezone
 
 from pyorc import (
     Reader,
@@ -13,6 +14,8 @@ from pyorc import (
     ParseError,
     stripe as Stripe,
 )
+
+from pyorc.converters import ORCConverter
 
 
 @pytest.fixture
@@ -295,3 +298,33 @@ def test_iter_stripe(striped_orc_data):
     stripes = list(reader.iter_stripes())
     assert len(stripes) == reader.num_of_stripes
     assert all(isinstance(stripe, Stripe) for stripe in reader.iter_stripes())
+
+
+class TestConverter(ORCConverter):
+    @staticmethod
+    def to_orc(*args):
+        pass
+
+    @staticmethod
+    def from_orc(seconds, nanoseconds):
+        return (seconds, nanoseconds)
+
+
+def test_converter():
+    data = io.BytesIO()
+    seconds = 1500000
+    nanoseconds = 101000
+    exp_date = date(2000, 1, 1)
+    record = {
+        "col0": datetime.fromtimestamp(seconds, timezone.utc).replace(
+            microsecond=nanoseconds // 1000
+        ),
+        "col1": exp_date,
+    }
+    with Writer(
+        data, "struct<col0:timestamp,col1:date>", struct_repr=StructRepr.DICT
+    ) as writer:
+        writer.write(record)
+    data.seek(0)
+    reader = Reader(data, converters={TypeKind.TIMESTAMP: TestConverter})
+    assert next(reader) == ((seconds, nanoseconds), exp_date)
