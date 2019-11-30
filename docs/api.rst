@@ -7,7 +7,8 @@ API documentation
 ===============
 
 .. class:: Reader(fileo, batch_size=1024, column_indices=None, \
-                  column_names=None, struct_repr=StructRepr.TUPLE)
+                  column_names=None, struct_repr=StructRepr.TUPLE, \
+                  converters=None)
 
     An object to read ORC files. The `fileo` must be a binary stream that
     support seeking. Either `column_indices` or `column_names` can be used
@@ -17,12 +18,19 @@ API documentation
     default the ORC struct type represented as a tuple, but it can be change
     by changing `struct_repr` to a valid :class:`StructRepr` value.
 
+    For decimal, date and timestamp ORC types the default converters to
+    Python objects can be change by setting a dictionary to the `converters`
+    parameter. The dictionary's keys must be a :class:`TypeKind` and the
+    values must implement the ORCConverter abstract class.
+
     :param object fileo: a readable binary file-like object.
     :param int batch_size: The size of a batch to read.
     :param list column_indices: a list of column indices to read.
     :param list column_names: a list of column names to read.
     :param StructRepr struct_repr: An enum to set the representation for
         an ORC struct type.
+    :param dict converters: a dictionary, where the keys are
+        :class:`TypeKind` and the values are subclasses of ORCConverter.
 
 .. method:: Reader.__next__()
 
@@ -205,7 +213,8 @@ API documentation
                   stripe_size=67108864, compression=CompressionKind.ZLIB, \
                   compression_strategy=CompressionStrategy.SPEED, \
                   compression_block_size=65536, bloom_filter_columns=None, \
-                  bloom_filter_fpp=0.05, struct_repr=StructRepr.TUPLE)
+                  bloom_filter_fpp=0.05, struct_repr=StructRepr.TUPLE, \
+                  converters=None)
 
     An object to write ORC files. The `fileo` must be a binary stream.
     The `schema` must be :class:`typedescription` or a valid ORC schema
@@ -216,6 +225,11 @@ API documentation
     fields can be selected with dotted format. For example a file with a
     ``struct<first:struct<second:int>>`` schema the second column can be
     selected as ``["first.second"]``.
+
+    For decimal, date and timestamp ORC types the default converters from
+    Python objects can be change by setting a dictionary to the `converters`
+    parameter. The dictionary's keys must be a :class:`TypeKind` and the
+    values must implement the ORCConverter abstract class.
 
     :param object fileo: a writeable binary file-like object.
     :param typedescription|str schema: the ORC schema of the file.
@@ -231,6 +245,8 @@ API documentation
         Bloom filter (Must be 0> and 1<).
     :param StructRepr struct_repr: An enum to set the representation for
         an ORC struct type.
+    :param dict converters: a dictionary, where the keys are
+        :class:`TypeKind` and the values are subclasses of ORCConverter.
 
 .. method:: Writer. __enter__()
 .. method:: Writer.__exit__()
