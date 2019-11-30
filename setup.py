@@ -214,7 +214,7 @@ with open("README.rst") as file:
 
 setup(
     name="pyorc",
-    version="0.1.0",
+    version="0.2.0",
     description="Python module for reading and writing Apache ORC file format.",
     author="noirello",
     author_email="noirello@gmail.com",
