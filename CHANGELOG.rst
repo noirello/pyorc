@@ -3,10 +3,16 @@ Changelog
 [0.2.0] - UNRELEASED
 --------------------
 
+Added
+~~~~~
+
+- Add converters for date, decimal and timestamp ORC types in Python
+  and option to change them via Reader's and Writer's converters parameter.
+
 Changed
 ~~~~~~~
 
-- Use timezone-aware datetimes (in UTC) for ORC timestamps.
+- Use timezone-aware datetimes (in UTC) for ORC timestamps by default.
 
 
 [0.1.0] - 2019-11-16
