@@ -17,6 +17,7 @@ class Writer(writer):
         bloom_filter_columns: Optional[List] = None,
         bloom_filter_fpp: float = 0.05,
         struct_repr: StructRepr = StructRepr.TUPLE,
+        converters: Optional[dict] = None,
     ) -> None:
         if isinstance(schema, str):
             schema = typedescription(schema)
@@ -49,6 +50,7 @@ class Writer(writer):
             bf_set,
             bloom_filter_fpp,
             struct_repr,
+            converters,
         )
 
     def __enter__(self):

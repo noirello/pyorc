@@ -12,13 +12,14 @@ class Reader(reader):
         column_indices: Optional[List[int]] = None,
         column_names: Optional[List[str]] = None,
         struct_repr: StructRepr = StructRepr.TUPLE,
+        converters: Optional[dict] = None,
     ) -> None:
         if column_indices is None:
             column_indices = []
         if column_names is None:
             column_names = []
         struct_repr = StructRepr(struct_repr)
-        super().__init__(fileo, batch_size, column_indices, column_names, struct_repr)
+        super().__init__(fileo, batch_size, column_indices, column_names, struct_repr, converters)
 
     def iter_stripes(self):
         for num in range(self.num_of_stripes):
