@@ -1,4 +1,4 @@
-from pyorc._pyorc import typedescription, stripe
+from pyorc._pyorc import typedescription, stripe, column
 
 from .enums import *
 from .errors import *
