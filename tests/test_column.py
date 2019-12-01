@@ -122,3 +122,20 @@ def test_statistics(striped_orc_data):
         Decimal("1000.1") + Decimal((i + 100) * 0.1) for i in range(10000)
     ).quantize(Decimal("1.000"))
 
+
+def test_contains(striped_orc_data):
+    data = striped_orc_data(
+        "struct<a:int,b:array<int>>", ((i, range(10)) for i in range(10000))
+    )
+    reader = Reader(data, batch_size=10)
+    stripe = reader.read_stripe(0)
+    col = stripe[1]
+    assert 100 in col
+    _ = [next(col) for _ in range(10)]
+    assert 1 in col
+    col = stripe[3]
+    assert next(col) == 0
+    assert next(col) == 1
+    assert 9 in col
+    assert next(col) == 2
+    assert (10 in col) is False
