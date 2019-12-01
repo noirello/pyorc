@@ -92,7 +92,8 @@ Column::testBloomFilter(py::object item)
 bool
 Column::contains(py::object item)
 {
-    uint64_t tmpPos = currentRow;
+    uint64_t tmpRowPos = currentRow;
+    uint64_t tmpbatchPos = batchItem;
     if (bloomFilter) {
         if (!testBloomFilter(item)) {
             return false;
@@ -103,12 +104,14 @@ Column::contains(py::object item)
         this->seek(0);
         while (true) {
             if (item.equal(this->next())) {
-                this->seek(tmpPos);
+                this->seek(tmpRowPos);
+                batchItem = tmpbatchPos;
                 return true;
             }
         }
     } catch (py::stop_iteration) {
-        this->seek(tmpPos);
+        this->seek(tmpRowPos);
+        batchItem = tmpbatchPos;
         return false;
     }
 }
