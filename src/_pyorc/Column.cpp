@@ -1,5 +1,7 @@
 #include "Column.h"
 
+#include <cstdlib>
+
 Column::Column(const Stripe& stripe_,
                uint64_t num,
                std::map<uint32_t, orc::BloomFilterIndex> bloomFilters)
@@ -23,7 +25,8 @@ Column::Column(const Stripe& stripe_,
     rowReader = stripe.getReader().getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(stripe.getReader().getBatchSize());
     const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
-    converter = createConverter(type, stripe.getReader().getStructKind());
+    converter = createConverter(
+      type, stripe.getReader().getStructKind(), stripe.getReader().getConverters());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
     typeKind = static_cast<int64_t>(type->getKind());
     selectedBatch = this->selectBatch(rowReader->getSelectedType(), batch.get());
@@ -116,33 +119,14 @@ Column::len() const
     return 0;
 }
 
-static py::object
-toDatetime(int64_t millisec)
+py::object
+Column::convertTimestampMillis(int64_t millisec)
 {
+    py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
+    py::object from_orc = stripe.getReader().getConverters()[idx].attr("from_orc");
     int64_t seconds = millisec / 1000;
-    int64_t microsec = (millisec % 1000) * 1000;
-    py::object dt = py::module::import("datetime").attr("datetime");
-    py::object tz = py::module::import("datetime").attr("timezone");
-    py::object datetime = dt.attr("fromtimestamp");
-    py::object utc = tz.attr("utc");
-    py::object result = datetime(seconds, utc);
-    py::object replace(result.attr("replace"));
-    return replace(py::arg("microsecond") = microsec);
-}
-
-static py::object
-toDate(int64_t days)
-{
-    py::object date = py::module::import("datetime").attr("date");
-    py::object from_ts(date.attr("fromtimestamp"));
-    return from_ts(days * 24 * 60 * 60);
-}
-
-static py::object
-toDecimal(orc::Decimal dec)
-{
-    py::object decimal = py::module::import("decimal").attr("Decimal");
-    return decimal(dec.toString());
+    int64_t nanosecs = std::abs(millisec % 1000) * 1000 * 1000;
+    return from_orc(seconds, nanosecs);
 }
 
 py::object
@@ -219,40 +203,48 @@ Column::statistics()
         }
         case orc::DATE: {
             auto* dateStat = dynamic_cast<orc::DateColumnStatistics*>(stats.get());
+            py::object idx(py::int_(static_cast<int>(orc::DATE)));
+            py::object from_orc =
+              stripe.getReader().getConverters()[idx].attr("from_orc");
             if (dateStat->hasMinimum()) {
-                result["minimum"] = toDate(dateStat->getMinimum());
+                result["minimum"] = from_orc(dateStat->getMinimum());
             }
             if (dateStat->hasMaximum()) {
-                result["maximum"] = toDate(dateStat->getMaximum());
+                result["maximum"] = from_orc(dateStat->getMaximum());
             }
             return result;
         }
         case orc::TIMESTAMP: {
             auto* timeStat = dynamic_cast<orc::TimestampColumnStatistics*>(stats.get());
             if (timeStat->hasMinimum()) {
-                result["minimum"] = toDatetime(timeStat->getMinimum());
+                result["minimum"] = convertTimestampMillis(timeStat->getMinimum());
             }
             if (timeStat->hasMaximum()) {
-                result["maximum"] = toDatetime(timeStat->getMaximum());
+                result["maximum"] = convertTimestampMillis(timeStat->getMaximum());
             }
             if (timeStat->hasLowerBound()) {
-                result["lower_bound"] = toDatetime(timeStat->getLowerBound());
+                result["lower_bound"] =
+                  convertTimestampMillis(timeStat->getLowerBound());
             }
             if (timeStat->hasUpperBound()) {
-                result["upper_bound"] = toDatetime(timeStat->getUpperBound());
+                result["upper_bound"] =
+                  convertTimestampMillis(timeStat->getUpperBound());
             }
             return result;
         }
         case orc::DECIMAL: {
             auto* decStat = dynamic_cast<orc::DecimalColumnStatistics*>(stats.get());
+            py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
+            py::object from_orc =
+              stripe.getReader().getConverters()[idx].attr("from_orc");
             if (decStat->hasMinimum()) {
-                result["minimum"] = toDecimal(decStat->getMinimum());
+                result["minimum"] = from_orc(decStat->getMinimum().toString());
             }
             if (decStat->hasMaximum()) {
-                result["maximum"] = toDecimal(decStat->getMaximum());
+                result["maximum"] = from_orc(decStat->getMaximum().toString());
             }
             if (decStat->hasSum()) {
-                result["sum"] = toDecimal(decStat->getSum());
+                result["sum"] = from_orc(decStat->getSum().toString());
             }
             return result;
         }

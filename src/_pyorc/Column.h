@@ -13,6 +13,7 @@ class Column : public ORCIterator
     bool testBloomFilter(py::object);
     const orc::Type* findColumnType(const orc::Type*);
     orc::ColumnVectorBatch* selectBatch(const orc::Type&, orc::ColumnVectorBatch*);
+    py::object convertTimestampMillis(int64_t);
 
   public:
     Column(const Stripe&, uint64_t, std::map<uint32_t, orc::BloomFilterIndex>);
