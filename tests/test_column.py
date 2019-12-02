@@ -123,6 +123,36 @@ def test_statistics(striped_orc_data):
     ).quantize(Decimal("1.000"))
 
 
+def test_uniontype(striped_orc_data):
+    data = striped_orc_data(
+        "uniontype<int,string>", ((i, "a")[i % 2] for i in range(1000))
+    )
+    reader = Reader(data)
+    stripe = reader.read_stripe(0)
+    nums = list(stripe[1])
+    strs = list(stripe[2])
+    assert len(nums) == 500
+    assert len(strs) == 500
+    assert set(strs) == {"a"}
+    assert all(isinstance(n, int) for n in nums)
+    assert stripe[0].statistics["number_of_values"] == 1000
+
+
+def test_map():
+    data = io.BytesIO()
+    with Writer(data, "map<string,int>") as writer:
+        writer.write({"a": 0, "b": 1, "c": 2})
+        writer.write({"d": 3, "c": 4})
+    reader = Reader(data)
+    stripe = reader.read_stripe(0)
+    keys = stripe[1]
+    vals = stripe[2]
+    assert len(list(stripe[1])) == 5
+    assert len(list(stripe[2])) == 5
+    assert set(keys) == {"a", "b", "c", "d"}
+    assert set(vals) == {0, 1, 2, 3, 4}
+
+
 def test_contains(striped_orc_data):
     data = striped_orc_data(
         "struct<a:int,b:array<int>>", ((i, range(10)) for i in range(10000))
