@@ -71,18 +71,6 @@ Column::testBloomFilter(py::object item)
                 }
             }
             break;
-        case orc::BINARY: {
-            int rc = PyBytes_AsStringAndSize(item.ptr(), &data, &length);
-            if (rc == -1) {
-                throw py::error_already_set();
-            }
-            for (auto entry : bloomFilter->entries) {
-                if (entry->testBytes(data, static_cast<int64_t>(length)) == true) {
-                    return true;
-                }
-            }
-            break;
-        }
         case orc::DATE: {
             py::object idx(py::int_(static_cast<int>(orc::DATE)));
             py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
@@ -111,10 +99,13 @@ Column::testBloomFilter(py::object item)
             const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
             py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
             py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
-            py::object res = py::str(to_orc(type->getPrecision(), type->getScale(), item));
-            data = const_cast<char*>(PyUnicode_AsUTF8AndSize(res.ptr(), &length));
+            std::string res =
+              orc::Decimal(orc::Int128(py::cast<std::string>(py::str(
+                             to_orc(type->getPrecision(), type->getScale(), item)))),
+                           type->getScale())
+                .toString();
             for (auto entry : bloomFilter->entries) {
-                if (entry->testBytes(data, static_cast<int64_t>(length)) == true) {
+                if (entry->testBytes(res.c_str(), res.size()) == true) {
                     return true;
                 }
             }
