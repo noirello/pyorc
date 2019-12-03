@@ -169,3 +169,71 @@ def test_contains(striped_orc_data):
     assert 9 in col
     assert next(col) == 2
     assert (10 in col) is False
+
+
+def test_bloom_filter_int():
+    data = io.BytesIO()
+    with Writer(data, "int", bloom_filter_columns=(0,)) as writer:
+        for num in range(1000):
+            writer.write(num)
+    reader = Reader(data)
+    col = reader.read_stripe(0)[0]
+    assert 999 in col
+    assert (5000 in col) is False
+
+
+def test_bloom_filter_double():
+    data = io.BytesIO()
+    with Writer(data, "double", bloom_filter_columns=(0,)) as writer:
+        for num in range(1000):
+            writer.write(num * 0.12)
+    reader = Reader(data)
+    col = reader.read_stripe(0)[0]
+    assert (999 * 0.12) in col
+    assert (999.12 in col) is False
+
+
+def test_bloom_filter_string():
+    data = io.BytesIO()
+    with Writer(data, "string", bloom_filter_columns=(0,)) as writer:
+        for num in range(1000):
+            writer.write("Test {0}".format(num + 1))
+    reader = Reader(data)
+    col = reader.read_stripe(0)[0]
+    assert "Test 500" in col
+    assert ("Test 2000" in col) is False
+
+
+def test_bloom_filter_date():
+    data = io.BytesIO()
+    with Writer(data, "date", bloom_filter_columns=(0,)) as writer:
+        for num in range(1000):
+            writer.write(date(2010, 9, 1) + timedelta(days=num))
+    reader = Reader(data)
+    col = reader.read_stripe(0)[0]
+    assert date(2010, 10, 25) in col
+    assert (date(2016, 12, 1) in col) is False
+
+
+def test_bloom_filter_timestamp():
+    data = io.BytesIO()
+    with Writer(data, "timestamp", bloom_filter_columns=(0,)) as writer:
+        for num in range(1000):
+            writer.write(
+                datetime(2010, 9, 1, 8, tzinfo=timezone.utc) + timedelta(minutes=num)
+            )
+    reader = Reader(data)
+    col = reader.read_stripe(0)[0]
+    assert datetime(2010, 9, 1, 15, tzinfo=timezone.utc) in col
+    assert (datetime(2011, 9, 1, 15, tzinfo=timezone.utc) in col) is False
+
+
+def test_bloom_filter_decimal():
+    data = io.BytesIO()
+    with Writer(data, "decimal(8,3)", bloom_filter_columns=(0,)) as writer:
+        for num in range(1000):
+            writer.write(Decimal("1000.23") + Decimal("0.{0}".format(num)))
+    reader = Reader(data)
+    col = reader.read_stripe(0)[0]
+    assert Decimal("1001.199") in col
+    assert (Decimal("1001.235") in col) is False
