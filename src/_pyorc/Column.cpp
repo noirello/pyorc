@@ -83,6 +83,43 @@ Column::testBloomFilter(py::object item)
             }
             break;
         }
+        case orc::DATE: {
+            py::object idx(py::int_(static_cast<int>(orc::DATE)));
+            py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
+            int64_t days = py::cast<int64_t>(to_orc(item));
+            for (auto entry : bloomFilter->entries) {
+                if (entry->testLong(days) == true) {
+                    return true;
+                }
+            }
+            break;
+        }
+        case orc::TIMESTAMP: {
+            py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
+            py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
+            py::tuple res = to_orc(item);
+            int64_t millis =
+              py::cast<int64_t>(res[0]) * 1000 + py::cast<int64_t>(res[1]) / 1000000;
+            for (auto entry : bloomFilter->entries) {
+                if (entry->testLong(millis) == true) {
+                    return true;
+                }
+            }
+            break;
+        }
+        case orc::DECIMAL: {
+            const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
+            py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
+            py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
+            py::object res = py::str(to_orc(type->getPrecision(), type->getScale(), item));
+            data = const_cast<char*>(PyUnicode_AsUTF8AndSize(res.ptr(), &length));
+            for (auto entry : bloomFilter->entries) {
+                if (entry->testBytes(data, static_cast<int64_t>(length)) == true) {
+                    return true;
+                }
+            }
+            break;
+        }
         default:
             return true;
     }
