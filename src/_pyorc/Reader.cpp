@@ -47,7 +47,7 @@ ORCIterator::read(int64_t num)
 }
 
 uint64_t
-ORCIterator::seek(int64_t row, uint16_t whence)
+ORCStream::seek(int64_t row, uint16_t whence)
 {
     uint64_t start = 0;
     switch (whence) {

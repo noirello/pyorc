@@ -23,18 +23,23 @@ class ORCIterator
   public:
     uint64_t currentRow;
     uint64_t firstRowOfStripe;
-    virtual uint64_t len() const = 0;
     virtual py::object next();
     py::object read(int64_t = -1);
-    uint64_t seek(int64_t, uint16_t = 0);
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
+};
+
+class ORCStream : public ORCIterator
+{
+  public:
+    virtual uint64_t len() const = 0;
+    uint64_t seek(int64_t, uint16_t = 0);
 };
 
 /* Forward declarations */
 class Stripe;
 class Column;
 
-class Reader : public ORCIterator
+class Reader : public ORCStream
 {
   private:
     std::unique_ptr<orc::Reader> reader;
@@ -61,7 +66,7 @@ class Reader : public ORCIterator
     const py::dict getConverters() const { return converters; }
 };
 
-class Stripe : public ORCIterator
+class Stripe : public ORCStream
 {
   private:
     uint64_t stripeIndex;

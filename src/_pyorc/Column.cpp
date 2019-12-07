@@ -32,6 +32,16 @@ Column::Column(const Stripe& stripe_,
     selectedBatch = this->selectBatch(rowReader->getSelectedType(), batch.get());
 }
 
+
+uint64_t
+Column::jumpToPosition(int64_t row, uint64_t batch)
+{
+    rowReader->seekToRow(firstRowOfStripe + row);
+    batchItem = batch;
+    currentRow = rowReader->getRowNumber() - firstRowOfStripe;
+    return currentRow;
+}
+
 bool
 Column::testBloomFilter(py::object item)
 {
@@ -129,25 +139,17 @@ Column::contains(py::object item)
     }
     try {
         /* Start the searching from the first item, regardless the current position. */
-        this->seek(0);
+        this->jumpToPosition(0, 0);
         while (true) {
             if (item.equal(this->next())) {
-                this->seek(tmpRowPos);
-                batchItem = tmpbatchPos;
+                this->jumpToPosition(tmpRowPos, tmpbatchPos);
                 return true;
             }
         }
     } catch (py::stop_iteration) {
-        this->seek(tmpRowPos);
-        batchItem = tmpbatchPos;
+        this->jumpToPosition(tmpRowPos, tmpbatchPos);
         return false;
     }
-}
-
-uint64_t
-Column::len() const
-{
-    return 0;
 }
 
 py::object
