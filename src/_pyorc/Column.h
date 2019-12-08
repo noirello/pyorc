@@ -14,7 +14,7 @@ class Column : public ORCIterator
     const orc::Type* findColumnType(const orc::Type*);
     orc::ColumnVectorBatch* selectBatch(const orc::Type&, orc::ColumnVectorBatch*);
     py::object convertTimestampMillis(int64_t);
-    uint64_t jumpToPosition(int64_t, uint64_t);
+    void jumpToPosition(int64_t, uint64_t);
 
   public:
     Column(const Stripe&, uint64_t, std::map<uint32_t, orc::BloomFilterIndex>);

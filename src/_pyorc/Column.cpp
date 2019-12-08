@@ -33,13 +33,12 @@ Column::Column(const Stripe& stripe_,
 }
 
 
-uint64_t
+void
 Column::jumpToPosition(int64_t row, uint64_t batch)
 {
     rowReader->seekToRow(firstRowOfStripe + row);
     batchItem = batch;
     currentRow = rowReader->getRowNumber() - firstRowOfStripe;
-    return currentRow;
 }
 
 bool
@@ -166,6 +165,8 @@ py::object
 Column::statistics()
 {
     py::dict result;
+    py::object enumKind = py::module::import("pyorc.enums").attr("TypeKind");
+    result["kind"] = enumKind(typeKind);
     result["has_null"] = py::cast(stats->hasNull());
     result["number_of_values"] = py::cast(stats->getNumberOfValues());
     switch (typeKind) {

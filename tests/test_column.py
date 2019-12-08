@@ -71,8 +71,10 @@ def test_statistics(striped_orc_data):
     stat = stripe[0].statistics
     assert stat["has_null"] is False
     assert stat["number_of_values"] == 10000
-    assert set(stat.keys()) == {"has_null", "number_of_values"}
+    assert stat["kind"] == TypeKind.STRUCT
+    assert set(stat.keys()) == {"has_null", "number_of_values", "kind"}
     stat = stripe[1].statistics
+    assert stat["kind"] == TypeKind.INT
     assert stat["has_null"] is False
     assert stat["number_of_values"] == 10000
     assert stat["minimum"] == 0
