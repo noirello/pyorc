@@ -6,8 +6,10 @@ Changelog
 Added
 ~~~~~
 
-- Add converters for date, decimal and timestamp ORC types in Python
+- Converters for date, decimal and timestamp ORC types in Python
   and option to change them via Reader's and Writer's converters parameter.
+- Column object to represent an ORC column with statistics and Bloom filter
+  check.
 
 Changed
 ~~~~~~~
