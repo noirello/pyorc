@@ -44,9 +44,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def("__iter__", [](Column& c) -> Column& { return c; })
       .def("__contains__", &Column::contains)
       .def("read", &Column::read)
-      .def_property_readonly("statistics", &Column::statistics)
-      .def_readonly("current_row", &Column::currentRow)
-      .def_readonly("row_offset", &Column::firstRowOfStripe);
+      .def_property_readonly("statistics", &Column::statistics);
     py::class_<Stripe>(m, "stripe")
       .def(
         py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }),
