@@ -32,7 +32,6 @@ Column::Column(const Stripe& stripe_,
     selectedBatch = this->selectBatch(rowReader->getSelectedType(), batch.get());
 }
 
-
 void
 Column::jumpToPosition(int64_t row, uint64_t batch)
 {

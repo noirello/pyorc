@@ -239,3 +239,15 @@ def test_bloom_filter_decimal():
     col = reader.read_stripe(0)[0]
     assert Decimal("1001.199") in col
     assert (Decimal("1001.235") in col) is False
+
+
+def test_array_int_stat(striped_orc_data):
+    data = striped_orc_data(
+        "struct<list:array<int>>", (([j + i for j in range(10)],) for i in range(10000))
+    )
+    reader = Reader(data)
+    stripe = reader.read_stripe(0)
+    col = stripe[2]
+    assert sum(stripe[2]) == col.statistics["sum"]
+    assert min(stripe[2]) == col.statistics["minimum"]
+    assert max(stripe[2]) == col.statistics["maximum"]
