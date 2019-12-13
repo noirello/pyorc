@@ -328,7 +328,7 @@ BoolConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
             longBatch->notNull[rowId] = 1;
         } catch (py::cast_error&) {
             std::stringstream errmsg;
-            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+            errmsg << "Item " << (std::string)(std::string)py::repr(elem)
                    << " cannot be cast to long int (for boolean)";
             throw py::type_error(errmsg.str());
         }
@@ -366,7 +366,7 @@ LongConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
             longBatch->notNull[rowId] = 1;
         } catch (py::cast_error&) {
             std::stringstream errmsg;
-            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+            errmsg << "Item " << (std::string)py::repr(elem)
                    << " cannot be cast to long int";
             throw py::type_error(errmsg.str());
         }
@@ -404,7 +404,7 @@ DoubleConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
             doubleBatch->notNull[rowId] = 1;
         } catch (py::cast_error&) {
             std::stringstream errmsg;
-            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+            errmsg << "Item " << (std::string)py::repr(elem)
                    << " cannot be cast to double";
             throw py::type_error(errmsg.str());
         }
@@ -445,7 +445,7 @@ StringConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
             if (PyErr_ExceptionMatches(PyExc_TypeError) == 1) {
                 PyErr_Clear();
                 std::stringstream errmsg;
-                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                errmsg << "Item " << (std::string)py::repr(elem)
                        << " cannot be cast to string";
                 throw py::type_error(errmsg.str());
             } else {
@@ -500,7 +500,7 @@ BinaryConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
             if (PyErr_ExceptionMatches(PyExc_TypeError) == 1) {
                 PyErr_Clear();
                 std::stringstream errmsg;
-                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                errmsg << "Item " << (std::string)py::repr(elem)
                        << " cannot be cast to bytes";
                 throw py::type_error(errmsg.str());
             } else {
@@ -571,7 +571,7 @@ TimestampConverter::write(orc::ColumnVectorBatch* batch,
             } else {
                 PyErr_Clear();
                 std::stringstream errmsg;
-                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                errmsg << "Item " << (std::string)py::repr(elem)
                        << " cannot be cast to timestamp";
                 throw py::type_error(errmsg.str());
             }
@@ -698,7 +698,7 @@ Decimal64Converter::write(orc::ColumnVectorBatch* batch,
             decBatch->notNull[rowId] = 1;
         } catch (py::cast_error&) {
             std::stringstream errmsg;
-            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+            errmsg << "Item " << (std::string)py::repr(elem)
                    << " cannot be cast to long int (for decimal)";
             throw py::type_error(errmsg.str());
         }
@@ -755,7 +755,7 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
             decBatch->notNull[rowId] = 1;
         } catch (py::cast_error&) {
             std::stringstream errmsg;
-            errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+            errmsg << "Item " << (std::string)py::repr(elem)
                    << " cannot be cast to decimal128";
             throw py::type_error(errmsg.str());
         }
@@ -1060,11 +1060,18 @@ StructConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
                         structBatch->fields[i]->resize(
                           2 * structBatch->fields[i]->capacity);
                     }
-                    fieldConverters[i]->write(structBatch->fields[i], rowId, tuple[i]);
+                    try {
+                        fieldConverters[i]->write(
+                          structBatch->fields[i], rowId, tuple[i]);
+                    } catch (py::type_error& err) {
+                        std::stringstream errmsg;
+                        errmsg << " at struct field index " << i;
+                        throw py::type_error(err.what() + errmsg.str());
+                    }
                 }
             } else {
                 std::stringstream errmsg;
-                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                errmsg << "Item " << (std::string)py::repr(elem)
                        << " is not an instance of tuple";
                 throw py::type_error(errmsg.str());
             }
@@ -1077,12 +1084,19 @@ StructConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
                         structBatch->fields[i]->resize(
                           2 * structBatch->fields[i]->capacity);
                     }
-                    fieldConverters[i]->write(
-                      structBatch->fields[i], rowId, dict[fieldNames[i]]);
+                    try {
+                        fieldConverters[i]->write(
+                          structBatch->fields[i], rowId, dict[fieldNames[i]]);
+                    } catch (py::type_error& err) {
+                        std::stringstream errmsg;
+                        errmsg << " at struct field name '"
+                               << (std::string)fieldNames[i] << "'";
+                        throw py::type_error(err.what() + errmsg.str());
+                    }
                 }
             } else {
                 std::stringstream errmsg;
-                errmsg << "Item " << (std::string)(py::str(elem.get_type()))
+                errmsg << "Item " << (std::string)py::repr(elem)
                        << " is not an instance of dictionary";
                 throw py::type_error(errmsg.str());
             }
