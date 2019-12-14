@@ -409,6 +409,8 @@ def test_struct_repr():
     writer = Writer(data, "struct<a:int>", struct_repr=StructRepr.DICT)
     with pytest.raises(TypeError):
         writer.write((1,))
+    with pytest.raises(TypeError):
+        writer.write({"a": "b"})
 
 
 class TestConverter(ORCConverter):
