@@ -7,7 +7,7 @@ class Column : public ORCIterator
     std::unique_ptr<orc::ColumnStatistics> stats;
     std::unique_ptr<orc::BloomFilterIndex> bloomFilter;
     int64_t typeKind;
-    const Stripe& stripe;
+    const ORCStream& stream;
     orc::ColumnVectorBatch* selectedBatch;
 
     bool testBloomFilter(py::object);
@@ -17,7 +17,7 @@ class Column : public ORCIterator
     void jumpToPosition(int64_t, uint64_t);
 
   public:
-    Column(const Stripe&, uint64_t, std::map<uint32_t, orc::BloomFilterIndex>);
+    Column(const ORCStream&, uint64_t, std::map<uint32_t, orc::BloomFilterIndex>);
     bool contains(py::object);
     bool hasNull() const;
     uint64_t numberOfValues() const;

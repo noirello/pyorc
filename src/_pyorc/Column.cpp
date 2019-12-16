@@ -2,16 +2,16 @@
 
 #include <cstdlib>
 
-Column::Column(const Stripe& stripe_,
+Column::Column(const ORCStream& stream_,
                uint64_t num,
                std::map<uint32_t, orc::BloomFilterIndex> bloomFilters)
   : columnIndex(num)
-  , stripe(stripe_)
+  , stream(stream_)
 {
     batchItem = 0;
     currentRow = 0;
     try {
-        stats = stripe.getReader().getORCReader().getColumnStatistics(columnIndex);
+        stats = stream.getORCReader().getColumnStatistics(columnIndex);
     } catch (std::logic_error& err) {
         throw py::index_error(err.what());
     }
@@ -21,12 +21,11 @@ Column::Column(const Stripe& stripe_,
     } else {
         bloomFilter = std::unique_ptr<orc::BloomFilterIndex>(nullptr);
     }
-    rowReaderOpts = stripe.getRowReaderOptions();
-    rowReader = stripe.getReader().getORCReader().createRowReader(rowReaderOpts);
-    batch = rowReader->createRowBatch(stripe.getReader().getBatchSize());
+    rowReaderOpts = stream.getRowReaderOptions();
+    rowReader = stream.getORCReader().createRowReader(rowReaderOpts);
+    batch = rowReader->createRowBatch(stream.getBatchSize());
     const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
-    converter = createConverter(
-      type, stripe.getReader().getStructKind(), stripe.getReader().getConverters());
+    converter = createConverter(type, stream.getStructKind(), stream.getConverters());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
     typeKind = static_cast<int64_t>(type->getKind());
     selectedBatch = this->selectBatch(rowReader->getSelectedType(), batch.get());
@@ -81,7 +80,7 @@ Column::testBloomFilter(py::object item)
             break;
         case orc::DATE: {
             py::object idx(py::int_(static_cast<int>(orc::DATE)));
-            py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
+            py::object to_orc = stream.getConverters()[idx].attr("to_orc");
             int64_t days = py::cast<int64_t>(to_orc(item));
             for (auto entry : bloomFilter->entries) {
                 if (entry->testLong(days) == true) {
@@ -92,7 +91,7 @@ Column::testBloomFilter(py::object item)
         }
         case orc::TIMESTAMP: {
             py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
-            py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
+            py::object to_orc = stream.getConverters()[idx].attr("to_orc");
             py::tuple res = to_orc(item);
             int64_t millis =
               py::cast<int64_t>(res[0]) * 1000 + py::cast<int64_t>(res[1]) / 1000000;
@@ -106,7 +105,7 @@ Column::testBloomFilter(py::object item)
         case orc::DECIMAL: {
             const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
             py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
-            py::object to_orc = stripe.getReader().getConverters()[idx].attr("to_orc");
+            py::object to_orc = stream.getConverters()[idx].attr("to_orc");
             std::string res =
               orc::Decimal(orc::Int128(py::cast<std::string>(py::str(
                              to_orc(type->getPrecision(), type->getScale(), item)))),
@@ -154,7 +153,7 @@ py::object
 Column::convertTimestampMillis(int64_t millisec)
 {
     py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
-    py::object from_orc = stripe.getReader().getConverters()[idx].attr("from_orc");
+    py::object from_orc = stream.getConverters()[idx].attr("from_orc");
     int64_t seconds = millisec / 1000;
     int64_t nanosecs = std::abs(millisec % 1000) * 1000 * 1000;
     return from_orc(seconds, nanosecs);
@@ -170,10 +169,10 @@ Column::statistics()
     result["number_of_values"] = py::cast(stats->getNumberOfValues());
     switch (typeKind) {
         case orc::BOOLEAN: {
-            auto& boolStat = dynamic_cast<orc::BooleanColumnStatistics&>(*stats);
-            if (boolStat.hasCount()) {
-                result["false_count"] = py::cast(boolStat.getFalseCount());
-                result["true_count"] = py::cast(boolStat.getTrueCount());
+            auto* boolStat = dynamic_cast<orc::BooleanColumnStatistics*>(stats.get());
+            if (boolStat->hasCount()) {
+                result["false_count"] = py::cast(boolStat->getFalseCount());
+                result["true_count"] = py::cast(boolStat->getTrueCount());
             }
             return result;
         }
@@ -237,8 +236,7 @@ Column::statistics()
         case orc::DATE: {
             auto* dateStat = dynamic_cast<orc::DateColumnStatistics*>(stats.get());
             py::object idx(py::int_(static_cast<int>(orc::DATE)));
-            py::object from_orc =
-              stripe.getReader().getConverters()[idx].attr("from_orc");
+            py::object from_orc = stream.getConverters()[idx].attr("from_orc");
             if (dateStat->hasMinimum()) {
                 result["minimum"] = from_orc(dateStat->getMinimum());
             }
@@ -268,8 +266,7 @@ Column::statistics()
         case orc::DECIMAL: {
             auto* decStat = dynamic_cast<orc::DecimalColumnStatistics*>(stats.get());
             py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
-            py::object from_orc =
-              stripe.getReader().getConverters()[idx].attr("from_orc");
+            py::object from_orc = stream.getConverters()[idx].attr("from_orc");
             if (decStat->hasMinimum()) {
                 result["minimum"] = from_orc(decStat->getMinimum().toString());
             }
