@@ -116,6 +116,25 @@ Reader::Reader(py::object fileo,
     }
 }
 
+Column
+Reader::getItem(uint64_t num)
+{
+    uint32_t colIdx = static_cast<uint32_t>(num);
+    std::map<uint32_t, orc::BloomFilterIndex> bloomFilters;
+    std::set<uint32_t> singleSet = { colIdx };
+    for (uint64_t i = 0; i < reader->getNumberOfStripes(); ++i) {
+        std::map<uint32_t, orc::BloomFilterIndex> part =
+          getORCReader().getBloomFilters(static_cast<uint32_t>(i), singleSet);
+        if (!part.empty()) {
+            bloomFilters[colIdx].entries.reserve(part[colIdx].entries.size());
+            bloomFilters[colIdx].entries.insert(bloomFilters[colIdx].entries.end(),
+                                                part[colIdx].entries.begin(),
+                                                part[colIdx].entries.end());
+        }
+    }
+    return Column(*this, num, bloomFilters);
+}
+
 uint64_t
 Reader::len() const
 {
@@ -152,13 +171,15 @@ Stripe::Stripe(const Reader& reader_,
     currentRow = 0;
     stripeIndex = idx;
     stripeInfo = std::move(stripe);
+    batchSize = reader.getBatchSize();
+    structKind = reader.getStructKind();
+    converters = reader.getConverters();
     rowReaderOpts = reader.getRowReaderOptions();
     rowReaderOpts =
       rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
-    rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
+    rowReader = getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
-    converter = createConverter(
-      &rowReader->getSelectedType(), reader.getStructKind(), reader.getConverters());
+    converter = createConverter(&rowReader->getSelectedType(), structKind, converters);
     firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 
@@ -168,7 +189,7 @@ Stripe::bloomFilterColumns()
     int64_t idx = 0;
     std::set<uint32_t> empty = {};
     std::map<uint32_t, orc::BloomFilterIndex> bfCols =
-      reader.getORCReader().getBloomFilters(stripeIndex, empty);
+      getORCReader().getBloomFilters(stripeIndex, empty);
     py::tuple result(bfCols.size());
     for (auto const& col : bfCols) {
         result[idx] = py::cast(col.first);
@@ -182,8 +203,7 @@ Stripe::getItem(uint64_t num)
 {
     std::set<uint32_t> singleSet = { static_cast<uint32_t>(num) };
     std::map<uint32_t, orc::BloomFilterIndex> bloomFilters =
-      reader.getORCReader().getBloomFilters(static_cast<uint32_t>(stripeIndex),
-                                            singleSet);
+      getORCReader().getBloomFilters(static_cast<uint32_t>(stripeIndex), singleSet);
     return Column(*this, num, bloomFilters);
 }
 
