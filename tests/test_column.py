@@ -45,7 +45,21 @@ def test_init(striped_orc_data):
         _ = column(stripe, "0")
     with pytest.raises(IndexError):
         _ = column(stripe, 100)
+    with pytest.raises(IndexError):
+        _ = column(reader, 100)
     col = column(stripe, 0)
+    assert col is not None
+    col = column(reader, 0)
+    assert col is not None
+
+
+def test_getitem(striped_orc_data):
+    data = striped_orc_data("int", (i for i in range(100000)))
+    reader = Reader(data)
+    stripe = Stripe(reader, 0)
+    col = reader[0]
+    assert col is not None
+    col = stripe[0]
     assert col is not None
 
 
