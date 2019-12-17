@@ -40,6 +40,8 @@ PYBIND11_MODULE(_pyorc, m)
     py::class_<Column>(m, "column")
       .def(py::init([](Stripe& stripe, uint64_t num) { return stripe.getItem(num); }),
            py::keep_alive<0, 2>())
+      .def(py::init([](Reader& reader, uint64_t num) { return reader.getItem(num); }),
+           py::keep_alive<0, 2>())
       .def("__next__", [](Column& c) -> py::object { return c.next(); })
       .def("__iter__", [](Column& c) -> Column& { return c; })
       .def("__contains__", &Column::contains)
