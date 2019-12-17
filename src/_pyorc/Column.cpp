@@ -296,7 +296,7 @@ Column::findColumnType(const orc::Type* type)
                 return Column::findColumnType(subtype);
             }
         }
-        throw std::logic_error("type not found");
+        throw py::index_error("column not found");
     }
 }
 
