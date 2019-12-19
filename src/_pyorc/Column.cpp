@@ -10,8 +10,13 @@ Column::Column(const ORCStream& stream_,
 {
     batchItem = 0;
     currentRow = 0;
+    rowReaderOpts = stream.getRowReaderOptions();
+    rowReader = stream.getORCReader().createRowReader(rowReaderOpts);
+    batch = rowReader->createRowBatch(stream.getBatchSize());
+    const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
+    converter = createConverter(type, stream.getStructKind(), stream.getConverters());
     try {
-        stats = stream.getORCReader().getColumnStatistics(columnIndex);
+        stats = stream.createStatistics(type, columnIndex);
     } catch (std::logic_error& err) {
         throw py::index_error(err.what());
     }
@@ -21,11 +26,6 @@ Column::Column(const ORCStream& stream_,
     } else {
         bloomFilter = std::unique_ptr<orc::BloomFilterIndex>(nullptr);
     }
-    rowReaderOpts = stream.getRowReaderOptions();
-    rowReader = stream.getORCReader().createRowReader(rowReaderOpts);
-    batch = rowReader->createRowBatch(stream.getBatchSize());
-    const orc::Type* type = this->findColumnType(&rowReader->getSelectedType());
-    converter = createConverter(type, stream.getStructKind(), stream.getConverters());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
     typeKind = static_cast<int64_t>(type->getKind());
     selectedBatch = this->selectBatch(rowReader->getSelectedType(), batch.get());
@@ -150,137 +150,8 @@ Column::contains(py::object item)
 }
 
 py::object
-Column::convertTimestampMillis(int64_t millisec)
-{
-    py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
-    py::object from_orc = stream.getConverters()[idx].attr("from_orc");
-    int64_t seconds = millisec / 1000;
-    int64_t nanosecs = std::abs(millisec % 1000) * 1000 * 1000;
-    return from_orc(seconds, nanosecs);
-}
-
-py::object
-Column::statistics()
-{
-    py::dict result;
-    py::object enumKind = py::module::import("pyorc.enums").attr("TypeKind");
-    result["kind"] = enumKind(typeKind);
-    result["has_null"] = py::cast(stats->hasNull());
-    result["number_of_values"] = py::cast(stats->getNumberOfValues());
-    switch (typeKind) {
-        case orc::BOOLEAN: {
-            auto* boolStat = dynamic_cast<orc::BooleanColumnStatistics*>(stats.get());
-            if (boolStat->hasCount()) {
-                result["false_count"] = py::cast(boolStat->getFalseCount());
-                result["true_count"] = py::cast(boolStat->getTrueCount());
-            }
-            return result;
-        }
-        case orc::BYTE:
-        case orc::INT:
-        case orc::LONG:
-        case orc::SHORT: {
-            auto* intStat = dynamic_cast<orc::IntegerColumnStatistics*>(stats.get());
-            if (intStat->hasMinimum()) {
-                result["minimum"] = py::cast(intStat->getMinimum());
-            }
-            if (intStat->hasMaximum()) {
-                result["maximum"] = py::cast(intStat->getMaximum());
-            }
-            if (intStat->hasSum()) {
-                result["sum"] = py::cast(intStat->getSum());
-            }
-            return result;
-        }
-        case orc::STRUCT:
-        case orc::MAP:
-        case orc::LIST:
-        case orc::UNION:
-            return result;
-        case orc::FLOAT:
-        case orc::DOUBLE: {
-            auto* doubleStat = dynamic_cast<orc::DoubleColumnStatistics*>(stats.get());
-            if (doubleStat->hasMinimum()) {
-                result["minimum"] = py::cast(doubleStat->getMinimum());
-            }
-            if (doubleStat->hasMaximum()) {
-                result["maximum"] = py::cast(doubleStat->getMaximum());
-            }
-            if (doubleStat->hasSum()) {
-                result["sum"] = py::cast(doubleStat->getSum());
-            }
-            return result;
-        }
-        case orc::BINARY: {
-            auto* binaryStat = dynamic_cast<orc::BinaryColumnStatistics*>(stats.get());
-            if (binaryStat->hasTotalLength()) {
-                result["total_length"] = py::cast(binaryStat->getTotalLength());
-            }
-            return result;
-        }
-        case orc::STRING:
-        case orc::CHAR:
-        case orc::VARCHAR: {
-            auto* strStat = dynamic_cast<orc::StringColumnStatistics*>(stats.get());
-            if (strStat->hasMinimum()) {
-                result["minimum"] = py::cast(strStat->getMinimum());
-            }
-            if (strStat->hasMaximum()) {
-                result["maximum"] = py::cast(strStat->getMaximum());
-            }
-            if (strStat->hasTotalLength()) {
-                result["total_length"] = py::cast(strStat->getTotalLength());
-            }
-            return result;
-        }
-        case orc::DATE: {
-            auto* dateStat = dynamic_cast<orc::DateColumnStatistics*>(stats.get());
-            py::object idx(py::int_(static_cast<int>(orc::DATE)));
-            py::object from_orc = stream.getConverters()[idx].attr("from_orc");
-            if (dateStat->hasMinimum()) {
-                result["minimum"] = from_orc(dateStat->getMinimum());
-            }
-            if (dateStat->hasMaximum()) {
-                result["maximum"] = from_orc(dateStat->getMaximum());
-            }
-            return result;
-        }
-        case orc::TIMESTAMP: {
-            auto* timeStat = dynamic_cast<orc::TimestampColumnStatistics*>(stats.get());
-            if (timeStat->hasMinimum()) {
-                result["minimum"] = convertTimestampMillis(timeStat->getMinimum());
-            }
-            if (timeStat->hasMaximum()) {
-                result["maximum"] = convertTimestampMillis(timeStat->getMaximum());
-            }
-            if (timeStat->hasLowerBound()) {
-                result["lower_bound"] =
-                  convertTimestampMillis(timeStat->getLowerBound());
-            }
-            if (timeStat->hasUpperBound()) {
-                result["upper_bound"] =
-                  convertTimestampMillis(timeStat->getUpperBound());
-            }
-            return result;
-        }
-        case orc::DECIMAL: {
-            auto* decStat = dynamic_cast<orc::DecimalColumnStatistics*>(stats.get());
-            py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
-            py::object from_orc = stream.getConverters()[idx].attr("from_orc");
-            if (decStat->hasMinimum()) {
-                result["minimum"] = from_orc(decStat->getMinimum().toString());
-            }
-            if (decStat->hasMaximum()) {
-                result["maximum"] = from_orc(decStat->getMaximum().toString());
-            }
-            if (decStat->hasSum()) {
-                result["sum"] = from_orc(decStat->getSum().toString());
-            }
-            return result;
-        }
-        default:
-            return result;
-    }
+Column::statistics() {
+    return stats;
 }
 
 const orc::Type*

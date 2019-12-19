@@ -30,10 +30,14 @@ class ORCIterator
 
 class ORCStream : public ORCIterator
 {
+  private:
+    py::object convertTimestampMillis(int64_t) const;
+
   protected:
     py::dict converters;
     uint64_t batchSize;
     unsigned int structKind;
+    py::object buildStatistics(const orc::Type*, const orc::ColumnStatistics*) const;
 
   public:
     virtual uint64_t len() const = 0;
@@ -42,6 +46,7 @@ class ORCStream : public ORCIterator
     const uint64_t getBatchSize() const { return batchSize; }
     const unsigned int getStructKind() const { return structKind; }
     virtual const orc::Reader& getORCReader() const = 0;
+    virtual py::tuple createStatistics(const orc::Type*, uint64_t) const = 0;
 };
 
 /* Forward declarations */
@@ -66,9 +71,9 @@ class Reader : public ORCStream
     TypeDescription& schema();
     Stripe readStripe(uint64_t);
     Column getItem(uint64_t);
+    py::tuple createStatistics(const orc::Type*, uint64_t) const override;
 
     const orc::Reader& getORCReader() const override { return *reader; }
-
 };
 
 class Stripe : public ORCStream
@@ -86,6 +91,7 @@ class Stripe : public ORCStream
     uint64_t length() const;
     uint64_t offset() const;
     std::string writerTimezone();
+    py::tuple createStatistics(const orc::Type*, uint64_t) const override;
 
     const Reader& getReader() const { return reader; }
     const orc::Reader& getORCReader() const override { return reader.getORCReader(); }

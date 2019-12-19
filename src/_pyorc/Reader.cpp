@@ -73,6 +73,142 @@ ORCStream::seek(int64_t row, uint16_t whence)
     return currentRow;
 }
 
+py::object
+ORCStream::convertTimestampMillis(int64_t millisec) const
+{
+    py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
+    py::object from_orc = this->getConverters()[idx].attr("from_orc");
+    int64_t seconds = millisec / 1000;
+    int64_t nanosecs = std::abs(millisec % 1000) * 1000 * 1000;
+    return from_orc(seconds, nanosecs);
+}
+
+py::object
+ORCStream::buildStatistics(const orc::Type* type,
+                           const orc::ColumnStatistics* stats) const
+{
+    py::dict result;
+    py::object enumKind = py::module::import("pyorc.enums").attr("TypeKind");
+    int64_t typeKind = static_cast<int64_t>(type->getKind());
+    result["kind"] = enumKind(typeKind);
+    result["has_null"] = py::cast(stats->hasNull());
+    result["number_of_values"] = py::cast(stats->getNumberOfValues());
+    switch (typeKind) {
+        case orc::BOOLEAN: {
+            auto* boolStat = dynamic_cast<const orc::BooleanColumnStatistics*>(stats);
+            if (boolStat->hasCount()) {
+                result["false_count"] = py::cast(boolStat->getFalseCount());
+                result["true_count"] = py::cast(boolStat->getTrueCount());
+            }
+            return result;
+        }
+        case orc::BYTE:
+        case orc::INT:
+        case orc::LONG:
+        case orc::SHORT: {
+            auto* intStat = dynamic_cast<const orc::IntegerColumnStatistics*>(stats);
+            if (intStat->hasMinimum()) {
+                result["minimum"] = py::cast(intStat->getMinimum());
+            }
+            if (intStat->hasMaximum()) {
+                result["maximum"] = py::cast(intStat->getMaximum());
+            }
+            if (intStat->hasSum()) {
+                result["sum"] = py::cast(intStat->getSum());
+            }
+            return result;
+        }
+        case orc::STRUCT:
+        case orc::MAP:
+        case orc::LIST:
+        case orc::UNION:
+            return result;
+        case orc::FLOAT:
+        case orc::DOUBLE: {
+            auto* doubleStat = dynamic_cast<const orc::DoubleColumnStatistics*>(stats);
+            if (doubleStat->hasMinimum()) {
+                result["minimum"] = py::cast(doubleStat->getMinimum());
+            }
+            if (doubleStat->hasMaximum()) {
+                result["maximum"] = py::cast(doubleStat->getMaximum());
+            }
+            if (doubleStat->hasSum()) {
+                result["sum"] = py::cast(doubleStat->getSum());
+            }
+            return result;
+        }
+        case orc::BINARY: {
+            auto* binaryStat = dynamic_cast<const orc::BinaryColumnStatistics*>(stats);
+            if (binaryStat->hasTotalLength()) {
+                result["total_length"] = py::cast(binaryStat->getTotalLength());
+            }
+            return result;
+        }
+        case orc::STRING:
+        case orc::CHAR:
+        case orc::VARCHAR: {
+            auto* strStat = dynamic_cast<const orc::StringColumnStatistics*>(stats);
+            if (strStat->hasMinimum()) {
+                result["minimum"] = py::cast(strStat->getMinimum());
+            }
+            if (strStat->hasMaximum()) {
+                result["maximum"] = py::cast(strStat->getMaximum());
+            }
+            if (strStat->hasTotalLength()) {
+                result["total_length"] = py::cast(strStat->getTotalLength());
+            }
+            return result;
+        }
+        case orc::DATE: {
+            auto* dateStat = dynamic_cast<const orc::DateColumnStatistics*>(stats);
+            py::object idx(py::int_(static_cast<int>(orc::DATE)));
+            py::object from_orc = this->getConverters()[idx].attr("from_orc");
+            if (dateStat->hasMinimum()) {
+                result["minimum"] = from_orc(dateStat->getMinimum());
+            }
+            if (dateStat->hasMaximum()) {
+                result["maximum"] = from_orc(dateStat->getMaximum());
+            }
+            return result;
+        }
+        case orc::TIMESTAMP: {
+            auto* timeStat = dynamic_cast<const orc::TimestampColumnStatistics*>(stats);
+            if (timeStat->hasMinimum()) {
+                result["minimum"] = convertTimestampMillis(timeStat->getMinimum());
+            }
+            if (timeStat->hasMaximum()) {
+                result["maximum"] = convertTimestampMillis(timeStat->getMaximum());
+            }
+            if (timeStat->hasLowerBound()) {
+                result["lower_bound"] =
+                  convertTimestampMillis(timeStat->getLowerBound());
+            }
+            if (timeStat->hasUpperBound()) {
+                result["upper_bound"] =
+                  convertTimestampMillis(timeStat->getUpperBound());
+            }
+            return result;
+        }
+        case orc::DECIMAL: {
+            auto* decStat = dynamic_cast<const orc::DecimalColumnStatistics*>(stats);
+            py::object idx(py::int_(static_cast<int>(orc::DECIMAL)));
+            py::object from_orc = this->getConverters()[idx].attr("from_orc");
+            if (decStat->hasMinimum()) {
+                result["minimum"] = from_orc(decStat->getMinimum().toString());
+            }
+            if (decStat->hasMaximum()) {
+                result["maximum"] = from_orc(decStat->getMaximum().toString());
+            }
+            if (decStat->hasSum()) {
+                result["sum"] = from_orc(decStat->getSum().toString());
+            }
+            return result;
+        }
+        default:
+            return result;
+    }
+}
+
 Reader::Reader(py::object fileo,
                uint64_t batch_size,
                std::list<uint64_t> col_indices,
@@ -162,6 +298,16 @@ Reader::schema()
     return *typeDesc;
 }
 
+py::tuple
+Reader::createStatistics(const orc::Type* type, uint64_t columnIndex) const
+{
+    py::tuple result = py::tuple(1);
+    std::unique_ptr<orc::ColumnStatistics> stats =
+      reader->getColumnStatistics(columnIndex);
+    result[0] = this->buildStatistics(type, stats.get());
+    return result;
+}
+
 Stripe::Stripe(const Reader& reader_,
                uint64_t idx,
                std::unique_ptr<orc::StripeInformation> stripe)
@@ -229,4 +375,18 @@ std::string
 Stripe::writerTimezone()
 {
     return stripeInfo->getWriterTimezone();
+}
+
+py::tuple
+Stripe::createStatistics(const orc::Type* type, uint64_t columnIndex) const
+{
+    std::unique_ptr<orc::StripeStatistics> stripeStats =
+      reader.getORCReader().getStripeStatistics(stripeIndex);
+    py::tuple result = py::tuple(stripeStats->getNumberOfRowIndexStats(columnIndex));
+    for (uint32_t i = 0; i < stripeStats->getNumberOfRowIndexStats(columnIndex); ++i) {
+        const orc::ColumnStatistics* stats =
+          stripeStats->getRowIndexStatistics(columnIndex, i);
+        result[i] = this->buildStatistics(type, stats);
+    }
+    return result;
 }
