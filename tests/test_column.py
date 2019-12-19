@@ -13,8 +13,8 @@ from pyorc import (
     TypeKind,
     StructRepr,
     ParseError,
-    column,
-    stripe as Stripe,
+    Column,
+    Stripe,
 )
 
 
@@ -42,14 +42,14 @@ def test_init(striped_orc_data):
     reader = Reader(data)
     stripe = Stripe(reader, 0)
     with pytest.raises(TypeError):
-        _ = column(stripe, "0")
+        _ = Column(stripe, "0")
     with pytest.raises(IndexError):
-        _ = column(stripe, 100)
+        _ = Column(stripe, 100)
     with pytest.raises(IndexError):
-        _ = column(reader, 100)
-    col = column(stripe, 0)
+        _ = Column(reader, 100)
+    col = Column(stripe, 0)
     assert col is not None
-    col = column(reader, 0)
+    col = Column(reader, 0)
     assert col is not None
 
 

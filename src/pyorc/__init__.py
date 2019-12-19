@@ -1,8 +1,8 @@
-from pyorc._pyorc import typedescription, stripe, column
+from pyorc._pyorc import typedescription
 
 from .enums import *
 from .errors import *
-from .reader import Reader
+from .reader import Reader, Stripe, Column
 from .writer import Writer
 
 

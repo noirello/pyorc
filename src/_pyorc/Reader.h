@@ -70,7 +70,7 @@ class Reader : public ORCStream
     uint64_t numberOfStripes() const;
     TypeDescription& schema();
     Stripe readStripe(uint64_t);
-    Column getItem(uint64_t);
+    Column getColumn(uint64_t);
     py::tuple createStatistics(const orc::Type*, uint64_t) const override;
 
     const orc::Reader& getORCReader() const override { return *reader; }
@@ -86,7 +86,7 @@ class Stripe : public ORCStream
   public:
     Stripe(const Reader&, uint64_t, std::unique_ptr<orc::StripeInformation>);
     py::object bloomFilterColumns();
-    Column getItem(uint64_t);
+    Column getColumn(uint64_t);
     uint64_t len() const override;
     uint64_t length() const;
     uint64_t offset() const;

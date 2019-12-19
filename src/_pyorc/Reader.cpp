@@ -88,9 +88,8 @@ ORCStream::buildStatistics(const orc::Type* type,
                            const orc::ColumnStatistics* stats) const
 {
     py::dict result;
-    py::object enumKind = py::module::import("pyorc.enums").attr("TypeKind");
     int64_t typeKind = static_cast<int64_t>(type->getKind());
-    result["kind"] = enumKind(typeKind);
+    result["kind"] = typeKind;
     result["has_null"] = py::cast(stats->hasNull());
     result["number_of_values"] = py::cast(stats->getNumberOfValues());
     switch (typeKind) {
@@ -253,7 +252,7 @@ Reader::Reader(py::object fileo,
 }
 
 Column
-Reader::getItem(uint64_t num)
+Reader::getColumn(uint64_t num)
 {
     uint32_t colIdx = static_cast<uint32_t>(num);
     std::map<uint32_t, orc::BloomFilterIndex> bloomFilters;
@@ -345,7 +344,7 @@ Stripe::bloomFilterColumns()
 }
 
 Column
-Stripe::getItem(uint64_t num)
+Stripe::getColumn(uint64_t num)
 {
     std::set<uint32_t> singleSet = { static_cast<uint32_t>(num) };
     std::map<uint32_t, orc::BloomFilterIndex> bloomFilters =

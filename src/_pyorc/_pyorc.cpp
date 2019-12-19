@@ -38,22 +38,21 @@ PYBIND11_MODULE(_pyorc, m)
       .def("remove_field", &TypeDescription::removeField)
       .def("find_column_id", &TypeDescription::findColumnId);
     py::class_<Column>(m, "column")
-      .def(py::init([](Stripe& stripe, uint64_t num) { return stripe.getItem(num); }),
+      .def(py::init([](Stripe& stripe, uint64_t num) { return stripe.getColumn(num); }),
            py::keep_alive<0, 2>())
-      .def(py::init([](Reader& reader, uint64_t num) { return reader.getItem(num); }),
+      .def(py::init([](Reader& reader, uint64_t num) { return reader.getColumn(num); }),
            py::keep_alive<0, 2>())
       .def("__next__", [](Column& c) -> py::object { return c.next(); })
       .def("__iter__", [](Column& c) -> Column& { return c; })
       .def("__contains__", &Column::contains)
       .def("read", &Column::read)
-      .def_property_readonly("statistics", &Column::statistics);
+      .def_property_readonly("_statistics", &Column::statistics);
     py::class_<Stripe>(m, "stripe")
       .def(
         py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }),
         py::keep_alive<0, 2>())
       .def("__next__", [](Stripe& s) -> py::object { return s.next(); })
       .def("__iter__", [](Stripe& s) -> Stripe& { return s; })
-      .def("__getitem__", &Stripe::getItem, py::keep_alive<0, 1>())
       .def("__len__", &Stripe::len)
       .def("read", &Stripe::read, py::arg_v("num", -1, "-1"))
       .def("seek", &Stripe::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
@@ -81,9 +80,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def("__next__", [](Reader& r) -> py::object { return r.next(); })
       .def("__iter__", [](Reader& r) -> Reader& { return r; })
       .def("__len__", &Reader::len)
-      .def("__getitem__", &Reader::getItem, py::keep_alive<0, 1>())
       .def("read", &Reader::read, py::arg_v("num", -1, "-1"))
-      .def("read_stripe", &Reader::readStripe, py::keep_alive<0, 1>())
       .def("seek", &Reader::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
       .def_property_readonly("schema", &Reader::schema)
       .def_property_readonly("num_of_stripes",
