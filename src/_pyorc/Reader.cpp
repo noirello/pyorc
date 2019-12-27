@@ -4,7 +4,7 @@
 #include "Reader.h"
 
 py::object
-ORCIterator::next()
+ORCFileLikeObject::next()
 {
     while (true) {
         if (batchItem == 0) {
@@ -24,8 +24,8 @@ ORCIterator::next()
     }
 }
 
-py::object
-ORCIterator::read(int64_t num)
+py::list
+ORCFileLikeObject::read(int64_t num)
 {
     int64_t i = 0;
     py::list res;
@@ -46,7 +46,7 @@ ORCIterator::read(int64_t num)
 }
 
 uint64_t
-ORCIterator::seek(int64_t row, uint16_t whence)
+ORCFileLikeObject::seek(int64_t row, uint16_t whence)
 {
     uint64_t start = 0;
     switch (whence) {
@@ -97,9 +97,9 @@ Reader::Reader(py::object fileo,
     if (conv.is(py::none())) {
         py::dict defaultConv =
           py::module::import("pyorc.converters").attr("DEFAULT_CONVERTERS");
-        converters = py::dict(defaultConv);
+        convDict = py::dict(defaultConv);
     } else {
-        converters = conv;
+        convDict = conv;
     }
     reader = createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
@@ -109,7 +109,7 @@ Reader::Reader(py::object fileo,
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
         converter =
-          createConverter(&rowReader->getSelectedType(), structKind, converters);
+          createConverter(&rowReader->getSelectedType(), structKind, convDict);
     } catch (orc::ParseError& err) {
         throw py::value_error(err.what());
     }
@@ -151,17 +151,18 @@ Stripe::Stripe(const Reader& reader_,
     currentRow = 0;
     stripeIndex = idx;
     stripeInfo = std::move(stripe);
+    convDict = reader.getConverterDict();
     rowReaderOpts = reader.getRowReaderOptions();
     rowReaderOpts =
       rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
     rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
     converter = createConverter(
-      &rowReader->getSelectedType(), reader.getStructKind(), reader.getConverters());
+      &rowReader->getSelectedType(), reader.getStructKind(), convDict);
     firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 
-py::object
+py::tuple
 Stripe::bloomFilterColumns()
 {
     int64_t idx = 0;
