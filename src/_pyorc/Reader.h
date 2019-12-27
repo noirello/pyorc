@@ -13,6 +13,9 @@ namespace py = pybind11;
 
 class ORCFileLikeObject
 {
+  private:
+    py::object convertTimestampMillis(int64_t) const;
+
   protected:
     uint64_t batchItem;
     orc::RowReaderOptions rowReaderOpts;
@@ -20,6 +23,8 @@ class ORCFileLikeObject
     std::unique_ptr<orc::ColumnVectorBatch> batch;
     std::unique_ptr<Converter> converter;
     py::dict convDict;
+    py::dict buildStatistics(const orc::Type*, const orc::ColumnStatistics*) const;
+    const orc::Type* findColumnType(const orc::Type*, uint64_t) const;
 
   public:
     uint64_t currentRow;
@@ -53,6 +58,7 @@ class Reader : public ORCFileLikeObject
     uint64_t numberOfStripes() const;
     TypeDescription& schema();
     Stripe readStripe(uint64_t);
+    py::tuple statistics(uint64_t);
 
     const orc::Reader& getORCReader() const { return *reader; }
     const uint64_t getBatchSize() const { return batchSize; }
@@ -72,6 +78,7 @@ class Stripe : public ORCFileLikeObject
     uint64_t len() const override;
     uint64_t length() const;
     uint64_t offset() const;
+    py::tuple statistics(uint64_t);
     std::string writerTimezone();
 };
 
