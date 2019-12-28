@@ -297,13 +297,17 @@ Reader::schema()
 py::tuple
 Reader::statistics(uint64_t columnIndex)
 {
-    py::tuple result = py::tuple(1);
-    std::unique_ptr<orc::ColumnStatistics> stats =
-      reader->getColumnStatistics(columnIndex);
-    std::cout << rowReader->getSelectedType().toString() << std::endl;
-    result[0] = this->buildStatistics(
-      this->findColumnType(&rowReader->getSelectedType(), columnIndex), stats.get());
-    return result;
+    try {
+        py::tuple result = py::tuple(1);
+        std::unique_ptr<orc::ColumnStatistics> stats =
+          reader->getColumnStatistics(columnIndex);
+        result[0] = this->buildStatistics(
+          this->findColumnType(&rowReader->getSelectedType(), columnIndex),
+          stats.get());
+        return result;
+    } catch (std::logic_error& err) {
+        throw py::index_error(err.what());
+    }
 }
 
 Stripe::Stripe(const Reader& reader_,
@@ -362,10 +366,15 @@ Stripe::offset() const
 py::tuple
 Stripe::statistics(uint64_t columnIndex)
 {
+    if (columnIndex < 0 ||
+        columnIndex > rowReader->getSelectedType().getMaximumColumnId()) {
+        throw py::index_error("column index out of range");
+    }
     std::unique_ptr<orc::StripeStatistics> stripeStats =
       reader.getORCReader().getStripeStatistics(stripeIndex);
-    py::tuple result = py::tuple(stripeStats->getNumberOfRowIndexStats(columnIndex));
-    for (uint32_t i = 0; i < stripeStats->getNumberOfRowIndexStats(columnIndex); ++i) {
+    uint32_t num = stripeStats->getNumberOfRowIndexStats(columnIndex);
+    py::tuple result = py::tuple(num);
+    for (uint32_t i = 0; i < num; ++i) {
         const orc::ColumnStatistics* stats =
           stripeStats->getRowIndexStatistics(columnIndex, i);
         result[i] = this->buildStatistics(
