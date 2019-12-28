@@ -75,6 +75,7 @@ def test_statistics_bool(striped_orc_data):
     assert stat["kind"] == TypeKind.STRUCT
     stat = stripe[1].statistics
     assert stat["has_null"] is True
+    assert stat["kind"] == TypeKind.BOOLEAN
     assert stat["number_of_values"] == 43690
     assert stat["false_count"] == 21845
     assert stat["true_count"] == len([i for i, in stripe if i is True])
@@ -128,6 +129,7 @@ def test_statistics_binary(striped_orc_data):
     stripe = Stripe(reader, 0)
     stat = stripe[0].statistics
     assert stat["has_null"] is False
+    assert stat["kind"] == TypeKind.BINARY
     assert stat["number_of_values"] == 65535
     assert stat["total_length"] == sum(len(i) for i in stripe)
     stat = reader[0].statistics
@@ -142,6 +144,7 @@ def test_statistics_string(striped_orc_data):
     stripe = Stripe(reader, 0)
     stat = stripe[0].statistics
     assert stat["has_null"] is False
+    assert stat["kind"] == TypeKind.STRING
     assert stat["number_of_values"] == 65535
     assert stat["total_length"] == sum(len(i) for i in stripe)
     assert stat["minimum"] == "Test String 1"
@@ -158,6 +161,7 @@ def test_statistics_date(striped_orc_data):
     reader = Reader(data)
     stripe = Stripe(reader, 0)
     stat = stripe[0].statistics
+    assert stat["kind"] == TypeKind.DATE
     assert stat["has_null"] is False
     assert stat["number_of_values"] == 65535
     assert stat["minimum"] == date(1900, 1, 1)
@@ -177,6 +181,7 @@ def test_statistics_timestamp(striped_orc_data):
     reader = Reader(data)
     stripe = Stripe(reader, 0)
     stat = stripe[0].statistics
+    assert stat["kind"] == TypeKind.TIMESTAMP
     assert stat["has_null"] is False
     assert stat["number_of_values"] == len(stripe)
     assert stat["minimum"] == datetime(2000, 1, 1, 12, 0, tzinfo=timezone.utc)
@@ -200,6 +205,7 @@ def test_statistics_decimal(striped_orc_data):
     reader = Reader(data)
     stripe = Stripe(reader, 0)
     stat = stripe[0].statistics
+    assert stat["kind"] == TypeKind.DECIMAL
     assert stat["has_null"] is False
     assert stat["number_of_values"] == len(stripe)
     assert stat["minimum"] == Decimal("1010.100")
@@ -213,3 +219,19 @@ def test_statistics_decimal(striped_orc_data):
     ).quantize(Decimal("1.000"))
     assert reader.read_stripe(1)[0].statistics["minimum"] == Decimal("7563.600")
 
+
+def test_statistics_array_int(striped_orc_data):
+    data = striped_orc_data(
+        "struct<list:array<int>>",
+        (([j + i for j in range(30)],) for i in range(100000)),
+    )
+    reader = Reader(data)
+    stripe = reader.read_stripe(0)
+    stat = stripe[2].statistics
+    assert stripe[1].statistics["kind"] == TypeKind.LIST
+    assert stat["kind"] == TypeKind.INT
+    assert sum(i for col in reader.read_stripe(0) for i in col[0]) == stat["sum"]
+    assert min(i for col in reader.read_stripe(0) for i in col[0]) == stat["minimum"]
+    assert max(i for col in reader.read_stripe(0) for i in col[0]) == stat["maximum"]
+    stat = reader[2].statistics
+    assert max(i for col in reader for i in col[0]) == stat["maximum"]
