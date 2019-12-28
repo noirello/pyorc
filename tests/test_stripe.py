@@ -11,7 +11,7 @@ from pyorc import (
     TypeKind,
     StructRepr,
     ParseError,
-    stripe as Stripe,
+    Stripe,
 )
 
 

@@ -10,12 +10,13 @@ class Column:
     def __init__(self, stream, index):
         self.index = index
         self.stream = stream
+        self._stats = self.stream._statistics(self.index)
 
     @property
     def statistics(self):
         result = {}
         result_list = defaultdict(list)
-        for stat in self.stream._statistics(self.index):
+        for stat in self._stats:
             for key, val in stat.items():
                 result_list[key].append(val)
         for key, values in result_list.items():
