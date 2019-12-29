@@ -8,11 +8,13 @@ Added
 
 - Converters for date, decimal and timestamp ORC types in Python and
   option to change them via Reader's and Writer's converters parameter.
+- Column object for accessing statistics about ORC columns.
 
 Changed
 ~~~~~~~
 
 - Use timezone-aware datetime objects (in UTC) for ORC timestamps by default.
+- Wrapped C++ stripe object to Python Stripe.
 
 
 [0.1.0] - 2019-11-16

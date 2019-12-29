@@ -22,11 +22,13 @@ from unittest.mock import MagicMock
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
-        if name == "typedescritpion":
+        if name == "typedescription":
             return object
         if name == "reader":
             return object
         if name == "writer":
+            return object
+        if name == "stripe":
             return object
 
 
