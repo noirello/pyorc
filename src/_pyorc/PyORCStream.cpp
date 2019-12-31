@@ -52,7 +52,7 @@ PyORCInputStream::read(void* buf, uint64_t length, uint64_t offset)
 
     pyseek(offset);
     py::object data = pyread(length);
-    int rc = PyBytes_AsStringAndSize(data.release().ptr(), &src, &bytesRead);
+    int rc = PyBytes_AsStringAndSize(data.ptr(), &src, &bytesRead);
     if (rc == -1) {
         PyErr_Clear();
         throw orc::ParseError(
