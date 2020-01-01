@@ -38,8 +38,8 @@ def striped_orc_data():
 
 
 def test_init(striped_orc_data):
-    data = striped_orc_data("int", (i for i in range(100000)))
-    reader = Reader(data)
+    data = striped_orc_data("struct<a:int,b:int>", ((i, i * 5) for i in range(100000)))
+    reader = Reader(data, column_indices=(1,))
     stripe = Stripe(reader, 0)
     with pytest.raises(TypeError):
         _ = Column(stripe, "0")
@@ -47,6 +47,8 @@ def test_init(striped_orc_data):
         _ = Column(stripe, 100)
     with pytest.raises(IndexError):
         _ = Column(reader, 100)
+    with pytest.raises(IndexError):
+        _ = Column(reader, 1)
     col = Column(stripe, 0)
     assert col is not None
     col = Column(reader, 0)
