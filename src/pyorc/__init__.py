@@ -6,4 +6,4 @@ from .reader import Column, Reader, Stripe
 from .writer import Writer
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
