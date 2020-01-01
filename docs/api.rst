@@ -34,7 +34,11 @@ API documentation
 
 .. method:: Reader.__getitem__(col_idx)
 
-    Get a :class:`Column` object.
+    Get a :class:`Column` object. The indexing is the same as it's in the
+    ORC file which means `0` is the top-level, the first field in the
+    top-level struct is `1`, if the `nth` field in the struct is a map then
+    the `(n+1)th` index is the column of the keys and the `(n+2)th` index is
+    the values, etc.
 
 .. method:: Reader.__len__()
 
@@ -88,7 +92,15 @@ API documentation
 
 .. attribute:: Reader.schema
 
-    A :class:`typedescription` object of the ORC file's schema.
+    A :class:`typedescription` object of the ORC file's schema. Always
+    represents the full schema of the file, regardless which columns
+    are selected to read.
+
+.. attribute:: Reader.selected_schema
+
+    A :class:`typedescription` object of the ORC file's schema that only
+    represents the selected columns. If no columns are specified then it's
+    the same as :attr:`Reader.schema`.
 
 
 :class:`Stripe`
@@ -105,7 +117,8 @@ API documentation
 
 .. method:: Stripe.__getitem__(col_idx)
 
-    Get a :class:`Column` object.
+    Get a :class:`Column` object, just like :meth:`Reader.__getitem__`, but
+    only for the current stripe.
 
 .. method:: Stripe.__len__()
 
@@ -215,7 +228,7 @@ API documentation
 
 .. attribute:: typedescription.fields
 
-    A read-only dictionary of teh struct's fields, where the keys are the
+    A read-only dictionary of the struct's fields, where the keys are the
     fields names and teh values are typedescription objects.
 
 .. attribute:: typedescription.kind

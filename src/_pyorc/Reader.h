@@ -43,7 +43,6 @@ class Reader : public ORCFileLikeObject
 {
   private:
     std::unique_ptr<orc::Reader> reader;
-    std::unique_ptr<TypeDescription> typeDesc;
     uint64_t batchSize;
     unsigned int structKind;
 
@@ -56,7 +55,8 @@ class Reader : public ORCFileLikeObject
            py::object = py::none());
     uint64_t len() const override;
     uint64_t numberOfStripes() const;
-    TypeDescription& schema();
+    TypeDescription schema();
+    TypeDescription selectedSchema();
     Stripe readStripe(uint64_t);
     py::tuple statistics(uint64_t);
 

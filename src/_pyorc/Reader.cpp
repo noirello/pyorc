@@ -255,7 +255,6 @@ Reader::Reader(py::object fileo,
     }
     reader = createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
-    typeDesc = std::make_unique<TypeDescription>(reader->getType());
     try {
         batchSize = batch_size;
         rowReader = reader->createRowReader(rowReaderOpts);
@@ -288,10 +287,16 @@ Reader::readStripe(uint64_t idx)
     return Stripe(*this, idx, reader->getStripe(idx));
 }
 
-TypeDescription&
+TypeDescription
 Reader::schema()
 {
-    return *typeDesc;
+    return TypeDescription(reader->getType());
+}
+
+TypeDescription
+Reader::selectedSchema()
+{
+    return TypeDescription(rowReader->getSelectedType());
 }
 
 py::tuple

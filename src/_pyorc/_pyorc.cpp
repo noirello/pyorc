@@ -74,6 +74,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def("seek", &Reader::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
       .def("_statistics", &Reader::statistics)
       .def_property_readonly("schema", &Reader::schema)
+      .def_property_readonly("selected_schema", &Reader::selectedSchema)
       .def_property_readonly("num_of_stripes",
                              [](Reader& r) { return r.numberOfStripes(); })
       .def_readonly("current_row", &Reader::currentRow);

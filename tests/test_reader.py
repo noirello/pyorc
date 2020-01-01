@@ -159,6 +159,26 @@ def test_schema():
     assert schema.kind == TypeKind.STRUCT
 
 
+def test_selected_schema():
+    schema_str = "struct<col0:int,col1:string>"
+    data = io.BytesIO()
+    Writer(data, schema_str).close()
+    reader = Reader(data, column_names=("col1",))
+
+    assert str(reader.schema) == schema_str
+    assert str(reader.selected_schema) != str(reader.schema)
+    with pytest.raises(AttributeError):
+        reader.selected_schema = "fail"
+    with pytest.raises(AttributeError):
+        del reader.selected_schema
+
+    schema = reader.selected_schema
+    del reader
+    assert isinstance(schema, typedescription)
+    assert schema.kind == TypeKind.STRUCT
+    assert str(schema) == "struct<col1:string>"
+
+
 def test_current_row(orc_data):
     reader = Reader(orc_data(20))
     assert reader.current_row == 0
