@@ -1,6 +1,7 @@
+import math
 from abc import ABC, abstractmethod
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, localcontext
 
 from typing import Tuple
@@ -24,11 +25,11 @@ class TimestampConverter(ORCConverter):
     @staticmethod
     def from_orc(seconds: int, nanoseconds: int) -> datetime:
         timestamp = datetime.fromtimestamp(seconds, timezone.utc)
-        return timestamp.replace(microsecond=nanoseconds // 1000)
+        return timestamp + timedelta(microseconds=nanoseconds // 1000)
 
     @staticmethod
     def to_orc(obj: datetime) -> Tuple[int, int]:
-        return int(obj.replace(microsecond=0).timestamp()), obj.microsecond * 1000
+        return math.floor(obj.timestamp()), obj.microsecond * 1000
 
 
 class DateConverter(ORCConverter):
