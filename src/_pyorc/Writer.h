@@ -37,6 +37,7 @@ class Writer
            py::object = py::none());
     void write(py::object);
     void close();
+    ~Writer(){};
 };
 
 #endif

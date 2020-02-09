@@ -253,7 +253,7 @@ Reader::Reader(py::object fileo,
     } else {
         convDict = conv;
     }
-    reader = createReader(
+    reader = orc::createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
     try {
         batchSize = batch_size;
@@ -278,13 +278,13 @@ Reader::numberOfStripes() const
     return reader->getNumberOfStripes();
 }
 
-Stripe
+std::unique_ptr<Stripe>
 Reader::readStripe(uint64_t idx)
 {
     if (idx >= reader->getNumberOfStripes()) {
         throw py::index_error("stripe index out of range");
     }
-    return Stripe(*this, idx, reader->getStripe(idx));
+    return std::make_unique<Stripe>(*this, idx, reader->getStripe(idx));
 }
 
 TypeDescription

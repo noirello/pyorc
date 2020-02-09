@@ -36,7 +36,7 @@ Writer::Writer(py::object fileo,
     options = options.setBloomFilterFPP(bloom_filter_fpp);
 
     outStream = std::unique_ptr<orc::OutputStream>(new PyORCOutputStream(fileo));
-    writer = createWriter(*type, outStream.get(), options);
+    writer = orc::createWriter(*type, outStream.get(), options);
     batchSize = batch_size;
     batch = writer->createRowBatch(batchSize);
     converter = createConverter(type.get(), struct_repr, converters);

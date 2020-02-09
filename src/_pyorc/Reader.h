@@ -35,6 +35,7 @@ class ORCFileLikeObject
     uint64_t seek(int64_t, uint16_t = 0);
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
     const py::dict getConverterDict() const { return convDict; }
+    virtual ~ORCFileLikeObject(){};
 };
 
 class Stripe; /* Forward declaration */
@@ -57,12 +58,13 @@ class Reader : public ORCFileLikeObject
     uint64_t numberOfStripes() const;
     TypeDescription schema();
     TypeDescription selectedSchema();
-    Stripe readStripe(uint64_t);
+    std::unique_ptr<Stripe> readStripe(uint64_t);
     py::tuple statistics(uint64_t);
 
     const orc::Reader& getORCReader() const { return *reader; }
     const uint64_t getBatchSize() const { return batchSize; }
     const unsigned int getStructKind() const { return structKind; }
+    ~Reader(){};
 };
 
 class Stripe : public ORCFileLikeObject
@@ -80,6 +82,7 @@ class Stripe : public ORCFileLikeObject
     uint64_t offset() const;
     py::tuple statistics(uint64_t);
     std::string writerTimezone();
+    ~Stripe(){};
 };
 
 #endif
