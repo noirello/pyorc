@@ -315,6 +315,16 @@ Reader::statistics(uint64_t columnIndex)
     }
 }
 
+py::dict
+Reader::metadata()
+{
+    py::dict result;
+    for (std::string key : reader->getMetadataKeys()) {
+        result[key.c_str()] = py::bytes(reader->getMetadataValue(key));
+    }
+    return result;
+}
+
 Stripe::Stripe(const Reader& reader_,
                uint64_t idx,
                std::unique_ptr<orc::StripeInformation> stripe)

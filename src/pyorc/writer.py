@@ -27,6 +27,7 @@ class Writer(writer):
         if 0.0 >= bloom_filter_fpp or bloom_filter_fpp >= 1.0:
             raise ValueError("False positive probability should be > 0.0 & < 1.0")
         self.__schema = schema
+        self.__metadata = {}
         comp = CompressionKind(compression)
         comp_strat = CompressionStrategy(compression_strategy)
         bf_set = set()
@@ -63,11 +64,24 @@ class Writer(writer):
         return self
 
     def __exit__(self, *exc):
+        self.close()
+
+    def close(self):
+        for key, val in self.__metadata.items():
+            super()._add_metadata(key, val)
         super().close()
 
     @property
     def schema(self) -> typedescription:
         return self.__schema
+
+    def set_metadata(self, **kwargs):
+        for key, val in kwargs.items():
+            if not isinstance(val, bytes):
+                raise TypeError(
+                    "All values must be bytes, key '{0}' is {1}".format(key, type(val))
+                )
+            self.__metadata[key] = val
 
     def writerows(self, rows: Iterable):
         num = 0

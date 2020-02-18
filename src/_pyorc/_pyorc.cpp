@@ -73,6 +73,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def("read", &Reader::read, py::arg_v("num", -1, "-1"))
       .def("seek", &Reader::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
       .def("_statistics", &Reader::statistics)
+      .def_property_readonly("metadata", &Reader::metadata)
       .def_property_readonly("schema", &Reader::schema)
       .def_property_readonly("selected_schema", &Reader::selectedSchema)
       .def_property_readonly("num_of_stripes",
@@ -101,6 +102,7 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("bloom_filter_fpp", 0.05, "0.05"),
            py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
            py::arg_v("conv", py::none(), "None"))
+      .def("_add_metadata", &Writer::addMetadata)
       .def("write", &Writer::write)
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);
