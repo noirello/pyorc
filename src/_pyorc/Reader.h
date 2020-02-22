@@ -56,6 +56,7 @@ class Reader : public ORCFileLikeObject
            py::object = py::none());
     uint64_t len() const override;
     uint64_t numberOfStripes() const;
+    uint64_t compression() const;
     TypeDescription schema();
     TypeDescription selectedSchema();
     std::unique_ptr<Stripe> readStripe(uint64_t);

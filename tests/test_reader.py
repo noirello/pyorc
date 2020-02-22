@@ -13,6 +13,7 @@ from pyorc import (
     StructRepr,
     ParseError,
     Stripe,
+    CompressionKind,
 )
 
 from pyorc.converters import ORCConverter
@@ -348,3 +349,19 @@ def test_converter():
     data.seek(0)
     reader = Reader(data, converters={TypeKind.TIMESTAMP: TestConverter})
     assert next(reader) == ((seconds, nanoseconds), exp_date)
+
+
+@pytest.mark.parametrize(
+    "kind",
+    (CompressionKind.NONE, CompressionKind.ZLIB, CompressionKind.ZSTD),
+)
+def test_compression_kind(kind):
+    data = io.BytesIO()
+    with Writer(data, "int", compression=kind) as writer:
+        writer.writerows(range(10))
+    reader = Reader(data)
+    with pytest.raises(AttributeError):
+        reader.compression = "fail"
+    with pytest.raises(AttributeError):
+        del reader.compression
+    assert reader.compression == kind

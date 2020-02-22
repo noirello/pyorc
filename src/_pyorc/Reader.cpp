@@ -273,6 +273,12 @@ Reader::len() const
 }
 
 uint64_t
+Reader::compression() const
+{
+    return static_cast<uint64_t>(reader->getCompression());
+}
+
+uint64_t
 Reader::numberOfStripes() const
 {
     return reader->getNumberOfStripes();

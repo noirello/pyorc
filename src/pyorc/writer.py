@@ -66,7 +66,7 @@ class Writer(writer):
     def __exit__(self, *exc):
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         for key, val in self.__metadata.items():
             super()._add_metadata(key, val)
         super().close()
@@ -75,7 +75,7 @@ class Writer(writer):
     def schema(self) -> typedescription:
         return self.__schema
 
-    def set_metadata(self, **kwargs):
+    def set_metadata(self, **kwargs) -> None:
         for key, val in kwargs.items():
             if not isinstance(val, bytes):
                 raise TypeError(
@@ -83,7 +83,7 @@ class Writer(writer):
                 )
             self.__metadata[key] = val
 
-    def writerows(self, rows: Iterable):
+    def writerows(self, rows: Iterable) -> int:
         num = 0
         for row in rows:
             self.write(row)

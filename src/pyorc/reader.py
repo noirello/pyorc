@@ -1,8 +1,8 @@
 from collections import defaultdict
-from typing import Union, Optional, List, BinaryIO
+from typing import Union, Optional, List, BinaryIO, Iterator
 
 from pyorc._pyorc import reader, stripe
-from .enums import StructRepr, TypeKind
+from .enums import StructRepr, TypeKind, CompressionKind
 from .converters import DEFAULT_CONVERTERS
 
 
@@ -46,7 +46,7 @@ class Stripe(stripe):
 class Reader(reader):
     def __init__(
         self,
-        fileo,
+        fileo: BinaryIO,
         batch_size: int = 1024,
         column_indices: Optional[List[int]] = None,
         column_names: Optional[List[str]] = None,
@@ -67,12 +67,16 @@ class Reader(reader):
             fileo, batch_size, column_indices, column_names, struct_repr, conv
         )
 
-    def __getitem__(self, col_idx):
+    def __getitem__(self, col_idx) -> Column:
         return Column(self, col_idx)
 
-    def read_stripe(self, stripe_idx):
+    def read_stripe(self, stripe_idx) -> Stripe:
         return Stripe(self, stripe_idx)
 
-    def iter_stripes(self):
+    def iter_stripes(self) -> Iterator[Stripe]:
         for num in range(self.num_of_stripes):
             yield self.read_stripe(num)
+
+    @property
+    def compression(self) -> CompressionKind:
+        return CompressionKind(super().compression)
