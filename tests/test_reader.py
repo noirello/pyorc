@@ -14,6 +14,7 @@ from pyorc import (
     ParseError,
     Stripe,
     CompressionKind,
+    WriterVersion,
 )
 
 from pyorc.converters import ORCConverter
@@ -352,10 +353,9 @@ def test_converter():
 
 
 @pytest.mark.parametrize(
-    "kind",
-    (CompressionKind.NONE, CompressionKind.ZLIB, CompressionKind.ZSTD),
+    "kind", (CompressionKind.NONE, CompressionKind.ZLIB, CompressionKind.ZSTD)
 )
-def test_compression_kind(kind):
+def test_compression(kind):
     data = io.BytesIO()
     with Writer(data, "int", compression=kind) as writer:
         writer.writerows(range(10))
@@ -365,3 +365,52 @@ def test_compression_kind(kind):
     with pytest.raises(AttributeError):
         del reader.compression
     assert reader.compression == kind
+
+
+@pytest.mark.parametrize("block_size", (10000, 20000, 30000))
+def test_compression_block_size(block_size):
+    data = io.BytesIO()
+    with Writer(data, "int", compression_block_size=block_size) as writer:
+        writer.writerows(range(10))
+    reader = Reader(data)
+    assert reader.compression_block_size == block_size
+
+
+def test_writer_id():
+    data = io.BytesIO()
+    with Writer(data, "int") as writer:
+        writer.writerows(range(10))
+    reader = Reader(data)
+    with pytest.raises(AttributeError):
+        reader.writer_id = "fail"
+    with pytest.raises(AttributeError):
+        del reader.writer_id
+    assert reader.writer_id == "ORC_CPP_WRITER"
+
+
+def test_writer_version():
+    data = io.BytesIO()
+    with Writer(data, "int") as writer:
+        writer.writerows(range(10))
+    reader = Reader(data)
+    assert reader.writer_version == WriterVersion.ORC_135
+
+
+def test_bytes_lengths():
+    data = io.BytesIO()
+    Writer(data, "string", compression=0).close()
+    reader = Reader(data)
+    assert reader.bytes_lengths["content_length"] == 0
+    assert reader.bytes_lengths["file_footer_length"] == 31
+    assert reader.bytes_lengths["file_postscript_length"] == 23
+    assert reader.bytes_lengths["file_length"] == 58
+    assert reader.bytes_lengths["stripe_statistics_length"] == 0
+    data = io.BytesIO()
+    with Writer(data, "int") as writer:
+        writer.writerows(range(100))
+    reader = Reader(data)
+    assert reader.bytes_lengths["content_length"] == 76
+    assert reader.bytes_lengths["file_footer_length"] == 52
+    assert reader.bytes_lengths["file_postscript_length"] == 23
+    assert reader.bytes_lengths["file_length"] == len(data.getvalue())
+    assert reader.bytes_lengths["stripe_statistics_length"] == 21

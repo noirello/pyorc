@@ -266,10 +266,16 @@ Reader::Reader(py::object fileo,
     }
 }
 
-uint64_t
-Reader::len() const
+py::dict
+Reader::bytesLengths() const
 {
-    return reader->getNumberOfRows();
+    py::dict res;
+    res["content_length"] = reader->getContentLength();
+    res["file_footer_length"] = reader->getFileFooterLength();
+    res["file_postscript_length"] = reader->getFilePostscriptLength();
+    res["file_length"] = reader->getFileLength();
+    res["stripe_statistics_length"] = reader->getStripeStatisticsLength();
+    return res;
 }
 
 uint64_t
@@ -279,9 +285,45 @@ Reader::compression() const
 }
 
 uint64_t
+Reader::compressionBlockSize() const
+{
+    return reader->getCompressionSize();
+}
+
+
+py::tuple
+Reader::formatVersion() const
+{
+    py::tuple res(2);
+    orc::FileVersion ver = reader->getFormatVersion();
+    res[0] = py::cast(ver.getMajor());
+    res[1] = py::cast(ver.getMinor());
+    return res;
+}
+
+
+uint64_t
+Reader::len() const
+{
+    return reader->getNumberOfRows();
+}
+
+uint64_t
 Reader::numberOfStripes() const
 {
     return reader->getNumberOfStripes();
+}
+
+uint32_t
+Reader::writerId() const
+{
+    return reader->getWriterIdValue();
+}
+
+uint32_t
+Reader::writerVersion() const
+{
+    return reader->getWriterVersion();
 }
 
 std::unique_ptr<Stripe>

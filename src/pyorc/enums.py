@@ -48,3 +48,14 @@ class StructRepr(enum.IntEnum):
     TUPLE = 0  #: For tuple.
     DICT = 1  #: For dictionary.
 
+
+class WriterVersion(enum.IntEnum):
+    """ Writer version for an ORC file. """
+
+    ORIGINAL = 0
+    HIVE_8732 = 1
+    HIVE_4243 = 2
+    HIVE_12055 = 3
+    HIVE_13083 = 4
+    ORC_101 = 5
+    ORC_135 = 6

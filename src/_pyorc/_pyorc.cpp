@@ -73,12 +73,17 @@ PYBIND11_MODULE(_pyorc, m)
       .def("read", &Reader::read, py::arg_v("num", -1, "-1"))
       .def("seek", &Reader::seek, py::arg("row"), py::arg_v("whence", 0, "0"))
       .def("_statistics", &Reader::statistics)
+      .def_property_readonly("bytes_lengths", &Reader::bytesLengths)
       .def_property_readonly("compression", &Reader::compression)
+      .def_property_readonly("compression_block_size", &Reader::compressionBlockSize)
+      .def_property_readonly("format_version", &Reader::formatVersion)
       .def_property_readonly("metadata", &Reader::metadata)
       .def_property_readonly("schema", &Reader::schema)
       .def_property_readonly("selected_schema", &Reader::selectedSchema)
       .def_property_readonly("num_of_stripes",
                              [](Reader& r) { return r.numberOfStripes(); })
+      .def_property_readonly("writer_id", &Reader::writerId)
+      .def_property_readonly("writer_version", &Reader::writerVersion)
       .def_readonly("current_row", &Reader::currentRow);
     py::class_<Writer>(m, "writer")
       .def(py::init<py::object,
