@@ -28,6 +28,27 @@ stages:
         echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
       displayName: Set Python $(python.version)
     - template: .azure-pipelines/build-run-tests.yml
+  - job: Ubuntu_EasternTimezone
+    pool:
+      vmImage: "ubuntu-18.04"
+    strategy:
+      matrix:
+        Python38:
+          python.version: '3.8'
+    steps:
+      - bash: sudo timedatectl set-timezone America/New_York
+        displayName: Set timezone
+      - bash: date
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '$(python.version)'
+          architecture: 'x64'
+        name: pybin
+      - script: |
+          PYTHONBIN=$(pybin.pythonLocation)/bin/python
+          echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
+        displayName: Set Python $(python.version)
+      - template: .azure-pipelines/build-run-tests.yml
   - job: MacOS
     pool:
       vmImage: 'macOS-10.14'
