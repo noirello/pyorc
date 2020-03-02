@@ -35,7 +35,7 @@ class TimestampConverter(ORCConverter):
 class DateConverter(ORCConverter):
     @staticmethod
     def from_orc(days: int) -> date:
-        return date.fromtimestamp(days * 24 * 60 * 60)
+        return date(1970, 1, 1) + timedelta(days=days)
 
     @staticmethod
     def to_orc(obj: date) -> int:
