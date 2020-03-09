@@ -20,6 +20,9 @@ class TypeDescription:
         self._column_id = val
         return self._column_id
 
+    def find_column_id(self, dotted_key: str) -> int:
+        raise KeyError(dotted_key)
+
     @staticmethod
     def from_string(schema: str) -> 'TypeDescription':
         return _schema_from_string(schema)
