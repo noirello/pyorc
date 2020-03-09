@@ -19,19 +19,19 @@ def traverse_json_row(schema, value, parent=""):
     elif schema.kind == TypeKind.STRUCT:
         for key, val in value.items():
             yield from traverse_json_row(
-                schema.fields[key], val, "{0}.{1}".format(parent, key)
+                schema[key], val, "{0}.{1}".format(parent, key)
             )
     elif schema.kind == TypeKind.MAP:
         for keypair in value:
             yield from traverse_json_row(
-                schema.container_types[1],
+                schema.value,
                 keypair["value"],
                 "{0}['{1}']".format(parent, keypair["key"]),
             )
     elif schema.kind == TypeKind.LIST:
         for idx, item in enumerate(value):
             yield from traverse_json_row(
-                schema.container_types[0], item, "{0}[{1}]".format(parent, idx)
+                schema.type, item, "{0}[{1}]".format(parent, idx)
             )
     elif schema.kind == TypeKind.UNION:
         yield schema.kind, parent, value["value"] if value is not None else None
@@ -44,17 +44,17 @@ def traverse_orc_row(schema, value, parent=""):
     elif schema.kind == TypeKind.STRUCT:
         for key, val in value.items():
             yield from traverse_orc_row(
-                schema.fields[key], val, "{0}.{1}".format(parent, key)
+                schema[key], val, "{0}.{1}".format(parent, key)
             )
     elif schema.kind == TypeKind.MAP:
         for key, val in value.items():
             yield from traverse_orc_row(
-                schema.container_types[1], val, "{0}['{1}']".format(parent, key)
+                schema.value, val, "{0}['{1}']".format(parent, key)
             )
     elif schema.kind == TypeKind.LIST:
         for idx, item in enumerate(value):
             yield from traverse_orc_row(
-                schema.container_types[0], item, "{0}[{1}]".format(parent, idx)
+                schema.type, item, "{0}[{1}]".format(parent, idx)
             )
 
 

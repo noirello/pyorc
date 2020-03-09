@@ -11,6 +11,7 @@ from datetime import date, datetime, timezone
 
 import pyorc._pyorc
 from pyorc.enums import TypeKind, StructRepr
+from pyorc.typedescription import TypeDescription, Timestamp
 
 
 ORC_CONTENTS_PATH = "deps/bin/orc-contents"
@@ -31,15 +32,15 @@ def transform(schema, value):
         return value
     elif schema.kind == TypeKind.STRUCT:
         return {
-            col: transform(schema.fields[col], field) for col, field in value.items()
+            col: transform(schema[col], field) for col, field in value.items()
         }
     elif schema.kind == TypeKind.MAP:
         return {
-            keypair["key"]: transform(schema.container_types[1], keypair["value"])
+            keypair["key"]: transform(schema.value, keypair["value"])
             for keypair in value
         }
     elif schema.kind == TypeKind.LIST:
-        return [transform(schema.container_types[0], item) for item in value]
+        return [transform(schema.type, item) for item in value]
     elif schema.kind == TypeKind.TIMESTAMP:
         if value is None:
             return value
@@ -105,7 +106,7 @@ TESTDATA = [
 
 @pytest.mark.parametrize("expected,schema", TESTDATA, ids=idfn)
 def test_write(expected, schema, output_file):
-    schema = pyorc._pyorc.typedescription(schema)
+    schema = TypeDescription.from_string(schema)
     writer = pyorc._pyorc.writer(output_file, schema, struct_repr=StructRepr.DICT)
     num = 0
     for row in read_expected_json_record(get_full_path(expected)):
@@ -127,7 +128,7 @@ def test_write(expected, schema, output_file):
 def test_write_timestamp(output_file):
     writer = pyorc._pyorc.writer(
         output_file,
-        pyorc._pyorc.typedescription("timestamp"),
+        Timestamp(),
         struct_repr=StructRepr.DICT,
     )
     num = 0

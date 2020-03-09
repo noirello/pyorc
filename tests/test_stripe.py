@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, timezone
 from pyorc import (
     Reader,
     Writer,
-    typedescription,
     TypeKind,
     StructRepr,
     ParseError,

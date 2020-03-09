@@ -8,7 +8,7 @@ from datetime import datetime, date, timezone
 from pyorc import (
     Reader,
     Writer,
-    typedescription,
+    TypeDescription,
     TypeKind,
     StructRepr,
     ParseError,
@@ -157,7 +157,7 @@ def test_schema():
 
     schema = reader.schema
     del reader
-    assert isinstance(schema, typedescription)
+    assert isinstance(schema, TypeDescription)
     assert schema.kind == TypeKind.STRUCT
 
 
@@ -176,7 +176,7 @@ def test_selected_schema():
 
     schema = reader.selected_schema
     del reader
-    assert isinstance(schema, typedescription)
+    assert isinstance(schema, TypeDescription)
     assert schema.kind == TypeKind.STRUCT
     assert str(schema) == "struct<col1:string>"
 

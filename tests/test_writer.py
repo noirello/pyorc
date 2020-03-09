@@ -6,7 +6,7 @@ import math
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from pyorc import Writer, Reader, typedescription, ParseError, TypeKind, StructRepr
+from pyorc import Writer, Reader, TypeDescription, ParseError, TypeKind, StructRepr
 from pyorc.converters import ORCConverter
 
 
@@ -384,7 +384,7 @@ def test_schema():
 
     schema = writer.schema
     del writer
-    assert isinstance(schema, typedescription)
+    assert isinstance(schema, TypeDescription)
     assert schema.kind == TypeKind.STRUCT
 
 

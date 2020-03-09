@@ -9,7 +9,6 @@ from decimal import Decimal
 from pyorc import (
     Reader,
     Writer,
-    typedescription,
     TypeKind,
     StructRepr,
     ParseError,
