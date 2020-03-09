@@ -1,15 +1,16 @@
 from typing import Union, Optional, List, BinaryIO, Iterable
 
-from pyorc._pyorc import writer, typedescription
+from pyorc._pyorc import writer
 from .converters import DEFAULT_CONVERTERS
 from .enums import CompressionKind, CompressionStrategy, StructRepr
+from .typedescription import TypeDescription
 
 
 class Writer(writer):
     def __init__(
         self,
         fileo: BinaryIO,
-        schema: Union[str, typedescription],
+        schema: Union[str, TypeDescription],
         batch_size: int = 1024,
         stripe_size: int = 67108864,
         compression: CompressionKind = CompressionKind.ZLIB,
@@ -21,9 +22,9 @@ class Writer(writer):
         converters: Optional[dict] = None,
     ) -> None:
         if isinstance(schema, str):
-            schema = typedescription(schema)
-        elif not isinstance(schema, typedescription):
-            raise TypeError("Invalid `schema` type, must be string or typedescription")
+            schema = TypeDescription.from_string(schema)
+        elif not isinstance(schema, TypeDescription):
+            raise TypeError("Invalid `schema` type, must be string or TypeDescription")
         if 0.0 >= bloom_filter_fpp or bloom_filter_fpp >= 1.0:
             raise ValueError("False positive probability should be > 0.0 & < 1.0")
         self.__schema = schema
@@ -72,7 +73,7 @@ class Writer(writer):
         super().close()
 
     @property
-    def schema(self) -> typedescription:
+    def schema(self) -> TypeDescription:
         return self.__schema
 
     def set_metadata(self, **kwargs) -> None:

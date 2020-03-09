@@ -1,5 +1,4 @@
 #include "Reader.h"
-#include "TypeDescription.h"
 #include "Writer.h"
 
 namespace py = pybind11;
@@ -7,6 +6,14 @@ namespace py = pybind11;
 PYBIND11_MODULE(_pyorc, m)
 {
     m.doc() = "_pyorc c++ extension";
+    m.def("_schema_from_string", [](std::string schema) {
+        try {
+            auto orcType = orc::Type::buildTypeFromString(schema);
+            return createTypeDescription(*orcType);
+        } catch (std::logic_error& err) {
+            throw py::value_error(err.what());
+        }
+    });
     py::register_exception_translator([](std::exception_ptr p) {
         try {
             if (p) {
@@ -17,25 +24,6 @@ PYBIND11_MODULE(_pyorc, m)
             PyErr_SetString(err.ptr(), e.what());
         }
     });
-    py::class_<TypeDescription>(m, "typedescription")
-      .def(py::init<std::string>(), py::arg("str_schema"))
-      .def(py::init<int>(), py::arg("kind"))
-      .def("__str__", [](TypeDescription& td) -> std::string { return td.str(); })
-      .def_property_readonly("kind", [](TypeDescription& td) { return td.getKind(); })
-      .def_property_readonly("column_id",
-                             [](TypeDescription& td) { return td.getColumnId(); })
-      .def_property("container_types",
-                    &TypeDescription::getContainerTypes,
-                    &TypeDescription::setContainerTypes)
-      .def_property(
-        "precision", &TypeDescription::getPrecision, &TypeDescription::setPrecision)
-      .def_property("scale", &TypeDescription::getScale, &TypeDescription::setScale)
-      .def_property(
-        "max_length", &TypeDescription::getMaxLength, &TypeDescription::setMaxLength)
-      .def_readonly("fields", &TypeDescription::fields, py::return_value_policy::copy)
-      .def("add_field", &TypeDescription::addField)
-      .def("remove_field", &TypeDescription::removeField)
-      .def("find_column_id", &TypeDescription::findColumnId);
     py::class_<Stripe>(m, "stripe")
       .def(
         py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }),
@@ -87,7 +75,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def_readonly("current_row", &Reader::currentRow);
     py::class_<Writer>(m, "writer")
       .def(py::init<py::object,
-                    TypeDescription&,
+                    py::object,
                     uint64_t,
                     uint64_t,
                     int,

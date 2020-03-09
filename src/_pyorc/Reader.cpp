@@ -3,6 +3,72 @@
 #include "PyORCStream.h"
 #include "Reader.h"
 
+using namespace py::literals;
+
+
+py::object
+createTypeDescription(const orc::Type& orcType)
+{
+    py::object typeModule = py::module::import("pyorc.typedescription");
+    int kind = static_cast<int>(orcType.getKind());
+    switch (kind) {
+        case orc::BOOLEAN:
+            return typeModule.attr("Boolean")();
+        case orc::BYTE:
+            return typeModule.attr("TinyInt")();
+        case orc::SHORT:
+            return typeModule.attr("SmallInt")();
+        case orc::INT:
+            return typeModule.attr("Int")();
+        case orc::LONG:
+            return typeModule.attr("BigInt")();
+        case orc::FLOAT:
+            return typeModule.attr("Float")();
+        case orc::DOUBLE:
+            return typeModule.attr("Double")();
+        case orc::STRING:
+            return typeModule.attr("String")();
+        case orc::BINARY:
+            return typeModule.attr("Binary")();
+        case orc::TIMESTAMP:
+            return typeModule.attr("Timestamp")();
+        case orc::DATE:
+            return typeModule.attr("Date")();
+        case orc::CHAR:
+            return typeModule.attr("Char")(py::cast(orcType.getMaximumLength()));
+        case orc::VARCHAR:
+            return typeModule.attr("VarChar")(py::cast(orcType.getMaximumLength()));
+        case orc::DECIMAL:
+            return typeModule.attr("Decimal")("precision"_a =
+                                                py::cast(orcType.getPrecision()),
+                                              "scale"_a = py::cast(orcType.getScale()));
+        case orc::LIST:
+            return typeModule.attr("Array")(
+              createTypeDescription(*orcType.getSubtype(0)));
+        case orc::MAP:
+            return typeModule.attr("Map")(
+              "key"_a = createTypeDescription(*orcType.getSubtype(0)),
+              "value"_a = createTypeDescription(*orcType.getSubtype(1)));
+        case orc::UNION: {
+            py::tuple args(orcType.getSubtypeCount());
+            for (size_t i = 0; i < orcType.getSubtypeCount(); ++i) {
+                args[i] = createTypeDescription(*orcType.getSubtype(i));
+            }
+            return typeModule.attr("Union")(*args);
+        }
+        case orc::STRUCT: {
+            py::dict fields;
+            for (size_t i = 0; i < orcType.getSubtypeCount(); ++i) {
+                auto key = orcType.getFieldName(i);
+                fields[key.c_str()] = createTypeDescription(*orcType.getSubtype(i));
+            }
+            return typeModule.attr("Struct")(**fields);
+        }
+        default:
+            throw py::type_error("Invalid TypeKind");
+    }
+}
+
 py::object
 ORCFileLikeObject::next()
 {
@@ -335,16 +401,16 @@ Reader::readStripe(uint64_t idx)
     return std::make_unique<Stripe>(*this, idx, reader->getStripe(idx));
 }
 
-TypeDescription
+py::object
 Reader::schema()
 {
-    return TypeDescription(reader->getType());
+    return createTypeDescription(reader->getType());
 }
 
-TypeDescription
+py::object
 Reader::selectedSchema()
 {
-    return TypeDescription(rowReader->getSelectedType());
+    return createTypeDescription(rowReader->getSelectedType());
 }
 
 py::tuple

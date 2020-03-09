@@ -7,9 +7,10 @@
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
-#include "TypeDescription.h"
 
 namespace py = pybind11;
+
+py::object createTypeDescription(const orc::Type&);
 
 class ORCFileLikeObject
 {
@@ -62,8 +63,8 @@ class Reader : public ORCFileLikeObject
     uint64_t numberOfStripes() const;
     uint32_t writerId() const;
     uint32_t writerVersion() const;
-    TypeDescription schema();
-    TypeDescription selectedSchema();
+    py::object schema();
+    py::object selectedSchema();
     std::unique_ptr<Stripe> readStripe(uint64_t);
     py::tuple statistics(uint64_t);
     py::dict metadata();

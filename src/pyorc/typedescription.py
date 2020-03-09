@@ -1,3 +1,5 @@
+from pyorc._pyorc import _schema_from_string
+
 from .enums import TypeKind
 
 class TypeDescription:
@@ -17,6 +19,10 @@ class TypeDescription:
     def set_column_id(self, val: int) -> int:
         self._column_id = val
         return self._column_id
+
+    @staticmethod
+    def from_string(schema: str) -> 'TypeDescription':
+        return _schema_from_string(schema)
 
 
 class Boolean(TypeDescription):

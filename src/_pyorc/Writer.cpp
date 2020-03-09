@@ -2,7 +2,7 @@
 #include "Writer.h"
 
 Writer::Writer(py::object fileo,
-               TypeDescription& schema,
+               py::object schema,
                uint64_t batch_size,
                uint64_t stripe_size,
                int compression,
@@ -15,7 +15,8 @@ Writer::Writer(py::object fileo,
 {
     currentRow = 0;
     batchItem = 0;
-    std::unique_ptr<orc::Type> type = schema.buildType();
+    std::unique_ptr<orc::Type> type =
+      orc::Type::buildTypeFromString(py::cast<std::string>(py::str(schema)));
     orc::WriterOptions options;
     py::dict converters;
 
