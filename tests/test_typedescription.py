@@ -6,7 +6,7 @@ from pyorc.enums import TypeKind
 
 def test_from_str_schema():
     descr = TypeDescription.from_string(
-        "struct<a:int,b:map<varchar(20),int>,c:struct<d:bigint,e:float>>"
+        "struct<a:int,b:map<varchar(20),int>,c:struct<d:bigint,e:float,f:char(12)>>"
     )
     assert descr.kind == TypeKind.STRUCT
     assert len(descr.fields) == 3
@@ -16,9 +16,12 @@ def test_from_str_schema():
     assert descr.fields["b"].key.kind == TypeKind.VARCHAR
     assert descr.fields["b"].key.max_length == 20
     assert descr.fields["b"].value.column_id == 4
-    assert tuple(descr.fields["c"].fields.keys()) == ("d", "e")
+    assert tuple(descr.fields["c"].fields.keys()) == ("d", "e", "f")
     assert descr.fields["c"].fields["d"].kind == TypeKind.LONG
     assert descr.fields["c"].fields["e"].column_id == 7
+    assert descr.fields["c"].fields["f"].kind == TypeKind.CHAR
+    assert descr.fields["c"].fields["f"].max_length == 12
+    assert descr.fields["c"].fields["f"].column_id == 8
 
 
 def test_from_str_schema_fail():
@@ -109,11 +112,11 @@ def test_char():
 
 
 TESTDATA = [
-    (lambda: Struct(field0=Int(), field1=True),),
-    (lambda: Map(key=Int(), value=True),),
-    (lambda: Map(key=0, value=Double()()),),
-    (lambda: Array("test"),),
-    (lambda: Union(Int(), 0, Double()),),
+    lambda: Struct(field0=Int(), field1=True),
+    lambda: Map(key=Int(), value=True),
+    lambda: Map(key=0, value=Double()),
+    lambda: Array("test"),
+    lambda: Union(Int(), 0, Double()),
 ]
 
 
