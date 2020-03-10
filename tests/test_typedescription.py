@@ -132,3 +132,12 @@ def test_struct():
     assert schema["b0"].kind == TypeKind.DOUBLE
     assert schema["c0"].column_id == 3
     assert schema["c0"]["b1"].kind == TypeKind.TIMESTAMP
+
+
+def test_union():
+    schema = TypeDescription.from_string("uniontype<int,double,string>")
+    assert schema[1].kind == TypeKind.DOUBLE
+    with pytest.raises(IndexError):
+        _ = schema[10]
+    schema = Union(Float(), VarChar(120))
+    assert schema[0].kind == TypeKind.FLOAT
