@@ -1,15 +1,18 @@
+from typing import Mapping, Tuple
+from types import MappingProxyType
 from pyorc._pyorc import _schema_from_string
 
 from .enums import TypeKind
+
 
 class TypeDescription:
     name = ""
     kind = -1
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._column_id = 0
 
     @property
@@ -24,7 +27,7 @@ class TypeDescription:
         raise KeyError(dotted_key)
 
     @staticmethod
-    def from_string(schema: str) -> 'TypeDescription':
+    def from_string(schema: str) -> "TypeDescription":
         return _schema_from_string(schema)
 
 
@@ -87,7 +90,7 @@ class Char(TypeDescription):
     name = "char"
     kind = TypeKind.CHAR
 
-    def __init__(self, max_length: int):
+    def __init__(self, max_length: int) -> None:
         self.max_length = max_length
         super().__init__()
 
@@ -99,7 +102,7 @@ class VarChar(TypeDescription):
     name = "varchar"
     kind = TypeKind.VARCHAR
 
-    def __init__(self, max_length: int):
+    def __init__(self, max_length: int) -> None:
         super().__init__()
         self.max_length = max_length
 
@@ -111,7 +114,7 @@ class Decimal(TypeDescription):
     name = "decimal"
     kind = TypeKind.DECIMAL
 
-    def __init__(self, precision: int, scale: int):
+    def __init__(self, precision: int, scale: int) -> None:
         super().__init__()
         self.precision = precision
         self.scale = scale
@@ -126,85 +129,101 @@ class Union(TypeDescription):
     name = "uniontype"
     kind = TypeKind.UNION
 
-    def __init__(self, *cont_types):
+    def __init__(self, *cont_types) -> None:
         super().__init__()
         for c_types in cont_types:
             if not isinstance(c_types, TypeDescription):
                 raise TypeError("Invalid container type for Union")
-        self.cont_types = cont_types
+        self.__cont_types = cont_types
 
     def __str__(self):
         return "{name}<{types}>".format(
             name=self.__class__.name,
-            types=",".join(str(typ) for typ in self.cont_types),
+            types=",".join(str(typ) for typ in self.__cont_types),
         )
 
     def __getitem__(self, idx: int) -> TypeDescription:
-        return self.cont_types[idx]
+        return self.__cont_types[idx]
 
     def set_column_id(self, val: int) -> int:
         self._column_id = val
-        for c_type in self.cont_types:
+        for c_type in self.__cont_types:
             val = c_type.set_column_id(val + 1)
         return val
+
+    @property
+    def cont_types(self) -> Tuple[TypeDescription]:
+        return self.__cont_types
 
 
 class Array(TypeDescription):
     name = "array"
     kind = TypeKind.LIST
 
-    def __init__(self, cont_type: TypeDescription):
+    def __init__(self, cont_type: TypeDescription) -> None:
         super().__init__()
         if not isinstance(cont_type, TypeDescription):
             raise TypeError("Array's container type must be a TypeDescription instance")
-        self.type = cont_type
+        self.__type = cont_type
 
     def __str__(self) -> str:
-        return "{name}<{type}>".format(name=self.__class__.name, type=str(self.type))
+        return "{name}<{type}>".format(name=self.__class__.name, type=str(self.__type))
 
     def set_column_id(self, val: int) -> int:
         self._column_id = val
-        val = self.type.set_column_id(val + 1)
+        val = self.__type.set_column_id(val + 1)
         return val
+
+    @property
+    def type(self) -> TypeDescription:
+        return self.__type
 
 
 class Map(TypeDescription):
     name = "map"
     kind = TypeKind.MAP
 
-    def __init__(self, key: TypeDescription, value: TypeDescription):
+    def __init__(self, key: TypeDescription, value: TypeDescription) -> None:
         super().__init__()
         if not isinstance(key, TypeDescription):
             raise TypeError("Map's key type must be a TypeDescription instance")
         if not isinstance(value, TypeDescription):
             raise TypeError("Map's value type must be a TypeDescription instance")
-        self.key = key
-        self.value = value
+        self.__key = key
+        self.__value = value
 
     def __str__(self) -> str:
         return "{name}<{key},{val}>".format(
-            name=self.__class__.name, key=str(self.key), val=str(self.value)
+            name=self.__class__.name, key=str(self.__key), val=str(self.__value)
         )
 
     def set_column_id(self, val: int) -> int:
         self._column_id = val
-        val = self.key.set_column_id(val + 1)
-        val = self.value.set_column_id(val + 1)
+        val = self.__key.set_column_id(val + 1)
+        val = self.__value.set_column_id(val + 1)
         return val
+
+    @property
+    def key(self) -> TypeDescription:
+        return self.__key
+
+    @property
+    def value(self) -> TypeDescription:
+        return self.__value
 
 
 class Struct(TypeDescription):
     name = "struct"
     kind = TypeKind.STRUCT
 
-    def __init__(self, **fields):
+    def __init__(self, **fields) -> None:
         super().__init__()
         for fld in fields.values():
             if not isinstance(fld, TypeDescription):
                 raise TypeError(
                     "Struct's field type must be a TypeDescription instance"
                 )
-        self.fields = fields
+        self.__fields = fields
         self.set_column_id(0)
 
     def __str__(self) -> str:
@@ -212,21 +231,25 @@ class Struct(TypeDescription):
             name=self.__class__.name,
             fields=",".join(
                 "{field}:{type}".format(field=key, type=str(val))
-                for key, val in self.fields.items()
+                for key, val in self.__fields.items()
             ),
         )
 
     def __getitem__(self, key: str) -> TypeDescription:
-        return self.fields[key]
+        return self.__fields[key]
 
     def set_column_id(self, val: int) -> int:
         self._column_id = val
-        for fld in self.fields.values():
+        for fld in self.__fields.values():
             val = fld.set_column_id(val + 1)
         return val
 
     def find_column_id(self, dotted_key: str) -> int:
         this = self
         for key in dotted_key.split("."):
-            this = this.fields[key]
+            this = this[key]
         return this.column_id
+
+    @property
+    def fields(self) -> Mapping[str, TypeDescription]:
+        return MappingProxyType(self.__fields)
