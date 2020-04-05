@@ -9,11 +9,11 @@ class TypeDescription:
     name = ""
     kind = -1
 
-    def __str__(self) -> str:
-        return self.name
-
     def __init__(self) -> None:
         self._column_id = 0
+
+    def __str__(self) -> str:
+        return self.name
 
     @property
     def column_id(self) -> int:

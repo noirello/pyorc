@@ -192,64 +192,133 @@ API documentation
     like minimum and maximum values, sums etc.
 
 
-:class:`typedescription`
+:class:`TypeDescription`
 ========================
 
-.. class:: typedescription(str_schema)
+.. class:: TypeDescription()
 
-    It represents an ORC schema, the hierarchy of the types in the file.
+    The base class for representing a type of an ORC schema. A schema
+    consists one or more instances that are inherited from the
+    TypeDescription class.
 
-.. method:: typedescription.__str__()
+.. staticmethod:: TypeDescription.from_string(schema)
 
-    Get the string representation of the schema.
+    Returns instances of TypeDescription objects from a string
+    representation of an ORC schema.
 
-.. method:: typedescription.add_field(name, type)
-
-    Add a new field to the type, when the current type is a struct.
-
-.. method:: typedescription.find_column_id(name)
+.. method:: TypeDescription.find_column_id(name)
 
     Find the its id of a column by its name.
 
-.. method:: typedescription.remove_field(name)
-
-    Remove an existing field from the type, when the current type is a
-    struct.
-
-.. attribute:: typedescription.column_id
+.. attribute:: TypeDescription.column_id
 
     The id of the column.
 
-.. attribute:: typedescription.container_types
+.. attribute:: TypeDescription.kind
 
-    If the current type is a container type, it returns a list of subtypes
-    in the container as typedescription objects. For List it's a single
-    list, for Map a pair. Uniontype can have multiple items.
+    The kind of the current TypeDescription instance. It has to be one of
+    the :class:`pyorc.TypeKind` enum values.
 
-.. attribute:: typedescription.fields
+.. class:: Boolean()
 
-    A read-only dictionary of the struct's fields, where the keys are the
-    fields names and teh values are typedescription objects.
+    Class for representing `boolean` ORC type.
 
-.. attribute:: typedescription.kind
+.. class:: TinyInt()
 
-    The kind of the current typedescription. It has to be one of the
-    :class:`pyorc.TypeKind` enum values.
+    Class for representing `tinyint` ORC type.
 
-.. attribute:: typedescription.max_length
+.. class:: SmallInt()
 
-    The maximal length for a varchar type. If the typedescription is not a
-    varchar then it's None.
+    Class for representing `smallint` ORC type.
 
-.. attribute:: typedescription.precision
+.. class:: Int()
 
-    The precision of a decimal type. If the typedescription is not a
-    decimal then it's None.
+    Class for representing `int` ORC type.
 
-.. attribute:: typedescription.scale
+.. class:: BigInt()
 
-    The scale of a decimal type. If the typedescription is not a
-    decimal then it's None.
+    Class for representing `bigint` ORC type.
+
+.. class:: SmallInt()
+
+    Class for representing `smallint` ORC type.
+
+.. class:: Float()
+
+    Class for representing `float` ORC type.
+
+.. class:: Double()
+
+    Class for representing `double` ORC type.
+
+.. class:: String()
+
+    Class for representing `string` ORC type.
+
+.. class:: Binary()
+
+    Class for representing `binary` ORC type.
+
+.. class:: Timestamp()
+
+    Class for representing `timestamp` ORC type.
+
+.. class:: Date()
+
+    Class for representing `date` ORC type.
+
+.. class:: Char(max_length)
+
+    Class for representing `char` ORC type with the parameter of the
+    length of the character sequence.
+
+    :param int max_length: the maximal length of the character sequence.
+
+.. class:: VarChar(max_length)
+
+    Class for representing `varchar` ORC type with the parameter of the
+    maximal length of the variable character sequence.
+
+    :param int max_length: the maximal length of the character sequence.
+
+.. class:: Decimal(precision, scale)
+
+    Class for representing `decimal` ORC type with the parameters of
+    precision and scale.
+
+    :param int precision: the precision of the decimal number.
+    :param int scale: the scale of the decimal number.
+
+.. class:: Union(*cont_types)
+
+    Class for representing `uniontype` ORC compound type. Its arguments must
+    be TypeDescription instances for the possible type variants.
+
+    :param TypeDescription \*cont_types: the list of TypeDescription
+        instances for the possible type variants.
+
+.. class:: Array(cont_type)
+
+    Class for representing `array` ORC compound type with the parameter
+    of the contained ORC type.
+
+    :param TypeDescription cont_type: the instance of the contained type.
+
+.. class:: Map(key, value)
+
+    Class for representing `map` ORC compound type with parameters for the
+    key and value ORC types.
+
+    :param TypeDescription key: the instance type of the key in the map.
+    :param TypeDescription value: the instance type of the value in the map.
+
+.. class:: Struct(**fields)
+
+    Class for representing `struct` ORC compound type with keyword arguments
+    of its fields. The fields must be TypeDescription instances.
+
+    :param TypeDescription \**fields: the keywords of TypeDescription
+        instances for the possible fields in the struct.
 
 :class:`Writer`
 ===============
@@ -293,7 +362,7 @@ API documentation
     :param dict converters: a dictionary, where the keys are
         :class:`TypeKind` and the values are subclasses of ORCConverter.
 
-.. method:: Writer. __enter__()
+.. method:: Writer.__enter__()
 .. method:: Writer.__exit__()
 
     A context manager that automatically calls the :meth:`Writer.close` at
