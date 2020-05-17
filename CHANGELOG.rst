@@ -3,6 +3,25 @@ Changelog
 [0.3.0] - UNRELEASED
 --------------------
 
+Added
+~~~~~
+
+- Metadata property for Reader and set_metadata for Writer to
+  handle ORC file's metadata.
+- Meta info fields like writer id, writer version for Reader.
+- New TypeDescription subclasses to represent ORC types.
+
+Changed
+~~~~~~~
+
+- Reimplemented TypeDescription in Python.
+
+Fixed
+~~~~~
+
+- Converting date from ORC on systems where the system's timezone
+  has a negative UTC offset (Issues #5)
+
 
 [0.2.0] - 2020-01-01
 --------------------
