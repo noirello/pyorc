@@ -317,6 +317,14 @@ API documentation
     Class for representing `struct` ORC compound type with keyword arguments
     of its fields. The fields must be TypeDescription instances.
 
+    >>> schema = Struct(
+    ...    field0=Int(),
+    ...    field1=Map(key=String(),value=Double()),
+    ...    field2=Timestamp(),
+    ... )
+    >>> str(schema)
+    "struct<field0:int,field1:map<string,double>,field2:timestamp>"
+
     :param TypeDescription \**fields: the keywords of TypeDescription
         instances for the possible fields in the struct.
 
@@ -336,8 +344,8 @@ API documentation
 
     With the `bloom_filter_columns` a list of column ids or field names
     can be set to create a Bloom filter for the column. Nested structure
-    fields can be selected with dotted format. For example a file with a
-    ``struct<first:struct<second:int>>`` schema the second column can be
+    fields can be selected with dotted format. For example in a file with
+    a ``struct<first:struct<second:int>>`` schema the second column can be
     selected as ``["first.second"]``.
 
     For decimal, date and timestamp ORC types the default converters from
@@ -346,7 +354,7 @@ API documentation
     values must implement the ORCConverter abstract class.
 
     :param object fileo: a writeable binary file-like object.
-    :param typedescription|str schema: the ORC schema of the file.
+    :param TypeDescription|str schema: the ORC schema of the file.
     :param int batch_size: the batch size for the ORC file.
     :param int stripe_size: the stripes size in bytes.
     :param CompressionKind compression: the compression kind for the ORC
