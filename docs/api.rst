@@ -82,9 +82,44 @@ API documentation
     :return: number of the absolute row position.
     :rtype: int
 
+.. attribute:: Reader.bytes_lengths
+
+    The size information of the opened ORC file in bytes returned as a
+    read-only dictionary. It includes the total file size (`file_length`),
+    the length of the data stripes (`content_length`), the file footer
+    (`file_footer_length`), postscript (`file_postscript_length`) and the
+    stripe statistics (`stripe_statistics_length`).
+
+    >>> example = open("deps/examples/demo-11-zlib.orc", "rb")
+    >>> reader = pyorc.Reader(example)
+    >>> reader.bytes_lengths
+    {'content_length': 396823, 'file_footer_length': 2476, 'file_postscript_length': 25, 'file_length': 408522, 'stripe_statistics_length': 9197}
+
+.. attribute:: Reader.compression
+
+    Read-only attribute of the used compression of the file returned as
+    a :class:`CompressionKind`.
+
+.. attribute:: Reader.compression_block_size
+
+    Read-only attribute of compression block size.
+
 .. attribute:: Reader.current_row
 
     The current row position.
+
+.. attribute:: Reader.format_version
+
+    The Hive format version of the ORC file, represented as a tuple of
+    `(MAJOR, MINOR)` versions.
+
+    >>> reader.format_version
+    (0, 11)
+
+.. attribute:: Reader.metadata
+
+    The metadata information of the ORC file in a dictionary. The values
+    are always bytes. 
 
 .. attribute:: Reader.num_of_stripes
 
@@ -92,15 +127,31 @@ API documentation
 
 .. attribute:: Reader.schema
 
-    A :class:`typedescription` object of the ORC file's schema. Always
+    A :class:`TypeDescription` object of the ORC file's schema. Always
     represents the full schema of the file, regardless which columns
     are selected to read.
 
 .. attribute:: Reader.selected_schema
 
-    A :class:`typedescription` object of the ORC file's schema that only
+    A :class:`TypeDescription` object of the ORC file's schema that only
     represents the selected columns. If no columns are specified then it's
     the same as :attr:`Reader.schema`.
+
+.. attribute:: Reader.writer_id
+
+    The identification of the writer that created the ORC file. The known
+    writers are the official Java writer, the C++ writer and the Presto writer.
+    Other possible writers are represented as ``"UNKNOWN_WRITER"``.
+
+    >>> reader.writer_id
+    'ORC_JAVA_WRITER'
+
+.. attribute:: Reader.writer_version
+
+    The version of the writer created the file, returned as
+    :class:`WriterVersion`. This version is used to mark significant changes
+    (that doesn't change the file format) and helps the reader to handle
+    the corresponding file correctly.
 
 
 :class:`Stripe`
@@ -381,6 +432,22 @@ API documentation
     Close an ORC file and write out the metadata after the rows have been added.
     Must be called to get a valid ORC file.
 
+.. method:: Writer.set_metadata(**kwargs)
+
+    Set additional metadata to the ORC file. The values must be bytes. The
+    metadata is set when the Writer is closed.
+
+    >>> out = open("test_metadata.orc", "wb")
+    >>> wri = pyorc.Writer(out, "int")
+    >>> wri.set_metadata(extra="info".encode())
+    >>> wri.close()
+    >>> inp = open("test_metadata.orc", "rb")
+    >>> rdr = pyorc.Reader(inp)
+    >>> rdr.metadata
+    {'extra': b'info'}
+
+    :param \*\*kwargs: keyword arguments to add as metadata to the file.
+
 .. method:: Writer.write(row)
 
     Write a row to the ORC file.
@@ -436,4 +503,12 @@ Enums
 
 .. autoclass:: pyorc.StructRepr
     :members:
+    :member-order: bysource
+
+:class:`WriterVersion`
+----------------------------
+
+.. autoclass:: pyorc.WriterVersion
+    :members:
+    :undoc-members:
     :member-order: bysource
