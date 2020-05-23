@@ -165,8 +165,6 @@ def cpp_flag(compiler):
     The newer version is preferred over c++11 (when it is available).
     """
     flags = ["-std=c++17", "-std=c++14", "-std=c++11"]
-    if sys.platform == "darwin":
-        flags.remove("-std=c++17")  # Pybind11 fails with C++17 on MacOS.
 
     for flag in flags:
         if has_flag(compiler, flag):
@@ -218,8 +216,8 @@ setup(
     package_dir={"pyorc": "src/pyorc"},
     packages=["pyorc"],
     include_package_data=True,
-    install_requires=["pybind11>=2.4"],
-    setup_requires=["pybind11>=2.4"],
+    install_requires=["pybind11>=2.5"],
+    setup_requires=["pybind11>=2.5"],
     cmdclass={"build_ext": BuildExt, "build_orc": BuildORCLib},
     keywords=["python3", "orc", "apache-orc"],
     classifiers=[
