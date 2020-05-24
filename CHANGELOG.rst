@@ -1,6 +1,6 @@
 Changelog
 ==========
-[0.3.0] - UNRELEASED
+[0.3.0] - 2020-05-24
 --------------------
 
 Added
@@ -8,13 +8,15 @@ Added
 
 - Metadata property for Reader and set_metadata for Writer to
   handle ORC file's metadata.
-- Meta info fields like writer id, writer version for Reader.
+- Meta info attributes like writer_id, writer_version, bytes_length,
+  compression and compression_block_size for Reader.
 - New TypeDescription subclasses to represent ORC types.
 
 Changed
 ~~~~~~~
 
 - Reimplemented TypeDescription in Python.
+- ORC C++ Core updated to 1.6.3.
 
 Fixed
 ~~~~~
