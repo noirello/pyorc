@@ -51,6 +51,11 @@ And another for writing one:
             with pyorc.Writer(data, "struct<col0:int,col1:string>") as writer:
                 writer.write((1, "ORC from Python"))
 
+Reading from commandline:
+
+`python3 -c "import pyorc; import sys; print(list(pyorc.Reader(open(sys.argv[1],'rb'))))"  file.orc`
+
+
 Contribution
 ============
 
