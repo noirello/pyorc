@@ -5,7 +5,6 @@
 
 using namespace py::literals;
 
-
 py::object
 createTypeDescription(const orc::Type& orcType)
 {
@@ -356,7 +355,6 @@ Reader::compressionBlockSize() const
     return reader->getCompressionSize();
 }
 
-
 py::tuple
 Reader::formatVersion() const
 {
@@ -366,7 +364,6 @@ Reader::formatVersion() const
     res[1] = py::cast(ver.getMinor());
     return res;
 }
-
 
 uint64_t
 Reader::len() const
@@ -398,7 +395,7 @@ Reader::readStripe(uint64_t idx)
     if (idx >= reader->getNumberOfStripes()) {
         throw py::index_error("stripe index out of range");
     }
-    return std::make_unique<Stripe>(*this, idx, reader->getStripe(idx));
+    return std::unique_ptr<Stripe>(new Stripe(*this, idx, reader->getStripe(idx)));
 }
 
 py::object
