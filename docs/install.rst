@@ -33,7 +33,9 @@ Install from source
 
 To install the module from source you need to build the Apache ORC C++ Core
 library with its dependencies first, which requires `cmake` -- in addition of
-a suitable C++ complier.
+a suitable C++ complier. Without it, the standard ``setup.py install``
+command will fail (more likely with the error of missing the ``orc/OrcFile.hh``
+header file).
 
 To make that easier, the project's `setup.py` file also contains a
 ``build_orc`` command that:
@@ -41,11 +43,16 @@ To make that easier, the project's `setup.py` file also contains a
     1. Downloads the Apache ORC release package.
     2. Extract the package to a directory named `deps` into the project's
        root directory.
-    3. Runs cmake to configure the ORC C++ lbrary.
+    3. Runs cmake to configure the ORC C++ library.
     4. Runs the ``make package`` command.
     5. Finally, moves the include headers, ORC example files and ORC tools
        to the top level of the `deps` directory for the `setup.py` and tests
        to find.
+
+.. note::
+    The ``build_orc`` command has a ``--orc-version`` and a ``--source-url``
+    parameter for changing the default ORC library version or the source URL
+    where to download the source zip respectively.
 
 You also need the `pybind11` Python package to be installed before running
 the installation::
