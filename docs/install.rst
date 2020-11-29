@@ -9,6 +9,24 @@ with the required libraries::
 
     $ pip3 install pyorc
 
+.. note::
+    To install on Linux, you need *pip 19.0* or newer. Earlier versions are
+    unable to handle the ``manylinux2010`` wheels, thus they try to install
+    the package from source.
+
+There could be some drawbacks of the bundled libraries in the package, when
+using together with other Python modules. If another module is loaded into
+the Python runtime besides PyORC that also pre-bundles one of the required
+C/C++ libraries but a slightly different version, then the two libraries
+will collide and the interpreter will crash with segmentation fault at some
+point during the execution.
+
+It's easy to run into this situation. For example, ``libprotobuf`` is
+one of required library for ORC and it's quite popular for other projects
+as well. To avoid this, you have to make sure that the very same version
+of the common library is used by both of the modules and therefore 
+you might need to build PyORC from source.
+
 
 Install from source
 -------------------
@@ -32,6 +50,7 @@ To make that easier, the project's `setup.py` file also contains a
 You also need the `pybind11` Python package to be installed before running
 the installation::
 
+    $ python3 setup.py build_orc
     $ pip3 install pybind11
     $ python3 setup.py install
 
