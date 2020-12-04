@@ -1,6 +1,59 @@
 #include "PyORCStream.h"
 #include "Writer.h"
 
+ORC_UNIQUE_PTR<orc::Type> createType(py::handle schema) {
+    orc::TypeKind kind = orc::TypeKind((int)py::int_(getattr(schema, "kind")));
+    switch (kind) {
+        case orc::TypeKind::BOOLEAN:
+        case orc::TypeKind::BYTE:
+        case orc::TypeKind::SHORT:
+        case orc::TypeKind::INT:
+        case orc::TypeKind::LONG:
+        case orc::TypeKind::FLOAT:
+        case orc::TypeKind::DOUBLE:
+        case orc::TypeKind::STRING:
+        case orc::TypeKind::BINARY:
+        case orc::TypeKind::TIMESTAMP:
+        case orc::TypeKind::DATE:
+            return orc::createPrimitiveType(kind);
+        case orc::TypeKind::VARCHAR:
+        case orc::TypeKind::CHAR:
+            return orc::createCharType(kind, (uint64_t)py::int_(getattr(schema, "max_length")));
+        case orc::TypeKind::DECIMAL: {
+            uint64_t precision = (uint64_t)py::int_(getattr(schema, "precision"));
+            uint64_t scale = (uint64_t)py::int_(getattr(schema, "scale"));
+            return orc::createDecimalType(precision, scale);
+        }
+        case orc::TypeKind::LIST: {
+            py::handle child = getattr(schema, "_Array__type");
+            return orc::createListType(createType(child));
+        }
+        case orc::TypeKind::MAP: {
+            py::handle key = getattr(schema, "_Map__key");
+            py::handle value = getattr(schema, "_Map__value");
+            return orc::createMapType(createType(key), createType(value));
+        }
+        case orc::TypeKind::STRUCT: {
+            ORC_UNIQUE_PTR<orc::Type> ty = orc::createStructType();
+            py::dict fields = getattr(schema, "_Struct__fields");
+            for (auto item : fields) {
+                ty->addStructField((py::str)item.first, createType(item.second));
+            }
+            return ty;
+        }
+        case orc::TypeKind::UNION: {
+            ORC_UNIQUE_PTR<orc::Type> ty = orc::createUnionType();
+            py::list cont_types = getattr(schema, "_Union__cont_types");
+            for (auto child : cont_types) {
+                ty->addUnionChild(createType(child));
+            }
+            return ty;
+        }
+        default:
+            throw py::type_error("Invalid TypeKind");
+    }
+}
+
 Writer::Writer(py::object fileo,
                py::object schema,
                uint64_t batch_size,
@@ -15,8 +68,7 @@ Writer::Writer(py::object fileo,
 {
     currentRow = 0;
     batchItem = 0;
-    std::unique_ptr<orc::Type> type =
-      orc::Type::buildTypeFromString(py::cast<std::string>(py::str(schema)));
+    ORC_UNIQUE_PTR<orc::Type> type = createType(schema);
     orc::WriterOptions options;
     py::dict converters;
 
