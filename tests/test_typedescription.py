@@ -42,10 +42,16 @@ def test_find_column_id():
     assert descr.find_column_id("a") == 1
     assert descr.find_column_id("a.b.c") == 3
     assert descr.find_column_id("a.e") == 5
-    with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         _ = descr.find_column_id(True)
     with pytest.raises(KeyError):
         _ = descr.find_column_id("f.z")
+    descr = Struct(**{"a.b": Struct(c=Int()), "d": String()})
+    assert descr.find_column_id("`a.b`") == 1
+    assert descr.find_column_id("`a.b`.c") == 2
+    assert descr.find_column_id("d") == 3
+    with pytest.raises(KeyError):
+        _ = descr.find_column_id("a.b")
 
 
 TESTDATA = [

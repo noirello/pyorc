@@ -1,3 +1,5 @@
+import re
+
 from typing import Mapping, Tuple
 from types import MappingProxyType
 from pyorc._pyorc import _schema_from_string
@@ -246,8 +248,9 @@ class Struct(TypeDescription):
 
     def find_column_id(self, dotted_key: str) -> int:
         this = self
-        for key in dotted_key.split("."):
-            this = this[key]
+        # Allow to use backtick for escaping column names with dot.
+        for key in re.findall(r"[^\.`]+|`[^`]*`", dotted_key):
+            this = this[key.replace("`", "")]
         return this.column_id
 
     @property
