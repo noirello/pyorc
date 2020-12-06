@@ -25,17 +25,17 @@ ORC_UNIQUE_PTR<orc::Type> createType(py::handle schema) {
             return orc::createDecimalType(precision, scale);
         }
         case orc::TypeKind::LIST: {
-            py::handle child = getattr(schema, "_Array__type");
+            py::handle child = getattr(schema, "type");
             return orc::createListType(createType(child));
         }
         case orc::TypeKind::MAP: {
-            py::handle key = getattr(schema, "_Map__key");
-            py::handle value = getattr(schema, "_Map__value");
+            py::handle key = getattr(schema, "key");
+            py::handle value = getattr(schema, "value");
             return orc::createMapType(createType(key), createType(value));
         }
         case orc::TypeKind::STRUCT: {
             ORC_UNIQUE_PTR<orc::Type> ty = orc::createStructType();
-            py::dict fields = getattr(schema, "_Struct__fields");
+            py::dict fields = getattr(schema, "fields");
             for (auto item : fields) {
                 ty->addStructField((py::str)item.first, createType(item.second));
             }
@@ -43,7 +43,7 @@ ORC_UNIQUE_PTR<orc::Type> createType(py::handle schema) {
         }
         case orc::TypeKind::UNION: {
             ORC_UNIQUE_PTR<orc::Type> ty = orc::createUnionType();
-            py::list cont_types = getattr(schema, "_Union__cont_types");
+            py::list cont_types = getattr(schema, "cont_types");
             for (auto child : cont_types) {
                 ty->addUnionChild(createType(child));
             }
