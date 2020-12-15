@@ -130,7 +130,8 @@ otherwise it won't be a valid ORC file.
     >>> writer.close()
 
 For simpler use the Writer object can be used as a context manager and you
-can also change the struct representation as well:
+can also change the struct representation to use dictionaries as rows instead
+of tuples as well:
 
 .. code-block:: python
 
@@ -138,3 +139,33 @@ can also change the struct representation as well:
         with pyorc.Writer(output, "struct<col0:int,col1:string>", struct_repr=StructRepr.DICT) as writer:
             writer.write({"col0": 0, "col1": "Test 0"})
 
+
+Using custom converters
+-----------------------
+
+It's possible to change the default converters that handle the transformations
+from ORC `date`, `decimal`, and `timestamp` types to Python objects, and back.
+To create your own converter you need to implement the :class:`ORCConverter`
+abstract class with two methods: ``from_orc`` and ``to_orc``. The following
+example returns the ORC timestamp values as seconds and nanoseconds pair:
+
+.. code-block:: python
+
+    import pyorc
+    from pyorc.converters import ORCConverter
+
+    class TSConverter(ORCConverter):
+        @staticmethod
+        def to_orc(*args):
+            seconds, nanoseconds = obj
+            return (seconds, nanoseconds)
+
+        @staticmethod
+        def from_orc(seconds, nanoseconds):
+            return (seconds, nanoseconds)
+
+To use the converter you have to set the Reader's or Writer's converters
+parameter as a dictionary with one of the supported types as key::
+
+    data = open("./timestamps.orc", "rb")
+    reader = pyorc.Reader(data, converters={TypeKind.TIMESTAMP: TSConverter})

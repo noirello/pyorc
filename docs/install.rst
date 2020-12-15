@@ -41,7 +41,7 @@ To make that easier, the project's `setup.py` file also contains a
 ``build_orc`` command that:
 
     1. Downloads the Apache ORC release package.
-    2. Extract the package to a directory named `deps` into the project's
+    2. Extracts the package to a directory named `deps` into the project's
        root directory.
     3. Runs cmake to configure the ORC C++ library.
     4. Runs the ``make package`` command.

@@ -21,7 +21,7 @@ API documentation
     For decimal, date and timestamp ORC types the default converters to
     Python objects can be change by setting a dictionary to the `converters`
     parameter. The dictionary's keys must be a :class:`TypeKind` and the
-    values must implement the ORCConverter abstract class.
+    values must implement the :class:`ORCConverter` abstract class.
 
     :param object fileo: a readable binary file-like object.
     :param int batch_size: The size of a batch to read.
@@ -30,7 +30,8 @@ API documentation
     :param StructRepr struct_repr: An enum to set the representation for
         an ORC struct type.
     :param dict converters: a dictionary, where the keys are
-        :class:`TypeKind` and the values are subclasses of ORCConverter.
+        :class:`TypeKind` and the values are subclasses of
+        :class:`ORCConverter`.
 
 .. method:: Reader.__getitem__(col_idx)
 
@@ -243,6 +244,45 @@ API documentation
     like minimum and maximum values, sums etc.
 
 
+:class:`ORCConverter`
+=====================
+
+.. class:: ORCConverter()
+
+    An abstract class for implementing own converters for `date`, `decimal`
+    and `timestamp` types. These types are stored as integers in the ORC file
+    and can be transformed into more convenient Python objects.
+
+    The converter can be set to a :class:`Reader` or :class:`Writer` with
+    the converters parameter, as a dictionary where the key is
+    one of :attr:`TypeKind.DATE`, :attr:`TypeKind.DECIMAL`, or
+    :attr:`TypeKind.TIMESTAMP`, and the value is the converter itself.
+
+.. staticmethod:: ORCConverter.from_orc(*args)
+
+    Builds high-level objects from basic ORC type. Its arguments depend on
+    what ORC type the converter is bound:
+
+        * `date`: the number of days since the epoch as a single integer.
+        * `decimal`: the decimal number formatted as a string.
+        * `timestamp`: seconds and nanoseconds since the epoch as integers.
+
+    :return: the constructed Python object.
+
+.. staticmethod:: ORCConverter.to_orc(*args)
+
+    Converts the high-level Python object to basic ORC type. Its arguments
+    is a single Python object when the convert is bound to `date` or
+    `timestamp`. The precision and scale are also passed to this method
+    as integers, along with the object when it's bound to a decimal type.
+
+    Expected return value:
+
+        * `date`: the number of days since the epoch as a single integer.
+        * `decimal`: an integer adjusted to the set precision and scale.
+        * `timestamp`: a tuple of seconds and nanoseconds since the epoch
+          as integers.
+
 :class:`TypeDescription`
 ========================
 
@@ -402,7 +442,7 @@ API documentation
     For decimal, date and timestamp ORC types the default converters from
     Python objects can be change by setting a dictionary to the `converters`
     parameter. The dictionary's keys must be a :class:`TypeKind` and the
-    values must implement the ORCConverter abstract class.
+    values must implement the :class:`ORCConverter` abstract class.
 
     :param object fileo: a writeable binary file-like object.
     :param TypeDescription|str schema: the ORC schema of the file.
@@ -419,7 +459,8 @@ API documentation
     :param StructRepr struct_repr: An enum to set the representation for
         an ORC struct type.
     :param dict converters: a dictionary, where the keys are
-        :class:`TypeKind` and the values are subclasses of ORCConverter.
+        :class:`TypeKind` and the values are subclasses of
+        :class:`ORCConverter`.
 
 .. method:: Writer.__enter__()
 .. method:: Writer.__exit__()

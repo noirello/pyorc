@@ -21,8 +21,6 @@ Features
 - Writing ORC files.
 - While using Python's stream/file-like object IO interface.
 
-That sums up quite well the purpose of this project.
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
