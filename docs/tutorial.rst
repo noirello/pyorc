@@ -15,9 +15,9 @@ Let's use one of the example ORC files to open in Python::
 See the schema of the selected file::
 
     >>> reader.schema
-    <pyorc._pyorc.typedescription object at 0x7f9784d91298>
+    <pyorc.typedescription.Struct object at 0x7f9784d91298>
 
-The Reader's schema read-only property is a typedescription object,
+The Reader's schema read-only property is a :class:`TypeDescription` object,
 representing the ORC file's type hierarchy. We can get a more human-friendly
 interpretation if we print its string format::
 
@@ -112,7 +112,7 @@ Writing
 
 To write a new ORC file we need to open a binary file-like object and pass
 to a Writer object with an ORC schema description. The schema can be a 
-typedescription or a simple string ORC schema definition::
+TypeDescription or a simple string ORC schema definition::
 
     >>> output = open("./new.orc", "wb")
     >>> writer = pyorc.Writer(output, "struct<col0:int,col1:string>")
@@ -157,7 +157,7 @@ example returns the ORC timestamp values as seconds and nanoseconds pair:
     class TSConverter(ORCConverter):
         @staticmethod
         def to_orc(*args):
-            seconds, nanoseconds = obj
+            seconds, nanoseconds = args
             return (seconds, nanoseconds)
 
         @staticmethod

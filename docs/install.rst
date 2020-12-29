@@ -51,8 +51,8 @@ To make that easier, the project's `setup.py` file also contains a
 
 .. note::
     The ``build_orc`` command has a ``--orc-version`` and a ``--source-url``
-    parameter for changing the default ORC library version or the source URL
-    where to download the source zip respectively.
+    parameter for changing the default ORC library version or the URL of the
+    source zip to download respectively.
 
 You also need the `pybind11` Python package to be installed before running
 the installation::

@@ -430,7 +430,7 @@ API documentation
                   converters=None)
 
     An object to write ORC files. The `fileo` must be a binary stream.
-    The `schema` must be :class:`typedescription` or a valid ORC schema
+    The `schema` must be :class:`TypeDescription` or a valid ORC schema
     definition as a string.
 
     With the `bloom_filter_columns` a list of column ids or field names
@@ -510,7 +510,7 @@ API documentation
 
 .. attribute:: Writer.schema
 
-    A :class:`typedescription` object of the ORC file's schema.
+    A :class:`TypeDescription` object of the ORC file's schema.
 
 Enums
 =====
