@@ -71,6 +71,66 @@ stages:
         echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
       displayName: Set Python $(python.version)
     - template: .azure-pipelines/build-run-tests.yml
+  - job: Windows
+    pool:
+      vmImage: 'windows-latest'
+    strategy:
+      matrix:
+        Python36:
+          python.version: '3.6'
+        Python37:
+          python.version: '3.7'
+        Python38:
+          python.version: '3.8'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+      name: pybin
+    - script: |
+        set PYTHONBIN=$(pybin.pythonLocation)\python.exe
+        echo ##vso[task.setvariable variable=pythonbin]%PYTHONBIN%
+      displayName: Set Python $(python.version)
+    - script: |
+        echo $(pythonbin)
+        $(pythonbin) --version
+      displayName: Check Python path
+    - script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov patch
+      displayName: Install dependencies
+    - script: |
+        $(pythonbin) setup.py build_orc --download-only=True
+        $(pythonbin) -m patch .azure-pipelines\orc_cmakelists.patch
+        $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain.patch
+        $(pythonbin) setup.py build_orc --build-type=release
+        $(pythonbin) -m patch .azure-pipelines\snappy_cmakelists.patch
+        cd deps\orc-*
+        cd build\snappy_ep-prefix\src\snappy_ep
+        cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=OFF
+        cmake --build . --config release
+        move /Y Release\snappy.lib ..\..\..\..\..\lib\
+      displayName: Build ORC Lib
+    - script: $(pythonbin) setup.py install --user
+      displayName: Install package
+    - script: |
+        INSTALLDIR=$($(pythonbin) -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
+        echo $INSTALLDIR
+        $(pythonbin) -m pytest -vs --junitxml=./test-results.xml --cov="$INSTALLDIR" tests/
+      displayName: Run pytest
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: test-results.xml
+        testRunTitle: Tests on Python $(python.version)
+      condition: succeededOrFailed()
+
+    - script: |
+          PATH=$HOME/.local/bin:$PATH
+          codecov
+      env:
+        CODECOV_TOKEN: $(codecov)
+      displayName: Report Coverage
+      condition: succeeded()
 - stage: Build
   jobs:
   - job: manylinux_wheels
