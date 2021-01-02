@@ -1,5 +1,6 @@
 import io
 import os
+import platform
 import sys
 import shutil
 import subprocess
@@ -25,48 +26,60 @@ class BuildORCLib(Command):
         ("output-dir=", None, "the output directory"),
         ("source-url=", None, "the HTTP url for downloading the ORC source"),
         ("build-type=", None, "set build type for ORC lib"),
+        ("download-only=", None, "just download and extract the ORC source"),
     ]
 
     def initialize_options(self):
         """Set default values for options."""
-        self.orc_version = "1.6.5"
+        self.orc_version = "1.6.6"
         self.output_dir = "deps/"
         self.source_url = "https://www-us.apache.org/dist/orc/"
         self.build_type = "debug"
+        self.download_only = False
 
     def finalize_options(self):
         """Post-process options."""
         pass
 
     def run(self):
-        log.info("Build ORC C++ Core library")
         if not os.path.isdir(
             os.path.join(self.output_dir, "orc-{ver}".format(ver=self.orc_version))
         ):
             self._download_source()
-        build_dir = self._build_with_cmake()
-        pack_dir = os.path.join(
-            build_dir,
-            "_CPack_Packages",
-            sys.platform.title(),
-            "TGZ",
-            "ORC-{ver}-{plat}".format(ver=self.orc_version, plat=sys.platform.title()),
-        )
-        log.info("Move artifacts to the %s folder" % self.output_dir)
-        try:
-            shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
-            shutil.move(os.path.join(pack_dir, "lib"), self.output_dir)
-            shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
-            shutil.move(
-                os.path.join(
-                    self.output_dir,
-                    "orc-{ver}".format(ver=self.orc_version),
-                    "examples",
-                ),
-                self.output_dir,
+        if not self.download_only:
+            log.info("Build ORC C++ Core library")
+            build_dir = self._build_with_cmake()
+            plat = (
+                sys.platform.title()
+                if sys.platform != "win32"
+                # Change platform title on Windows depending on arch (32/64bit)
+                else sys.platform.title().replace("32", platform.architecture()[0][:2])
             )
-        except:
-            pass
+            pack_dir = os.path.join(
+                build_dir,
+                "_CPack_Packages",
+                plat,
+                "TGZ",
+                "ORC-{ver}-{plat}".format(ver=self.orc_version, plat=plat),
+            )
+            log.info(
+                "Move artifacts from '%s' to the '%s' folder"
+                % (pack_dir, self.output_dir)
+            )
+            try:
+                shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
+                shutil.move(os.path.join(pack_dir, "lib"), self.output_dir)
+                shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
+                shutil.move(
+                    os.path.join(
+                        self.output_dir,
+                        "orc-{ver}".format(ver=self.orc_version),
+                        "examples",
+                    ),
+                    self.output_dir,
+                )
+            except:
+                pass
 
     def _download_source(self) -> None:
         tmp_tar = io.BytesIO()
@@ -89,6 +102,14 @@ class BuildORCLib(Command):
             "-DBUILD_LIBHDFSPP=OFF",
             "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
         ]
+        if sys.platform == "win32":
+            cmake_args.extend(
+                [
+                    "-DBUILD_CPP_TESTS=OFF",
+                    "-DBUILD_TOOLS=OFF",
+                    "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+                ]
+            )
         compiler_flags = ["CFLAGS=-fPIC", "CXXFLAGS=-fPIC"]
         env = os.environ.copy()
         build_dir = os.path.join(
@@ -101,7 +122,22 @@ class BuildORCLib(Command):
         cmake_cmd = ["cmake", ".."] + cmake_args
         log.info("Cmake command: %s" % cmake_cmd)
         subprocess.check_call(cmake_cmd, cwd=build_dir, env=env)
-        subprocess.check_call(["make", "-j4", "package"], cwd=build_dir, env=env)
+        if sys.platform == "win32":
+            subprocess.check_call(
+                [
+                    "cmake",
+                    "--build",
+                    ".",
+                    "--config",
+                    self.build_type,
+                    "--target",
+                    "PACKAGE",
+                ],
+                cwd=build_dir,
+                env=env,
+            )
+        else:
+            subprocess.check_call(["make", "-j4", "package"], cwd=build_dir, env=env)
         return build_dir
 
 
@@ -123,7 +159,18 @@ class get_pybind_include:
 SOURCES = [os.path.join("src/_pyorc", src) for src in SOURCES]
 HEADERS = [os.path.join("src/_pyorc", hdr) for hdr in HEADERS]
 
-LIBS = ["orc", "protobuf", "protoc", "lz4", "zstd", "z", "snappy", "pthread"]
+if sys.platform == "win32":
+    LIBS = [
+        "orc",
+        "libprotobuf",
+        "libprotoc",
+        "lz4",
+        "zstd_static",
+        "zlibstatic",
+        "snappy",
+    ]
+else:
+    LIBS = ["orc", "protobuf", "protoc", "lz4", "zstd", "z", "snappy", "pthread"]
 
 EXT_MODULES = [
     Extension(
@@ -135,9 +182,9 @@ EXT_MODULES = [
             # Path to pybind11 headers
             get_pybind_include(),
             get_pybind_include(user=True),
-            "deps/include/",
+            os.path.join("deps", "include"),
         ],
-        library_dirs=["deps/lib/"],
+        library_dirs=[os.path.join("deps", "lib")],
         language="c++",
     )
 ]
