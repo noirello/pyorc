@@ -125,8 +125,7 @@ stages:
       condition: succeededOrFailed()
 
     - script: |
-          PATH=$HOME/.local/bin:$PATH
-          codecov
+           $(pythonbin) -m codecov
       env:
         CODECOV_TOKEN: $(codecov)
       displayName: Report Coverage
