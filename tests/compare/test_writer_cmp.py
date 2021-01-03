@@ -4,6 +4,7 @@ import gzip
 import json
 import os
 import subprocess
+import sys
 
 from decimal import Decimal
 from datetime import date, datetime, timezone
@@ -13,6 +14,8 @@ from pyorc.enums import TypeKind, StructRepr
 from pyorc.typedescription import TypeDescription, Timestamp
 
 from conftest import output_file
+
+pytestmark = pytest.mark.skipif(sys.platform == 'win32', reason="No orc-tools on Windows")
 
 ORC_CONTENTS_PATH = "deps/bin/orc-contents"
 
