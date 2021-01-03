@@ -24,8 +24,8 @@ class ORCConverter(ABC):
 class TimestampConverter(ORCConverter):
     @staticmethod
     def from_orc(seconds: int, nanoseconds: int) -> datetime:
-        timestamp = datetime.fromtimestamp(seconds, timezone.utc)
-        return timestamp + timedelta(microseconds=nanoseconds // 1000)
+        epoch = datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        return epoch + timedelta(seconds=seconds, microseconds=nanoseconds // 1000)
 
     @staticmethod
     def to_orc(obj: datetime) -> Tuple[int, int]:
