@@ -100,15 +100,8 @@ stages:
       displayName: Install dependencies
     - script: |
         $(pythonbin) setup.py build_orc --download-only=True
-        $(pythonbin) -m patch .azure-pipelines\orc_cmakelists.patch
-        $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain.patch
+        $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
         $(pythonbin) setup.py build_orc --build-type=release
-        $(pythonbin) -m patch .azure-pipelines\snappy_cmakelists.patch
-        cd deps\orc-*
-        cd build\snappy_ep-prefix\src\snappy_ep
-        cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=OFF
-        cmake --build . --config release
-        move /Y Release\snappy.lib ..\..\..\..\..\lib\
       displayName: Build ORC Lib
     - script: $(pythonbin) setup.py install --user
       displayName: Install package
