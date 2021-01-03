@@ -32,7 +32,7 @@ class BuildORCLib(Command):
     def initialize_options(self):
         """Set default values for options."""
         self.orc_version = "1.6.6"
-        self.output_dir = "deps/"
+        self.output_dir = "deps"
         self.source_url = "https://www-us.apache.org/dist/orc/"
         self.build_type = "debug"
         self.download_only = False
@@ -69,7 +69,8 @@ class BuildORCLib(Command):
             try:
                 shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
                 shutil.move(os.path.join(pack_dir, "lib"), self.output_dir)
-                shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
+                if sys.platform != "win32":
+                    shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
                 shutil.move(
                     os.path.join(
                         self.output_dir,
@@ -78,8 +79,8 @@ class BuildORCLib(Command):
                     ),
                     self.output_dir,
                 )
-            except:
-                pass
+            except Exception as exc:
+                log.warn("Warning: %s " % exc)
 
     def _download_source(self) -> None:
         tmp_tar = io.BytesIO()
