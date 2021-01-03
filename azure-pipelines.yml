@@ -213,3 +213,49 @@ stages:
       inputs:
         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: wheels
+  - job: windows_wheels
+    pool:
+      vmImage: 'windows-latest'
+    strategy:
+      matrix:
+        Python36:
+          python.version: '3.6'
+        Python37:
+          python.version: '3.7'
+        Python38:
+          python.version: '3.8'
+        Python39:
+          python.version: '3.9'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+      name: pybin
+    - script: |
+        set PYTHONBIN=$(pybin.pythonLocation)\python.exe
+        echo ##vso[task.setvariable variable=pythonbin]%PYTHONBIN%
+      displayName: Set Python $(python.version)
+    - script: |
+        echo $(pythonbin)
+        $(pythonbin) --version
+      displayName: Check Python path
+    - script: $(pythonbin) -m pip install --user -U pybind11 wheel patch
+      displayName: Install dependencies
+    
+    - script: |
+        $(pythonbin) setup.py build_orc --download-only=True
+        $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
+        $(pythonbin) setup.py build_orc --build-type=release
+      displayName: Build ORC Lib
+    - script: $(pythonbin) setup.py bdist_wheel
+      displayName: Build wheel
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)/dist/'
+        contents: '*'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: wheels
