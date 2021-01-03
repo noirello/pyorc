@@ -1,0 +1,13 @@
+--- deps/orc-1.6.6/cmake_modules/ThirdpartyToolchain.cmake	2020-12-03 21:46:53.000000000 +0100
++++ /mnt/e/ThirdpartyToolchain.cmake	2021-01-03 01:37:07.659137700 +0100
+@@ -228,8 +228,8 @@
+ 
+ if (WIN32)
+   ExternalProject_Add(tzdata_ep
+-    URL "ftp://cygwin.osuosl.org/pub/cygwin/noarch/release/tzdata/tzdata-2020b-1.tar.xz"
+-    URL_HASH MD5=1BE1D18B4042A5011E96D20054BEEF33
++    URL "ftp://cygwin.osuosl.org/pub/cygwin/noarch/release/tzdata/tzdata-2020f-1.tar.xz"
++    URL_HASH MD5=8A43ABF728E12BC64CC6F0C892B742A9
+     CONFIGURE_COMMAND ""
+     BUILD_COMMAND ""
+     INSTALL_COMMAND "")
