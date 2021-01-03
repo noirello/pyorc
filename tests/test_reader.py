@@ -19,6 +19,8 @@ from pyorc import (
 
 from pyorc.converters import ORCConverter
 
+from conftest import output_file
+
 
 @pytest.fixture
 def orc_data():
@@ -68,34 +70,33 @@ def test_init(orc_data):
     assert reader is not None
 
 
-def test_open_file():
-    with tempfile.NamedTemporaryFile(mode="wb") as fp:
+def test_open_file(output_file):
+    output_file.close()
+    with open(output_file.name, "wb") as fp:
         with pytest.raises(ParseError):
             _ = Reader(fp)
+        # Write invalid bytes:
         fp.write(b"TESTTORC\x08\x03\x10\x03")
-        fp.flush()
-        fp.seek(0)
-        with open(fp.name, "rb") as fp2:
-            with pytest.raises(ParseError):
-                _ = Reader(fp2)
+    with open(output_file.name, "rb") as fp:
+        with pytest.raises(ParseError):
+            _ = Reader(fp)
+    with open(output_file.name, "wb") as fp:
         fp.write(b'ORC\x08\x03\x10\x03"k\x08\x0c\x12\x0c\x01\x02\x03')
-        fp.flush()
-        fp.seek(0)
-        with open(fp.name, "rt") as fp2:
-            with pytest.raises(ParseError):
-                _ = Reader(fp2)
-        with open(fp.name, "rb") as fp2:
-            with pytest.raises(ParseError):
-                _ = Reader(fp2)
-        fp.seek(0)
+    with open(output_file.name, "rt") as fp:
+        with pytest.raises(ParseError):
+            _ = Reader(fp)
+    with open(output_file.name, "rb") as fp:
+        with pytest.raises(ParseError):
+            _ = Reader(fp)
+    with open(output_file.name, "wb") as fp:
         Writer(fp, "struct<col0:int,col1:string>").close()
-        with open(fp.name, "ab") as fp2:
-            with pytest.raises(io.UnsupportedOperation):
-                _ = Reader(fp2)
-        with open(fp.name, "rb") as fp2:
-            reader = Reader(fp2)
-            assert reader is not None
-            assert len(reader) == 0
+    with open(output_file.name, "ab") as fp:
+        with pytest.raises(io.UnsupportedOperation):
+            _ = Reader(fp)
+    with open(output_file.name, "rb") as fp:
+        reader = Reader(fp)
+        assert reader is not None
+        assert len(reader) == 0
 
 
 def test_next():

@@ -3,7 +3,6 @@ import pytest
 import gzip
 import json
 import os
-import tempfile
 import subprocess
 
 from decimal import Decimal
@@ -13,18 +12,9 @@ import pyorc._pyorc
 from pyorc.enums import TypeKind, StructRepr
 from pyorc.typedescription import TypeDescription, Timestamp
 
+from conftest import output_file
 
 ORC_CONTENTS_PATH = "deps/bin/orc-contents"
-
-
-@pytest.fixture
-def output_file():
-    testfile = tempfile.NamedTemporaryFile(
-        mode="wb", delete=False, prefix="pyorc_", suffix=".orc"
-    )
-    yield testfile
-    os.remove(testfile.name)
-
 
 def transform(schema, value):
     if schema.kind < 8:

@@ -1,7 +1,6 @@
 import pytest
 
 import io
-import tempfile
 import math
 from datetime import date, datetime, timezone
 from decimal import Decimal
@@ -9,15 +8,18 @@ from decimal import Decimal
 from pyorc import Writer, Reader, TypeDescription, ParseError, TypeKind, StructRepr
 from pyorc.converters import ORCConverter
 
+from conftest import output_file
 
-def test_open_file():
-    with tempfile.NamedTemporaryFile(mode="wt") as fp:
+
+def test_open_file(output_file):
+    output_file.close()
+    with open(output_file.name, mode="wt") as fp:
         with pytest.raises(ParseError):
             _ = Writer(fp, "int")
-        with open(fp.name, "rb") as fp2:
-            with pytest.raises(io.UnsupportedOperation):
-                _ = Writer(fp2, "int")
-    with tempfile.NamedTemporaryFile(mode="wb") as fp:
+    with open(output_file.name, "rb") as fp:
+        with pytest.raises(io.UnsupportedOperation):
+            _ = Writer(fp, "int")
+    with open(output_file.name, mode="wb") as fp:
         writer = Writer(fp, "int")
         assert isinstance(writer, Writer)
     with pytest.raises(TypeError):
