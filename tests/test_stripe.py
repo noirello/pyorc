@@ -1,6 +1,7 @@
 import pytest
 
 import io
+import sys
 
 from datetime import datetime, timedelta, timezone
 
@@ -122,7 +123,9 @@ def test_writer_timezone(striped_orc_data):
     with pytest.raises(AttributeError):
         stripe.writer_timezone = "UTC-9:00"
 
-
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="Seeking fails on Windows"
+)
 def test_seek_and_read(striped_orc_data):
     data = striped_orc_data(
         "struct<col0:int,col1:string>",
