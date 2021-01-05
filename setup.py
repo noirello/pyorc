@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import urllib.request
 import tarfile
-from distutils import log
+import logging
 
 import setuptools
 from setuptools import setup, Extension, Command
@@ -17,6 +17,8 @@ from setuptools.command.build_clib import build_clib
 SOURCES = ["_pyorc.cpp", "Converter.cpp", "PyORCStream.cpp", "Reader.cpp", "Writer.cpp"]
 
 HEADERS = ["Converter.h", "PyORCStream.h", "Reader.h", "Writer.h"]
+
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
 class BuildORCLib(Command):
@@ -47,7 +49,7 @@ class BuildORCLib(Command):
         ):
             self._download_source()
         if not self.download_only:
-            log.info("Build ORC C++ Core library")
+            logging.info("Build ORC C++ Core library")
             build_dir = self._build_with_cmake()
             plat = (
                 sys.platform.title()
@@ -62,7 +64,7 @@ class BuildORCLib(Command):
                 "TGZ",
                 "ORC-{ver}-{plat}".format(ver=self.orc_version, plat=plat),
             )
-            log.info(
+            logging.info(
                 "Move artifacts from '%s' to the '%s' folder"
                 % (pack_dir, self.output_dir)
             )
@@ -80,7 +82,7 @@ class BuildORCLib(Command):
                     self.output_dir,
                 )
             except Exception as exc:
-                log.warn("Warning: %s " % exc)
+                logging.warning(exc)
 
     def _download_source(self) -> None:
         tmp_tar = io.BytesIO()
@@ -88,11 +90,11 @@ class BuildORCLib(Command):
             url=self.source_url, ver=self.orc_version
         )
         with urllib.request.urlopen(url) as src:
-            log.info("Download ORC release from: %s" % url)
+            logging.info("Download ORC release from: %s" % url)
             tmp_tar.write(src.read())
         tmp_tar.seek(0)
         tar_src = tarfile.open(fileobj=tmp_tar, mode="r:gz")
-        log.info("Extract archives in: %s" % self.output_dir)
+        logging.info("Extract archives in: %s" % self.output_dir)
         tar_src.extractall(self.output_dir)
         tar_src.close()
 
@@ -118,10 +120,10 @@ class BuildORCLib(Command):
         )
         if not os.path.exists(build_dir):
             os.makedirs(build_dir)
-        log.info("Build libraries with cmake")
+        logging.info("Build libraries with cmake")
         env.update([flg.split("=") for flg in compiler_flags])
         cmake_cmd = ["cmake", ".."] + cmake_args
-        log.info("Cmake command: %s" % cmake_cmd)
+        logging.info("Cmake command: %s" % cmake_cmd)
         subprocess.check_call(cmake_cmd, cwd=build_dir, env=env)
         if sys.platform == "win32":
             subprocess.check_call(
