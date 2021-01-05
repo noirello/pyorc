@@ -8,7 +8,7 @@ stages:
   jobs:
   - job: Ubuntu
     pool:
-      vmImage: "ubuntu-18.04"
+      vmImage: "ubuntu-latest"
     strategy:
       matrix:
         Python36:
@@ -32,7 +32,7 @@ stages:
     - template: .azure-pipelines/build-run-tests.yml
   - job: Ubuntu_EasternTimezone
     pool:
-      vmImage: "ubuntu-18.04"
+      vmImage: "ubuntu-latest"
     strategy:
       matrix:
         Python38:
@@ -53,7 +53,7 @@ stages:
       - template: .azure-pipelines/build-run-tests.yml
   - job: MacOS
     pool:
-      vmImage: 'macOS-10.14'
+      vmImage: 'macOS-latest'
     strategy:
       matrix:
         Python36:
@@ -134,7 +134,7 @@ stages:
   jobs:
   - job: manylinux_wheels
     pool:
-      vmImage: "ubuntu-18.04"
+      vmImage: "ubuntu-latest"
     strategy:
       matrix:
         Python36:
@@ -171,11 +171,9 @@ stages:
         artifactName: wheels
   - job: macos_wheels
     pool:
-      vmImage: 'macOS-10.14'
+      vmImage: 'macOS-latest'
     strategy:
       matrix:
-        #Python36:
-        #  python.version: '3.6'
         Python37:
           python.version: '3.7'
         Python38:
