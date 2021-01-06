@@ -8,15 +8,10 @@ import urllib.request
 import tarfile
 import logging
 
-import setuptools
-from setuptools import setup, Extension, Command
-from setuptools.command.build_ext import build_ext
-from setuptools.command.build_clib import build_clib
+from setuptools import setup, Command
 
+from pybind11.setup_helpers import Pybind11Extension, build_ext
 
-SOURCES = ["_pyorc.cpp", "Converter.cpp", "PyORCStream.cpp", "Reader.cpp", "Writer.cpp"]
-
-HEADERS = ["Converter.h", "PyORCStream.h", "Reader.h", "Writer.h"]
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
@@ -53,7 +48,7 @@ class BuildORCLib(Command):
             build_dir = self._build_with_cmake()
             plat = (
                 sys.platform.title()
-                if sys.platform != "win32"
+                if not sys.platform.startswith("win32")
                 # Change platform title on Windows depending on arch (32/64bit)
                 else sys.platform.title().replace("32", platform.architecture()[0][:2])
             )
@@ -71,7 +66,7 @@ class BuildORCLib(Command):
             try:
                 shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
                 shutil.move(os.path.join(pack_dir, "lib"), self.output_dir)
-                if sys.platform != "win32":
+                if not sys.platform.startswith("win32"):
                     shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
                 shutil.move(
                     os.path.join(
@@ -144,25 +139,10 @@ class BuildORCLib(Command):
         return build_dir
 
 
-class get_pybind_include:
-    """Helper class to determine the pybind11 include path
-    The purpose of this class is to postpone importing pybind11
-    until it is actually installed, so that the ``get_include()``
-    method can be invoked. """
+SOURCES = ["_pyorc.cpp", "Converter.cpp", "PyORCStream.cpp", "Reader.cpp", "Writer.cpp"]
+HEADERS = ["Converter.h", "PyORCStream.h", "Reader.h", "Writer.h"]
 
-    def __init__(self, user=False):
-        self.user = user
-
-    def __str__(self):
-        import pybind11
-
-        return pybind11.get_include(self.user)
-
-
-SOURCES = [os.path.join("src/_pyorc", src) for src in SOURCES]
-HEADERS = [os.path.join("src/_pyorc", hdr) for hdr in HEADERS]
-
-if sys.platform == "win32":
+if sys.platform.startswith("win32"):
     LIBS = [
         "orc",
         "libprotobuf",
@@ -176,86 +156,41 @@ else:
     LIBS = ["orc", "protobuf", "protoc", "lz4", "zstd", "z", "snappy", "pthread"]
 
 EXT_MODULES = [
-    Extension(
+    Pybind11Extension(
         "pyorc._pyorc",
-        sources=SOURCES,
-        depends=HEADERS,
+        sources=[os.path.join("src", "_pyorc", src) for src in SOURCES],
+        depends=[os.path.join("src", "_pyorc", hdr) for hdr in HEADERS],
         libraries=LIBS,
-        include_dirs=[
-            # Path to pybind11 headers
-            get_pybind_include(),
-            get_pybind_include(user=True),
-            os.path.join("deps", "include"),
-        ],
+        include_dirs=[os.path.join("deps", "include")],
         library_dirs=[os.path.join("deps", "lib")],
-        language="c++",
     )
 ]
 
 
-def has_flag(compiler, flagname):
-    """Return a boolean indicating whether a flag name is supported on
-    the specified compiler.
-    """
-    import tempfile
-
-    with tempfile.NamedTemporaryFile("w", suffix=".cpp") as f:
-        f.write("int main (int argc, char **argv) { return 0; }")
-        try:
-            compiler.compile([f.name], extra_postargs=[flagname])
-        except setuptools.distutils.errors.CompileError:
-            return False
-        finally:
-            shutil.rmtree("tmp/", ignore_errors=True)
-    return True
-
-
-def cpp_flag(compiler):
-    """Return the -std=c++[11/14/17] compiler flag.
-    The newer version is preferred over c++11 (when it is available).
-    """
-    flags = ["-std=c++17", "-std=c++14", "-std=c++11"]
-
-    for flag in flags:
-        if has_flag(compiler, flag):
-            return flag
-
-    raise RuntimeError("Unsupported compiler -- at least C++11 support is needed!")
-
-
 class BuildExt(build_ext):
-    """A custom build extension for adding compiler-specific options."""
-
-    c_opts = {"msvc": ["/EHsc"], "unix": []}
-    l_opts = {"msvc": [], "unix": []}
-
-    if sys.platform == "darwin":
-        darwin_opts = ["-stdlib=libc++", "-mmacosx-version-min=10.7"]
-        c_opts["unix"] += darwin_opts
-        l_opts["unix"] += darwin_opts
+    """A custom build extension for handling debug build on Windows"""
 
     def build_extensions(self):
-        ct = self.compiler.compiler_type
-        opts = self.c_opts.get(ct, [])
-        link_opts = self.l_opts.get(ct, [])
-        if ct == "unix":
-            opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
-            opts.append(cpp_flag(self.compiler))
-            opts.append("-fvisibility=hidden")
-        elif ct == "msvc":
-            opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
-        for ext in self.extensions:
-            ext.extra_compile_args = opts
-            ext.extra_link_args = link_opts
-        build_ext.build_extensions(self)
+        if sys.platform.startswith("win32") and self.debug:
+            self.extensions[0].libraries = [
+                lib if lib != "zlibstatic" else "zlibstaticd"
+                for lib in self.extensions[0].libraries
+            ]
+        super().build_extensions()
 
 
 with open("README.rst") as file:
     LONG_DESC = file.read()
 
+# Get version number from the module's __init__.py file.
+with open(os.path.join(".", "src", "pyorc", "__init__.py")) as src:
+    VER = [
+        line.split('"')[1] for line in src.readlines() if line.startswith("__version__")
+    ][0]
+
 setup(
     name="pyorc",
-    version="0.4.0",
+    version=VER,
     description="Python module for reading and writing Apache ORC file format.",
     author="noirello",
     author_email="noirello@gmail.com",
@@ -266,8 +201,6 @@ setup(
     package_dir={"pyorc": "src/pyorc"},
     packages=["pyorc"],
     include_package_data=True,
-    install_requires=["pybind11>=2.5"],
-    setup_requires=["pybind11>=2.5"],
     cmdclass={"build_ext": BuildExt, "build_orc": BuildORCLib},
     keywords=["python3", "orc", "apache-orc"],
     classifiers=[
