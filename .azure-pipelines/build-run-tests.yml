@@ -8,7 +8,9 @@ steps:
 
 - script: $(pythonbin) setup.py build_orc --build-type=debug
   displayName: Build ORC Lib
-- script: CFLAGS="-coverage" $(pythonbin) setup.py install --user
+- script: |
+    CFLAGS="-coverage" $(pythonbin) setup.py build -g
+    $(pythonbin) setup.py install --user
   displayName: Install package
 
 - script: |
@@ -20,7 +22,7 @@ steps:
 - task: PublishTestResults@2
   inputs:
     testResultsFiles: test-results.xml
-    testRunTitle: Tests on Python $(python.version)
+    testRunTitle: Tests on $(Agent.OS) with Python $(python.version)
   condition: succeededOrFailed()
 
 - script: |

@@ -107,9 +107,11 @@ stages:
     - script: |
         $(pythonbin) setup.py build_orc --download-only=True
         $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
-        $(pythonbin) setup.py build_orc --build-type=release
+        $(pythonbin) setup.py build_orc
       displayName: Build ORC Lib
-    - script: $(pythonbin) setup.py install --user
+    - script: |
+        $(pythonbin) setup.py build -g
+        $(pythonbin) setup.py install --user
       displayName: Install package
     - script: |
         FOR /F "tokens=* USEBACKQ" %%F IN (`$(pythonbin) -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))"`) DO (SET INSTALLDIR=%%F)
@@ -121,7 +123,7 @@ stages:
     - task: PublishTestResults@2
       inputs:
         testResultsFiles: test-results.xml
-        testRunTitle: Tests on Python $(python.version)
+        testRunTitle: Tests on $(Agent.OS) with Python $(python.version)
       condition: succeededOrFailed()
 
     - script: |
@@ -194,7 +196,7 @@ stages:
         echo $(pythonbin)
         $(pythonbin) --version
       displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U pybind11 wheel
+    - script: $(pythonbin) -m pip install --user -U wheel pybind11
       displayName: Install dependencies
 
     - script: $(pythonbin) setup.py build_orc --build-type=release
@@ -237,7 +239,7 @@ stages:
         echo $(pythonbin)
         $(pythonbin) --version
       displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U pybind11 wheel patch
+    - script: $(pythonbin) -m pip install --user -U wheel patch pybind11
       displayName: Install dependencies
     
     - script: |
