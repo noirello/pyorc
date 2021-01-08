@@ -5,7 +5,15 @@ import math
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from pyorc import Writer, Reader, TypeDescription, ParseError, TypeKind, StructRepr
+from pyorc import (
+    Writer,
+    Reader,
+    TypeDescription,
+    ParseError,
+    TypeKind,
+    StructRepr,
+    CompressionKind,
+)
 from pyorc.converters import ORCConverter
 
 from conftest import output_file
@@ -462,3 +470,17 @@ def test_metadata():
         "test": "test2".encode("UTF-8"),
         "meta": b"\x30\x40\x50\x60",
     }
+
+
+@pytest.mark.parametrize(
+    "kind", (CompressionKind.NONE, CompressionKind.ZLIB, CompressionKind.ZSTD)
+)
+def test_compression(kind):
+    data = io.BytesIO()
+    with Writer(data, "struct<a:int,b:string,c:double>", compression=kind) as writer:
+        writer.writerows((num, "ABCDEFG", 0.12) for num in range(50000))
+    data.seek(0)
+    reader = Reader(data)
+    assert reader.compression == kind
+    for idx, row in enumerate(reader):
+        assert row == (idx, "ABCDEFG", 0.12)
