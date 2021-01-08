@@ -215,4 +215,5 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     python_requires=">=3.6",
+    install_requires=['tzdata >= 2020.5 ; sys_platform == "win32"'],
 )
