@@ -102,7 +102,7 @@ stages:
         echo $(pythonbin)
         $(pythonbin) --version
       displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov patch tzdata
+    - script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov patch
       displayName: Install dependencies
     - script: |
         $(pythonbin) setup.py build_orc --download-only=True
@@ -115,7 +115,6 @@ stages:
       displayName: Install package
     - script: |
         FOR /F "tokens=* USEBACKQ" %%F IN (`$(pythonbin) -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))"`) DO (SET INSTALLDIR=%%F)
-        FOR /F "tokens=* USEBACKQ" %%F IN (`$(pythonbin) -c "import os, tzdata; print(os.path.dirname(tzdata.__file__) + '\\zoneinfo')"`) DO (SET TZDIR=%%F)
         echo %INSTALLDIR%
         $(pythonbin) -m pytest -vs --junitxml=./test-results.xml --cov=%INSTALLDIR% tests/
       displayName: Run pytest
