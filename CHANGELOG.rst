@@ -3,6 +3,23 @@ Changelog
 [0.4.0] - UNRELEASED
 --------------------
 
+Added
+~~~~~
+
+- Experimental Windows support.
+- tzdata package dependency on Windows. Automatically setting TZDIR
+  to the path of the tzdata package's data dir after importing PyORC.
+
+Changed
+~~~~~~~
+- Create ORC Type from TypeDescription directly (instead of string parsing)
+  for Writer. (PR #26, contribution of @blkerby)
+- Dotted column names are allowed to use in TypeDescription.find_column_id
+  method with escaping them backticks.
+- ORC C++ Core updated to 1.6.6.
+- TimestampConverter.from_orc can handle large negative seconds on Windows.
+
+
 [0.3.0] - 2020-05-24
 --------------------
 
