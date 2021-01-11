@@ -1,6 +1,6 @@
 Changelog
 ==========
-[0.4.0] - UNRELEASED
+[0.4.0] - 2021-01-11
 --------------------
 
 Added
@@ -17,7 +17,11 @@ Changed
 - Dotted column names are allowed to use in TypeDescription.find_column_id
   method with escaping them backticks.
 - ORC C++ Core updated to 1.6.6.
-- TimestampConverter.from_orc can handle large negative seconds on Windows.
+
+Fixed
+~~~~~
+
+- Handling large negative seconds on Windows for TimestampConverter.from_orc.
 
 
 [0.3.0] - 2020-05-24
