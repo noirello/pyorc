@@ -66,6 +66,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def_property_readonly("bytes_lengths", &Reader::bytesLengths)
       .def_property_readonly("compression", &Reader::compression)
       .def_property_readonly("compression_block_size", &Reader::compressionBlockSize)
+      .def_property_readonly("row_index_stride", &Reader::rowIndexStride)
       .def_property_readonly("format_version", &Reader::formatVersion)
       .def_property_readonly("metadata", &Reader::metadata)
       .def_property_readonly("schema", &Reader::schema)
@@ -80,6 +81,7 @@ PYBIND11_MODULE(_pyorc, m)
                     py::object,
                     uint64_t,
                     uint64_t,
+                    uint64_t,
                     int,
                     int,
                     uint64_t,
@@ -91,6 +93,7 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg("schema"),
            py::arg_v("batch_size", 1024, "1024"),
            py::arg_v("stripe_size", 67108864, "67108864"),
+           py::arg_v("row_index_stride", 10000, "10000"),
            py::arg_v("compression", 1, "CompressionKind.ZLIB"),
            py::arg_v("compression_strategy", 0, "CompressionStrategy.SPEED"),
            py::arg_v("compression_block_size", 65536, "65536"),

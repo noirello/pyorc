@@ -27,6 +27,7 @@ class Writer
            py::object,
            uint64_t = 1024,
            uint64_t = 67108864,
+           uint64_t = 10000,
            int = 1,
            int = 0,
            uint64_t = 65536,

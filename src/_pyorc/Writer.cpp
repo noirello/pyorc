@@ -58,6 +58,7 @@ Writer::Writer(py::object fileo,
                py::object schema,
                uint64_t batch_size,
                uint64_t stripe_size,
+               uint64_t row_index_stride,
                int compression,
                int compression_strategy,
                uint64_t compression_block_size,
@@ -85,6 +86,7 @@ Writer::Writer(py::object fileo,
       static_cast<orc::CompressionStrategy>(compression_strategy));
     options = options.setCompressionBlockSize(compression_block_size);
     options = options.setStripeSize(stripe_size);
+    options = options.setRowIndexStride(row_index_stride);
     options = options.setColumnsUseBloomFilter(bloom_filter_columns);
     options = options.setBloomFilterFPP(bloom_filter_fpp);
 

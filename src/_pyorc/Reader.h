@@ -58,6 +58,7 @@ class Reader : public ORCFileLikeObject
     py::dict bytesLengths() const;
     uint64_t compression() const;
     uint64_t compressionBlockSize() const;
+    uint64_t rowIndexStride() const;
     py::tuple formatVersion() const;
     uint64_t len() const override;
     uint64_t numberOfStripes() const;

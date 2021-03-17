@@ -377,6 +377,15 @@ def test_compression_block_size(block_size):
     assert reader.compression_block_size == block_size
 
 
+@pytest.mark.parametrize("stride", (10000, 20000, 30000))
+def test_row_index_stride(stride):
+    data = io.BytesIO()
+    with Writer(data, "int", row_index_stride=stride) as writer:
+        writer.writerows(range(10))
+    reader = Reader(data)
+    assert reader.row_index_stride == stride
+
+
 def test_writer_id():
     data = io.BytesIO()
     with Writer(data, "int") as writer:

@@ -355,6 +355,12 @@ Reader::compressionBlockSize() const
     return reader->getCompressionSize();
 }
 
+uint64_t
+Reader::rowIndexStride() const
+{
+    return reader->getRowIndexStride();
+}
+
 py::tuple
 Reader::formatVersion() const
 {
