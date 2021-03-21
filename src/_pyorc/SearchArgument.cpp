@@ -8,52 +8,87 @@ buildLiteral(py::object column, py::object value, py::dict convDict)
     int colType = py::cast<int>(column.attr("type_kind"));
     switch (colType) {
         case orc::TypeKind::BOOLEAN:
-            return std::make_tuple(orc::PredicateDataType::BOOLEAN,
-                                   orc::Literal(py::cast<bool>(value)));
+            if (value.is_none()) {
+                return std::make_tuple(orc::PredicateDataType::BOOLEAN,
+                                       orc::Literal(orc::PredicateDataType::BOOLEAN));
+            } else {
+                return std::make_tuple(orc::PredicateDataType::BOOLEAN,
+                                       orc::Literal(py::cast<bool>(value)));
+            }
         case orc::TypeKind::BYTE:
         case orc::TypeKind::SHORT:
         case orc::TypeKind::INT:
         case orc::TypeKind::LONG:
-            return std::make_tuple(orc::PredicateDataType::LONG,
-                                   orc::Literal(py::cast<int64_t>(value)));
+            if (value.is_none()) {
+                return std::make_tuple(orc::PredicateDataType::LONG,
+                                       orc::Literal(orc::PredicateDataType::LONG));
+            } else {
+                return std::make_tuple(orc::PredicateDataType::LONG,
+                                       orc::Literal(py::cast<int64_t>(value)));
+            }
         case orc::TypeKind::FLOAT:
         case orc::TypeKind::DOUBLE:
-            return std::make_tuple(orc::PredicateDataType::FLOAT,
-                                   orc::Literal(py::cast<double>(value)));
+            if (value.is_none()) {
+                return std::make_tuple(orc::PredicateDataType::FLOAT,
+                                       orc::Literal(orc::PredicateDataType::FLOAT));
+            } else {
+                return std::make_tuple(orc::PredicateDataType::FLOAT,
+                                       orc::Literal(py::cast<double>(value)));
+            }
         case orc::TypeKind::CHAR:
         case orc::TypeKind::VARCHAR:
         case orc::TypeKind::STRING: {
-            std::string str = py::cast<std::string>(value);
-            return std::make_tuple(orc::PredicateDataType::STRING,
-                                   orc::Literal(str.c_str(), str.size()));
+            if (value.is_none()) {
+                return std::make_tuple(orc::PredicateDataType::STRING,
+                                       orc::Literal(orc::PredicateDataType::STRING));
+            } else {
+                std::string str = py::cast<std::string>(value);
+                return std::make_tuple(orc::PredicateDataType::STRING,
+                                       orc::Literal(str.c_str(), str.size()));
+            }
         }
         case orc::TypeKind::DATE: {
-            py::object idx(py::int_(static_cast<int>(orc::TypeKind::DATE)));
-            py::object to_orc = convDict[idx].attr("to_orc");
-            return std::make_tuple(orc::PredicateDataType::DATE,
-                                   orc::Literal(orc::PredicateDataType::DATE,
-                                                py::cast<int64_t>(to_orc(value))));
+            if (value.is_none()) {
+                return std::make_tuple(orc::PredicateDataType::DATE,
+                                       orc::Literal(orc::PredicateDataType::DATE));
+            } else {
+                py::object idx(py::int_(static_cast<int>(orc::TypeKind::DATE)));
+                py::object to_orc = convDict[idx].attr("to_orc");
+                return std::make_tuple(orc::PredicateDataType::DATE,
+                                       orc::Literal(orc::PredicateDataType::DATE,
+                                                    py::cast<int64_t>(to_orc(value))));
+            }
         }
         case orc::TypeKind::TIMESTAMP: {
-            py::object idx(py::int_(static_cast<int>(orc::TypeKind::TIMESTAMP)));
-            py::object to_orc = convDict[idx].attr("to_orc");
-            py::tuple data = to_orc(value);
-            py::tuple res = to_orc(value);
-            return std::make_tuple(
-              orc::PredicateDataType::TIMESTAMP,
-              orc::Literal(py::cast<int64_t>(res[0]), py::cast<int64_t>(res[1])));
+            if (value.is_none()) {
+                return std::make_tuple(orc::PredicateDataType::TIMESTAMP,
+                                       orc::Literal(orc::PredicateDataType::TIMESTAMP));
+            } else {
+                py::object idx(py::int_(static_cast<int>(orc::TypeKind::TIMESTAMP)));
+                py::object to_orc = convDict[idx].attr("to_orc");
+                py::tuple data = to_orc(value);
+                py::tuple res = to_orc(value);
+                return std::make_tuple(
+                  orc::PredicateDataType::TIMESTAMP,
+                  orc::Literal(py::cast<int64_t>(res[0]), py::cast<int64_t>(res[1])));
+            }
         }
         case orc::TypeKind::DECIMAL: {
-            py::object idx(py::int_(static_cast<int>(orc::TypeKind::DECIMAL)));
-            uint64_t precision = py::cast<uint64_t>(column.attr("precision"));
-            uint64_t scale = py::cast<uint64_t>(column.attr("scale"));
-            py::object to_orc = convDict[idx].attr("to_orc");
-            py::object value = to_orc(precision, scale, value);
-            std::string strVal = py::cast<std::string>(py::str(value));
-            return std::make_tuple(orc::PredicateDataType::DECIMAL,
-                                   orc::Literal(orc::Int128(strVal),
-                                                static_cast<int32_t>(precision),
-                                                static_cast<int32_t>(scale)));
+            if (value.is_none()) {
+                return std::make_tuple(orc::PredicateDataType::DECIMAL,
+                                       orc::Literal(orc::PredicateDataType::DECIMAL));
+            } else {
+                py::object idx(py::int_(static_cast<int>(orc::TypeKind::DECIMAL)));
+                uint64_t precision = py::cast<uint64_t>(column.attr("precision"));
+                uint64_t scale = py::cast<uint64_t>(column.attr("scale"));
+                py::object to_orc = convDict[idx].attr("to_orc");
+                py::object value = to_orc(precision, scale, value);
+                std::string strVal = py::cast<std::string>(py::str(value));
+                return std::make_tuple(orc::PredicateDataType::DECIMAL,
+                                       orc::Literal(orc::Int128(strVal),
+                                                    static_cast<int32_t>(precision),
+                                                    static_cast<int32_t>(scale)));
+            }
         }
         default:
             throw py::type_error("Unsupported type for ORC Literal");
