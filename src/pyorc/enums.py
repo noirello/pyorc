@@ -41,6 +41,10 @@ class TypeKind(enum.IntEnum):
     VARCHAR = 16
     CHAR = 17
 
+    @classmethod
+    def has_value(cls, value):
+        return any(member.value for member in cls if member.value == value)
+
 
 class StructRepr(enum.IntEnum):
     """ Enumeration for ORC struct representation. """
