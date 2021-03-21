@@ -10,7 +10,8 @@
 
 namespace py = pybind11;
 
-py::object createTypeDescription(const orc::Type&);
+py::object
+createTypeDescription(const orc::Type&);
 
 class ORCFileLikeObject
 {
@@ -57,6 +58,7 @@ class Reader : public ORCFileLikeObject
            std::list<std::string> = {},
            py::object = py::none(),
            unsigned int = 0,
+           py::object = py::none(),
            py::object = py::none());
     py::dict bytesLengths() const;
     uint64_t compression() const;

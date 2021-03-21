@@ -51,6 +51,7 @@ PYBIND11_MODULE(_pyorc, m)
                     std::list<std::string>,
                     py::object,
                     unsigned int,
+                    py::object,
                     py::object>(),
            py::arg("fileo"),
            py::arg_v("batch_size", 1024, "1024"),
@@ -58,7 +59,8 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("col_names", std::list<std::string>{}, "None"),
            py::arg_v("timezone", py::none(), "None"),
            py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
-           py::arg_v("conv", py::none(), "None"))
+           py::arg_v("conv", py::none(), "None"),
+           py::arg_v("predicate", py::none(), "None"))
       .def("__next__", [](Reader& r) -> py::object { return r.next(); })
       .def("__iter__", [](Reader& r) -> Reader& { return r; })
       .def("__len__", &Reader::len)

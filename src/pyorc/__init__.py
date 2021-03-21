@@ -16,6 +16,7 @@ from .errors import *
 from .reader import Column, Reader, Stripe
 from .writer import Writer
 from .typedescription import *
+from .predicates import PredicateColumn
 from pyorc._pyorc import _orc_version
 
 __version__ = "0.5.0"

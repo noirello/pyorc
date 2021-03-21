@@ -9,6 +9,7 @@ except ImportError:
 from pyorc._pyorc import reader, stripe
 from .enums import StructRepr, TypeKind, CompressionKind, WriterVersion
 from .converters import DEFAULT_CONVERTERS
+from .predicates import Predicate
 
 
 class Column:
@@ -58,6 +59,7 @@ class Reader(reader):
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: Optional[dict] = None,
+        predicate: Optional[Predicate] = None,
     ) -> None:
         if column_indices is None:
             column_indices = []
@@ -70,7 +72,14 @@ class Reader(reader):
         else:
             conv = converters
         super().__init__(
-            fileo, batch_size, column_indices, column_names, timezone, struct_repr, conv
+            fileo,
+            batch_size,
+            column_indices,
+            column_names,
+            timezone,
+            struct_repr,
+            conv,
+            predicate,
         )
 
     def __getitem__(self, col_idx) -> Column:

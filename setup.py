@@ -139,8 +139,15 @@ class BuildORCLib(Command):
         return build_dir
 
 
-SOURCES = ["_pyorc.cpp", "Converter.cpp", "PyORCStream.cpp", "Reader.cpp", "Writer.cpp"]
-HEADERS = ["Converter.h", "PyORCStream.h", "Reader.h", "Writer.h"]
+SOURCES = [
+    "_pyorc.cpp",
+    "Converter.cpp",
+    "PyORCStream.cpp",
+    "Reader.cpp",
+    "SearchArgument.cpp",
+    "Writer.cpp",
+]
+HEADERS = ["Converter.h", "PyORCStream.h", "Reader.h", "SearchArgument.h", "Writer.h"]
 
 if sys.platform.startswith("win32"):
     LIBS = [

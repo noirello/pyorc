@@ -2,6 +2,7 @@
 
 #include "PyORCStream.h"
 #include "Reader.h"
+#include "SearchArgument.h"
 
 using namespace py::literals;
 
@@ -366,7 +367,8 @@ Reader::Reader(py::object fileo,
                std::list<std::string> col_names,
                py::object tzone,
                unsigned int struct_repr,
-               py::object conv)
+               py::object conv,
+               py::object predicate)
 {
     orc::ReaderOptions readerOpts;
     batchItem = 0;
@@ -394,6 +396,10 @@ Reader::Reader(py::object fileo,
         convDict = py::dict(defaultConv);
     } else {
         convDict = conv;
+    }
+    if (!predicate.is_none()) {
+        rowReaderOpts = rowReaderOpts.searchArgument(
+          std::move(createSearchArgument(predicate, convDict)));
     }
     reader = orc::createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
