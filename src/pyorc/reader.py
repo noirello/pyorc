@@ -90,6 +90,10 @@ class Reader(reader):
             return "ORC_CPP_WRITER"
         elif wid == 2:
             return "PRESTO_WRITER"
+        elif wid == 3:
+            return "SCRITCHLEY_GO"
+        elif wid == 4:
+            return "TRINO_WRITER"
         else:
             return "UNKNOWN_WRITER"
 
