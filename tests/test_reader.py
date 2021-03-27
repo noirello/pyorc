@@ -12,6 +12,7 @@ from pyorc import (
     TypeKind,
     StructRepr,
     ParseError,
+    PredicateColumn,
     Stripe,
     CompressionKind,
     WriterVersion,
@@ -432,3 +433,57 @@ def test_software_version():
         writer.writerows(range(10))
     reader = Reader(data)
     assert reader.software_version == "ORC C++ 1.7.0"
+
+
+def test_empty_predicate_result():
+    data = io.BytesIO()
+    with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
+        writer.writerows((i, "Even") if i % 2 == 0 else (i, "Odd") for i in range(1000))
+    data.seek(0)
+    reader = Reader(data, predicate=PredicateColumn("c0", TypeKind.INT) < 0)
+    assert len(reader) != 0
+    assert list(reader) == []
+
+
+def test_simple_predicate_results():
+    data = io.BytesIO()
+    with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
+        writer.writerows((i, "Even") if i % 2 == 0 else (i, "Odd") for i in range(1000))
+    data.seek(0)
+    reader = Reader(data, predicate=PredicateColumn("c0", TypeKind.INT) < 100)
+    result = list(reader)
+    assert len(result) == 100
+    assert result[99] == (99, "Odd")
+    reader = Reader(data, predicate=PredicateColumn("c1", TypeKind.STRING) == "Even")
+    result = list(reader)
+    assert len(result) == len(reader)
+
+
+def test_complex_predicate_results():
+    data = io.BytesIO()
+    with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
+        writer.writerows(
+            (i, "A") if i > 300 and i <= 450 else (i, "B") for i in range(1000)
+        )
+    data.seek(0)
+    reader = Reader(
+        data,
+        predicate=(PredicateColumn("c0", TypeKind.INT) < 100)
+        & (PredicateColumn("c1", TypeKind.STRING) == "A"),
+    )
+    assert list(reader) == []
+    reader = Reader(
+        data,
+        predicate=(PredicateColumn("c0", TypeKind.INT) > 300)
+        & (PredicateColumn("c1", TypeKind.STRING) == "A"),
+    )
+    result = list(reader)
+    assert len(result) == 200
+    assert sum(1 if row[1] == "A" else 0 for row in result) == 150
+    reader = Reader(
+        data,
+        predicate=(PredicateColumn("c0", TypeKind.INT) >= 400)
+        & (PredicateColumn("c1", TypeKind.STRING) == "B"),
+    )
+    result = list(reader)
+    assert len(result) == 600
