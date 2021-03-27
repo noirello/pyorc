@@ -91,7 +91,7 @@ buildLiteral(py::object column, py::object value, py::dict convDict)
             }
         }
         default:
-            throw py::type_error("Unsupported type for ORC Literal");
+            throw py::type_error("Unsupported type for ORC Literal in predicate");
     }
 }
 
@@ -135,7 +135,7 @@ buildSearchArgument(orc::SearchArgumentBuilder& sarg,
             return sarg.lessThanEquals(colName, std::get<0>(res), std::get<1>(res));
         }
         default:
-            throw py::type_error("Invalid operation on Literal");
+            throw py::type_error("Invalid operation on Literal in predicate");
     }
     return sarg;
 }
@@ -145,7 +145,17 @@ createSearchArgument(py::object predicate, py::dict convDict)
 {
     std::unique_ptr<orc::SearchArgumentBuilder> builder =
       orc::SearchArgumentFactory::newBuilder();
-    py::tuple predVals = predicate.attr("values");
-    buildSearchArgument(*builder.get(), predVals, convDict);
-    return builder->build();
+    try {
+        py::tuple predVals = predicate.attr("values");
+        buildSearchArgument(*builder.get(), predVals, convDict);
+        return builder->build();
+    } catch (py::error_already_set& err) {
+        if (err.matches(PyExc_AttributeError)) {
+            std::string strbuf("Invalid predicate: ");
+            strbuf.append(py::cast<std::string>(py::repr(predicate)).c_str());
+            throw py::type_error(strbuf.c_str());
+        } else {
+            throw;
+        }
+    }
 }
