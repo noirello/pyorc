@@ -435,6 +435,15 @@ def test_software_version():
     assert reader.software_version == "ORC C++ 1.7.0"
 
 
+def test_wrong_predicate():
+    data = io.BytesIO()
+    with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
+        writer.writerows((i, "Even") if i % 2 == 0 else (i, "Odd") for i in range(1000))
+    data.seek(0)
+    with pytest.raises(TypeError):
+        reader = Reader(data, predicate="wrong")
+
+
 def test_empty_predicate_result():
     data = io.BytesIO()
     with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
