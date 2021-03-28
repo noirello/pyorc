@@ -1,11 +1,13 @@
 #include "Reader.h"
 #include "Writer.h"
+#include <orc/orc-config.hh>
 
 namespace py = pybind11;
 
 PYBIND11_MODULE(_pyorc, m)
 {
     m.doc() = "_pyorc c++ extension";
+    m.def("_orc_version", []() -> py::object { return py::cast(ORC_VERSION); });
     m.def("_schema_from_string", [](std::string schema) {
         try {
             auto orcType = orc::Type::buildTypeFromString(schema);
