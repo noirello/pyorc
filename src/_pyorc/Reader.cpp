@@ -311,7 +311,7 @@ Reader::Reader(py::object fileo,
     if (!col_names.empty()) {
         rowReaderOpts = rowReaderOpts.include(col_names);
     }
-    if (conv.is(py::none())) {
+    if (conv.is_none()) {
         py::dict defaultConv =
           py::module::import("pyorc.converters").attr("DEFAULT_CONVERTERS");
         convDict = py::dict(defaultConv);

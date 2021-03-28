@@ -319,7 +319,7 @@ void
 BoolConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
 {
     auto* longBatch = dynamic_cast<orc::LongVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         longBatch->hasNulls = true;
         longBatch->notNull[rowId] = 0;
     } else {
@@ -357,7 +357,7 @@ void
 LongConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
 {
     auto* longBatch = dynamic_cast<orc::LongVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         longBatch->hasNulls = true;
         longBatch->notNull[rowId] = 0;
     } else {
@@ -395,7 +395,7 @@ void
 DoubleConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
 {
     auto* doubleBatch = dynamic_cast<orc::DoubleVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         doubleBatch->hasNulls = true;
         doubleBatch->notNull[rowId] = 0;
     } else {
@@ -435,7 +435,7 @@ void
 StringConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
 {
     auto* strBatch = dynamic_cast<orc::StringVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         strBatch->hasNulls = true;
         strBatch->notNull[rowId] = 0;
     } else {
@@ -490,7 +490,7 @@ BinaryConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object
 {
     char* src = nullptr;
     auto* bytesBatch = dynamic_cast<orc::StringVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         bytesBatch->hasNulls = true;
         bytesBatch->notNull[rowId] = 0;
     } else {
@@ -556,7 +556,7 @@ TimestampConverter::write(orc::ColumnVectorBatch* batch,
                           py::object elem)
 {
     auto* tsBatch = dynamic_cast<orc::TimestampVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         tsBatch->hasNulls = true;
         tsBatch->notNull[rowId] = 0;
     } else {
@@ -610,7 +610,7 @@ void
 DateConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
 {
     auto* dBatch = dynamic_cast<orc::LongVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         dBatch->hasNulls = true;
         dBatch->notNull[rowId] = 0;
     } else {
@@ -688,7 +688,7 @@ Decimal64Converter::write(orc::ColumnVectorBatch* batch,
     auto* decBatch = dynamic_cast<orc::Decimal64VectorBatch*>(batch);
     decBatch->precision = prec;
     decBatch->scale = scale;
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         decBatch->hasNulls = true;
         decBatch->notNull[rowId] = 0;
     } else {
@@ -744,7 +744,7 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
     auto* decBatch = dynamic_cast<orc::Decimal128VectorBatch*>(batch);
     decBatch->precision = prec;
     decBatch->scale = scale;
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         decBatch->hasNulls = true;
         decBatch->notNull[rowId] = 0;
     } else {
@@ -802,7 +802,7 @@ ListConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object e
     auto* listBatch = dynamic_cast<orc::ListVectorBatch*>(batch);
     listBatch->offsets[0] = 0;
     uint64_t offset = static_cast<uint64_t>(listBatch->offsets[rowId]);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         listBatch->hasNulls = true;
         listBatch->notNull[rowId] = 0;
     } else {
@@ -868,7 +868,7 @@ MapConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object el
     auto* mapBatch = dynamic_cast<orc::MapVectorBatch*>(batch);
     mapBatch->offsets[0] = 0;
     uint64_t offset = static_cast<uint64_t>(mapBatch->offsets[rowId]);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         mapBatch->hasNulls = true;
         mapBatch->notNull[rowId] = 0;
     } else {
@@ -945,7 +945,7 @@ void
 UnionConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
 {
     auto* unionBatch = dynamic_cast<orc::UnionVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         unionBatch->hasNulls = true;
         unionBatch->notNull[rowId] = 0;
     } else {
@@ -1040,7 +1040,7 @@ void
 StructConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem)
 {
     auto* structBatch = dynamic_cast<orc::StructVectorBatch*>(batch);
-    if (elem.is(py::none())) {
+    if (elem.is_none()) {
         structBatch->hasNulls = true;
         structBatch->notNull[rowId] = 0;
         for (size_t i = 0; i < fieldConverters.size(); ++i) {

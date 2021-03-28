@@ -73,7 +73,7 @@ Writer::Writer(py::object fileo,
     orc::WriterOptions options;
     py::dict converters;
 
-    if (conv.is(py::none())) {
+    if (conv.is_none()) {
         py::dict defaultConv =
           py::module::import("pyorc.converters").attr("DEFAULT_CONVERTERS");
         converters = py::dict(defaultConv);
