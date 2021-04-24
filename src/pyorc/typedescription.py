@@ -1,6 +1,6 @@
 import re
 
-from typing import Mapping, Tuple
+from typing import Mapping, Tuple, Dict
 from types import MappingProxyType
 from pyorc._pyorc import _schema_from_string
 
@@ -13,9 +13,17 @@ class TypeDescription:
 
     def __init__(self) -> None:
         self._column_id = 0
+        self._attributes = {}
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def attributes(self) -> Dict[str, str]:
+        return self._attributes
+
+    def set_attributes(self, val) -> None:
+        self._attributes = val
 
     @property
     def column_id(self) -> int:
