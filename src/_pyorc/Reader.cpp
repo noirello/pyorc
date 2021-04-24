@@ -5,55 +5,118 @@
 
 using namespace py::literals;
 
+py::dict
+createAttributeDict(const orc::Type& orcType)
+{
+    py::dict result;
+    for (std::string key : orcType.getAttributeKeys()) {
+        result[key.c_str()] = py::str(orcType.getAttributeValue(key).c_str());
+    }
+    return result;
+}
+
 py::object
 createTypeDescription(const orc::Type& orcType)
 {
     py::object typeModule = py::module::import("pyorc.typedescription");
     int kind = static_cast<int>(orcType.getKind());
+    py::object attrDict = createAttributeDict(orcType);
     switch (kind) {
-        case orc::BOOLEAN:
-            return typeModule.attr("Boolean")();
-        case orc::BYTE:
-            return typeModule.attr("TinyInt")();
-        case orc::SHORT:
-            return typeModule.attr("SmallInt")();
-        case orc::INT:
-            return typeModule.attr("Int")();
-        case orc::LONG:
-            return typeModule.attr("BigInt")();
-        case orc::FLOAT:
-            return typeModule.attr("Float")();
-        case orc::DOUBLE:
-            return typeModule.attr("Double")();
-        case orc::STRING:
-            return typeModule.attr("String")();
-        case orc::BINARY:
-            return typeModule.attr("Binary")();
-        case orc::TIMESTAMP:
-            return typeModule.attr("Timestamp")();
-        case orc::DATE:
-            return typeModule.attr("Date")();
-        case orc::CHAR:
-            return typeModule.attr("Char")(py::cast(orcType.getMaximumLength()));
-        case orc::VARCHAR:
-            return typeModule.attr("VarChar")(py::cast(orcType.getMaximumLength()));
-        case orc::DECIMAL:
-            return typeModule.attr("Decimal")("precision"_a =
-                                                py::cast(orcType.getPrecision()),
-                                              "scale"_a = py::cast(orcType.getScale()));
-        case orc::LIST:
-            return typeModule.attr("Array")(
-              createTypeDescription(*orcType.getSubtype(0)));
-        case orc::MAP:
-            return typeModule.attr("Map")(
+        case orc::BOOLEAN: {
+            py::object typeDesc = typeModule.attr("Boolean")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::BYTE: {
+            py::object typeDesc = typeModule.attr("TinyInt")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::SHORT: {
+            py::object typeDesc = typeModule.attr("SmallInt")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::INT: {
+            py::object typeDesc = typeModule.attr("Int")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::LONG: {
+            py::object typeDesc = typeModule.attr("BigInt")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::FLOAT: {
+            py::object typeDesc = typeModule.attr("Float")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::DOUBLE: {
+            py::object typeDesc = typeModule.attr("Double")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::STRING: {
+            py::object typeDesc = typeModule.attr("String")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::BINARY: {
+            py::object typeDesc = typeModule.attr("Binary")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::TIMESTAMP: {
+            py::object typeDesc = typeModule.attr("Timestamp")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::DATE: {
+            py::object typeDesc = typeModule.attr("Date")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::CHAR: {
+            py::object typeDesc =
+              typeModule.attr("Char")(py::cast(orcType.getMaximumLength()));
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::VARCHAR: {
+            py::object typeDesc =
+              typeModule.attr("VarChar")(py::cast(orcType.getMaximumLength()));
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::DECIMAL: {
+            py::object typeDesc = typeModule.attr("Decimal")(
+              "precision"_a = py::cast(orcType.getPrecision()),
+              "scale"_a = py::cast(orcType.getScale()));
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::LIST: {
+            py::object typeDesc =
+              typeModule.attr("Array")(createTypeDescription(*orcType.getSubtype(0)));
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
+        case orc::MAP: {
+            py::object typeDesc = typeModule.attr("Map")(
               "key"_a = createTypeDescription(*orcType.getSubtype(0)),
               "value"_a = createTypeDescription(*orcType.getSubtype(1)));
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
         case orc::UNION: {
             py::tuple args(orcType.getSubtypeCount());
             for (size_t i = 0; i < orcType.getSubtypeCount(); ++i) {
                 args[i] = createTypeDescription(*orcType.getSubtype(i));
             }
-            return typeModule.attr("Union")(*args);
+            py::object typeDesc = typeModule.attr("Union")(*args);
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
         }
         case orc::STRUCT: {
             py::dict fields;
@@ -61,7 +124,9 @@ createTypeDescription(const orc::Type& orcType)
                 auto key = orcType.getFieldName(i);
                 fields[key.c_str()] = createTypeDescription(*orcType.getSubtype(i));
             }
-            return typeModule.attr("Struct")(**fields);
+            py::object typeDesc = typeModule.attr("Struct")(**fields);
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
         }
         default:
             throw py::type_error("Invalid TypeKind");
