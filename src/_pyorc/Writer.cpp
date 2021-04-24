@@ -1,7 +1,19 @@
-#include "PyORCStream.h"
 #include "Writer.h"
+#include "PyORCStream.h"
 
-ORC_UNIQUE_PTR<orc::Type> createType(py::handle schema) {
+void
+setTypeAttributes(orc::Type* type, py::handle schema)
+{
+    py::dict attributes(py::getattr(schema, "attributes"));
+    for (auto attr : attributes) {
+        type->setAttribute(py::cast<std::string>(attr.first),
+                           py::cast<std::string>(attr.second));
+    }
+}
+
+ORC_UNIQUE_PTR<orc::Type>
+createType(py::handle schema)
+{
     orc::TypeKind kind = orc::TypeKind((int)py::int_(getattr(schema, "kind")));
     switch (kind) {
         case orc::TypeKind::BOOLEAN:
@@ -14,40 +26,56 @@ ORC_UNIQUE_PTR<orc::Type> createType(py::handle schema) {
         case orc::TypeKind::STRING:
         case orc::TypeKind::BINARY:
         case orc::TypeKind::TIMESTAMP:
-        case orc::TypeKind::DATE:
-            return orc::createPrimitiveType(kind);
+        case orc::TypeKind::DATE: {
+            ORC_UNIQUE_PTR<orc::Type> type = orc::createPrimitiveType(kind);
+            setTypeAttributes(type.get(), schema);
+            return type;
+        }
         case orc::TypeKind::VARCHAR:
-        case orc::TypeKind::CHAR:
-            return orc::createCharType(kind, (uint64_t)py::int_(getattr(schema, "max_length")));
+        case orc::TypeKind::CHAR: {
+            ORC_UNIQUE_PTR<orc::Type> type = orc::createCharType(
+              kind, static_cast<uint64_t>(py::int_(getattr(schema, "max_length"))));
+            setTypeAttributes(type.get(), schema);
+            return type;
+        }
         case orc::TypeKind::DECIMAL: {
-            uint64_t precision = (uint64_t)py::int_(getattr(schema, "precision"));
-            uint64_t scale = (uint64_t)py::int_(getattr(schema, "scale"));
-            return orc::createDecimalType(precision, scale);
+            uint64_t precision =
+              static_cast<uint64_t>(py::int_(getattr(schema, "precision")));
+            uint64_t scale = static_cast<uint64_t>(py::int_(getattr(schema, "scale")));
+            ORC_UNIQUE_PTR<orc::Type> type = orc::createDecimalType(precision, scale);
+            setTypeAttributes(type.get(), schema);
+            return type;
         }
         case orc::TypeKind::LIST: {
             py::handle child = getattr(schema, "type");
-            return orc::createListType(createType(child));
+            ORC_UNIQUE_PTR<orc::Type> type = orc::createListType(createType(child));
+            setTypeAttributes(type.get(), schema);
+            return type;
         }
         case orc::TypeKind::MAP: {
             py::handle key = getattr(schema, "key");
             py::handle value = getattr(schema, "value");
-            return orc::createMapType(createType(key), createType(value));
+            ORC_UNIQUE_PTR<orc::Type> type = orc::createMapType(createType(key), createType(value));
+            setTypeAttributes(type.get(), schema);
+            return type;
         }
         case orc::TypeKind::STRUCT: {
-            ORC_UNIQUE_PTR<orc::Type> ty = orc::createStructType();
+            ORC_UNIQUE_PTR<orc::Type> type = orc::createStructType();
             py::dict fields = getattr(schema, "fields");
             for (auto item : fields) {
-                ty->addStructField((py::str)item.first, createType(item.second));
+                type->addStructField((py::str)item.first, createType(item.second));
             }
-            return ty;
+            setTypeAttributes(type.get(), schema);
+            return type;
         }
         case orc::TypeKind::UNION: {
-            ORC_UNIQUE_PTR<orc::Type> ty = orc::createUnionType();
+            ORC_UNIQUE_PTR<orc::Type> type = orc::createUnionType();
             py::list cont_types = getattr(schema, "cont_types");
             for (auto child : cont_types) {
-                ty->addUnionChild(createType(child));
+                type->addUnionChild(createType(child));
             }
-            return ty;
+            setTypeAttributes(type.get(), schema);
+            return type;
         }
         default:
             throw py::type_error("Invalid TypeKind");
