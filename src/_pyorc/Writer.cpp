@@ -14,7 +14,7 @@ setTypeAttributes(orc::Type* type, py::handle schema)
 ORC_UNIQUE_PTR<orc::Type>
 createType(py::handle schema)
 {
-    orc::TypeKind kind = orc::TypeKind((int)py::int_(getattr(schema, "kind")));
+    orc::TypeKind kind = orc::TypeKind(py::cast<int>(getattr(schema, "kind")));
     switch (kind) {
         case orc::TypeKind::BOOLEAN:
         case orc::TypeKind::BYTE:
@@ -34,14 +34,13 @@ createType(py::handle schema)
         case orc::TypeKind::VARCHAR:
         case orc::TypeKind::CHAR: {
             ORC_UNIQUE_PTR<orc::Type> type = orc::createCharType(
-              kind, static_cast<uint64_t>(py::int_(getattr(schema, "max_length"))));
+              kind, py::cast<uint64_t>(getattr(schema, "max_length")));
             setTypeAttributes(type.get(), schema);
             return type;
         }
         case orc::TypeKind::DECIMAL: {
-            uint64_t precision =
-              static_cast<uint64_t>(py::int_(getattr(schema, "precision")));
-            uint64_t scale = static_cast<uint64_t>(py::int_(getattr(schema, "scale")));
+            uint64_t precision = py::cast<uint64_t>(getattr(schema, "precision"));
+            uint64_t scale = py::cast<uint64_t>(getattr(schema, "scale"));
             ORC_UNIQUE_PTR<orc::Type> type = orc::createDecimalType(precision, scale);
             setTypeAttributes(type.get(), schema);
             return type;
@@ -55,7 +54,8 @@ createType(py::handle schema)
         case orc::TypeKind::MAP: {
             py::handle key = getattr(schema, "key");
             py::handle value = getattr(schema, "value");
-            ORC_UNIQUE_PTR<orc::Type> type = orc::createMapType(createType(key), createType(value));
+            ORC_UNIQUE_PTR<orc::Type> type =
+              orc::createMapType(createType(key), createType(value));
             setTypeAttributes(type.get(), schema);
             return type;
         }
