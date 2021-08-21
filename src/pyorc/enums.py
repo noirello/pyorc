@@ -40,6 +40,7 @@ class TypeKind(enum.IntEnum):
     DATE = 15
     VARCHAR = 16
     CHAR = 17
+    TIMESTAMP_INSTANT = 18
 
     @classmethod
     def has_value(cls, value):

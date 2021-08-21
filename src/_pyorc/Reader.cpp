@@ -72,6 +72,11 @@ createTypeDescription(const orc::Type& orcType)
             typeDesc.attr("set_attributes")(attrDict);
             return typeDesc;
         }
+        case orc::TIMESTAMP_INSTANT: {
+            py::object typeDesc = typeModule.attr("TimestampInstant")();
+            typeDesc.attr("set_attributes")(attrDict);
+            return typeDesc;
+        }
         case orc::DATE: {
             py::object typeDesc = typeModule.attr("Date")();
             typeDesc.attr("set_attributes")(attrDict);
@@ -316,7 +321,8 @@ ORCFileLikeObject::buildStatistics(const orc::Type* type,
             }
             return result;
         }
-        case orc::TIMESTAMP: {
+        case orc::TIMESTAMP:
+        case orc::TIMESTAMP_INSTANT: {
             auto* timeStat = dynamic_cast<const orc::TimestampColumnStatistics*>(stats);
             if (timeStat->hasMinimum()) {
                 result["minimum"] = convertTimestampMillis(timeStat->getMinimum());

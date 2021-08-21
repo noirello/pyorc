@@ -26,6 +26,7 @@ createType(py::handle schema)
         case orc::TypeKind::STRING:
         case orc::TypeKind::BINARY:
         case orc::TypeKind::TIMESTAMP:
+        case orc::TypeKind::TIMESTAMP_INSTANT:
         case orc::TypeKind::DATE: {
             ORC_UNIQUE_PTR<orc::Type> type = orc::createPrimitiveType(kind);
             setTypeAttributes(type.get(), schema);

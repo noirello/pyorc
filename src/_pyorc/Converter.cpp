@@ -254,6 +254,7 @@ createConverter(const orc::Type* type, unsigned int structKind, py::dict conv)
                 result = new BinaryConverter();
                 break;
             case orc::TIMESTAMP:
+            case orc::TIMESTAMP_INSTANT:
                 result = new TimestampConverter(conv);
                 break;
             case orc::LIST:
