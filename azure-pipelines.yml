@@ -170,6 +170,47 @@ stages:
       inputs:
         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: wheels
+  - job: manylinux_aarch64_wheels
+    pool:
+      vmImage: "ubuntu-latest"
+    strategy:
+      matrix:
+        Python36:
+          cpython.version: cp36-cp36m
+        Python37:
+          cpython.version: cp37-cp37m
+        Python38:
+          cpython.version: cp38-cp38
+        Python39:
+          cpython.version: cp39-cp39
+    steps:
+    - script: docker run --rm --privileged hypriot/qemu-register
+      displayName: 'Registering qemu'
+    - script: |
+        docker run -v $(pwd):"${DOCKER_ROOT_DIRECTORY}":rw,z \
+                   -e HOST_USER_ID \
+                    "quay.io/pypa/manylinux2014_aarch64:latest" \
+                    bash -c "cd $DOCKER_ROOT_DIRECTORY;
+                    /opt/python/$(cpython.version)/bin/python -m pip install --user cmake pybind11 && \
+                    export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && cmake --version && \
+                    export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && \
+                    yum update && yum -y install gcc gcc-c++ && \
+                    /opt/python/$(cpython.version)/bin/python setup.py build_orc --build-type=release && \
+                    /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel && \
+                    auditwheel repair dist/pyorc-*.whl"
+      displayName: 'Running AArch64 build'
+      env:
+        DOCKER_ROOT_DIRECTORY: "/home/source_root"
+        HOST_USER_ID: $(id -u)
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)/wheelhouse/'
+        contents: '*'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: wheels
   - job: macos_wheels
     pool:
       vmImage: 'macOS-latest'
