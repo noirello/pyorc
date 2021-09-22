@@ -1,5 +1,22 @@
 Changelog
 ==========
+[0.5.0] - UNRELEASED
+--------------------
+
+Added
+~~~~~
+
+- Module level variables for the ORC library version: orc_version string and
+  orc_version_info namedtuple.
+- New parameter for Reader and Writer: row_index_stride.
+- Trino and Scritchley writer ids.
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~
+
 [0.4.0] - 2021-01-11
 --------------------
 
