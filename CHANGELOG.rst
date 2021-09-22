@@ -14,6 +14,10 @@ Added
 Changed
 ~~~~~~~
 
+- ORC C++ Core updated to 1.7.0, and because many of the new features are not
+  backported to the 1.6 branch, currently this is the minimum required lib
+  version.
+
 Fixed
 ~~~~~
 
