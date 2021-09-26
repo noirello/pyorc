@@ -10,6 +10,7 @@ Added
   orc_version_info namedtuple.
 - New parameter for Reader and Writer: row_index_stride.
 - Trino and Scritchley writer ids.
+- Type annotations support for ORC types.
 
 Changed
 ~~~~~~~
