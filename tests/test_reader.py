@@ -411,16 +411,16 @@ def test_bytes_lengths():
     Writer(data, "string", compression=0).close()
     reader = Reader(data)
     assert reader.bytes_lengths["content_length"] == 0
-    assert reader.bytes_lengths["file_footer_length"] == 31
+    assert reader.bytes_lengths["file_footer_length"] == 38
     assert reader.bytes_lengths["file_postscript_length"] == 23
-    assert reader.bytes_lengths["file_length"] == 58
+    assert reader.bytes_lengths["file_length"] == 65
     assert reader.bytes_lengths["stripe_statistics_length"] == 0
     data = io.BytesIO()
     with Writer(data, "int") as writer:
         writer.writerows(range(100))
     reader = Reader(data)
     assert reader.bytes_lengths["content_length"] == 76
-    assert reader.bytes_lengths["file_footer_length"] == 52
+    assert reader.bytes_lengths["file_footer_length"] == 59
     assert reader.bytes_lengths["file_postscript_length"] == 23
     assert reader.bytes_lengths["file_length"] == len(data.getvalue())
     assert reader.bytes_lengths["stripe_statistics_length"] == 21
