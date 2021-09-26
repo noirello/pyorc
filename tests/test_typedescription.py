@@ -147,3 +147,16 @@ def test_union():
         _ = schema[10]
     schema = Union(Float(), VarChar(120))
     assert schema[0].kind == TypeKind.FLOAT
+
+
+def test_attributes():
+    schema = Boolean()
+    with pytest.raises(TypeError):
+        _ = schema.set_attributes(0)
+    with pytest.raises(TypeError):
+        _ = schema.set_attributes({0: "1"})
+    with pytest.raises(TypeError):
+        _ = schema.set_attributes({"a": 1})
+    attrs = {"a": "1", "b": "2"}
+    schema.set_attributes(attrs)
+    assert schema.attributes == attrs

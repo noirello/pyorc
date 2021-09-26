@@ -484,3 +484,20 @@ def test_compression(kind):
     assert reader.compression == kind
     for idx, row in enumerate(reader):
         assert row == (idx, "ABCDEFG", 0.12)
+
+
+@pytest.mark.parametrize(
+    "schema,attrs",
+    (
+        (TypeDescription.from_string("int"), {"a": "1", "b": "2"}),
+        (TypeDescription.from_string("struct<a:boolean>"), {"test": "attribute"}),
+    ),
+)
+def test_attributes(schema, attrs):
+    data = io.BytesIO()
+    schema.set_attributes(attrs)
+    writer = Writer(data, schema)
+    writer.close()
+    reader = Reader(data)
+    assert len(reader) == 0
+    assert reader.schema.attributes == attrs
