@@ -23,7 +23,18 @@ class TypeDescription:
         return self._attributes
 
     def set_attributes(self, val) -> None:
-        self._attributes = val
+        if isinstance(val, dict):
+            if all(
+                isinstance(key, str) and isinstance(val, str)
+                for key, val in val.items()
+            ):
+                self._attributes = val
+            else:
+                raise TypeError(
+                    "The all keys and values in the attributes dictinoary must be string"
+                )
+        else:
+            raise TypeError("The attributes must be a dictionary")
 
     @property
     def column_id(self) -> int:
