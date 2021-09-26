@@ -4,12 +4,14 @@ import json
 import gzip
 import os
 import math
+import subprocess
+import sys
+
 
 from pyorc import TypeKind, StructRepr
 import pyorc._pyorc
 
-from datetime import date, datetime
-from decimal import Decimal
+ORC_METADATA_PATH = "deps/bin/orc-metadata"
 
 
 def traverse_json_row(schema, value, parent=""):
@@ -43,9 +45,7 @@ def traverse_orc_row(schema, value, parent=""):
         yield schema.kind, parent, value
     elif schema.kind == TypeKind.STRUCT:
         for key, val in value.items():
-            yield from traverse_orc_row(
-                schema[key], val, "{0}.{1}".format(parent, key)
-            )
+            yield from traverse_orc_row(schema[key], val, "{0}.{1}".format(parent, key))
     elif schema.kind == TypeKind.MAP:
         for key, val in value.items():
             yield from traverse_orc_row(
@@ -167,3 +167,55 @@ def test_writer_version():
     with open(get_full_path("decimal.orc"), "rb") as fileo:
         res = pyorc.reader.Reader(fileo)
         assert res.writer_version == 0
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="No orc-tools on Windows")
+def test_metadata():
+    test_data = get_full_path("complextypes_iceberg.orc")
+    expected_metadata = None
+    with subprocess.Popen(
+        [ORC_METADATA_PATH, test_data], stdout=subprocess.PIPE,
+    ) as proc:
+        expected_metadata = json.load(proc.stdout)
+    with open(test_data, "rb") as fileo:
+        res = pyorc.reader.Reader(fileo)
+        assert str(res.schema) == expected_metadata["type"]
+        assert len(res) == expected_metadata["rows"]
+        assert res.num_of_stripes == expected_metadata["stripe count"]
+        assert (
+            f"{res.format_version[0]}.{res.format_version[1]}"
+            == expected_metadata["format"]
+        )
+        assert res.compression.name.lower() == expected_metadata["compression"]
+        assert res.compression_block_size == expected_metadata["compression block"]
+        assert res.row_index_stride == expected_metadata["row index stride"]
+        assert res.metadata == expected_metadata["user metadata"]
+        assert res.bytes_lengths["content_length"] == expected_metadata["content"]
+        assert res.bytes_lengths["file_footer_length"] == expected_metadata["footer"]
+        assert res.bytes_lengths["file_length"] == expected_metadata["file length"]
+        assert (
+            res.bytes_lengths["file_postscript_length"]
+            == expected_metadata["postscript"]
+        )
+        assert (
+            res.bytes_lengths["stripe_statistics_length"]
+            == expected_metadata["stripe stats"]
+        )
+        assert (
+            res.read_stripe(0).bytes_length == expected_metadata["stripes"][0]["length"]
+        )
+        assert (
+            res.read_stripe(0).bytes_offset == expected_metadata["stripes"][0]["offset"]
+        )
+        for col, expected_attr in expected_metadata["attributes"].items():
+            col_type = res.schema
+            for item in col.split("."):
+                if item == "_elem":
+                    col_type = col_type.type
+                elif item == "_key":
+                    col_type = col_type.key
+                elif item == "_value":
+                    col_type = col_type.value
+                else:
+                    col_type = col_type[item]
+            assert col_type.attributes == expected_attr

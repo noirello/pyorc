@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 from decimal import Decimal
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
 import pyorc._pyorc
 from pyorc.enums import TypeKind, StructRepr
