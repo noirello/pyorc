@@ -1,3 +1,4 @@
+import copy
 from typing import Union, Optional, List, BinaryIO, Iterable
 
 from pyorc._pyorc import writer
@@ -76,7 +77,7 @@ class Writer(writer):
 
     @property
     def schema(self) -> TypeDescription:
-        return self.__schema
+        return copy.deepcopy(self.__schema)
 
     def set_metadata(self, **kwargs) -> None:
         for key, val in kwargs.items():
