@@ -301,6 +301,15 @@ API documentation
 
     Find the its id of a column by its name.
 
+.. method:: TypeDescription.set_attributes(attrs)
+
+    Annotate the ORC type with custom attributes. The `attrs` parameter
+    must be a dictionary with string keys and string values.
+
+.. attribute:: TypeDescription.attributes
+
+    Return the attributes that the column is annotated with.
+
 .. attribute:: TypeDescription.column_id
 
     The id of the column.
@@ -510,7 +519,7 @@ API documentation
 
 .. attribute:: Writer.schema
 
-    A :class:`TypeDescription` object of the ORC file's schema.
+    A read-only :class:`TypeDescription` object of the ORC file's schema.
 
 Enums
 =====
