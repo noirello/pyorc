@@ -107,6 +107,7 @@ stages:
     - script: |
         $(pythonbin) setup.py build_orc --download-only=True
         $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
+        $(pythonbin) -m patch .azure-pipelines\ExpressionTree.hh.patch
         $(pythonbin) setup.py build_orc
       displayName: Build ORC Lib
     - script: |
@@ -287,6 +288,7 @@ stages:
     - script: |
         $(pythonbin) setup.py build_orc --download-only=True
         $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
+        $(pythonbin) -m patch .azure-pipelines\ExpressionTree.hh.patch
         $(pythonbin) setup.py build_orc --build-type=release
       displayName: Build ORC Lib
     - script: $(pythonbin) setup.py bdist_wheel
