@@ -24,12 +24,14 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         if name == "typedescription":
             return object
-        if name == "reader":
+        elif name == "reader":
             return object
-        if name == "writer":
+        elif name == "writer":
             return object
-        if name == "stripe":
+        elif name == "stripe":
             return object
+        elif name == "_orc_version":
+            return lambda: "0.0.0-DUMMY"
 
 
 MOCK_MODULES = ["src.pyorc._pyorc", "pyorc", "pyorc._pyorc"]
@@ -43,7 +45,7 @@ sys.modules["pyorc"] = pyorc
 # -- Project information -----------------------------------------------------
 
 project = "PyORC"
-copyright = "2019, noirello"
+copyright = "2019-2021, noirello"
 author = "noirello"
 
 # The full version, including alpha/beta/rc tags
