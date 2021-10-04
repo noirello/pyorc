@@ -329,7 +329,7 @@ class TestConverter(ORCConverter):
         pass
 
     @staticmethod
-    def from_orc(seconds, nanoseconds):
+    def from_orc(seconds, nanoseconds, timezone):
         return (seconds, nanoseconds)
 
 

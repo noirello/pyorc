@@ -119,7 +119,7 @@ def test_writer_timezone(striped_orc_data):
     reader = Reader(data)
     stripe = Stripe(reader, 1)
 
-    assert stripe.writer_timezone == "GMT"
+    assert stripe.writer_timezone == "UTC"
     with pytest.raises(AttributeError):
         stripe.writer_timezone = "UTC-9:00"
 

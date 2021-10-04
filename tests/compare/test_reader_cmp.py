@@ -7,6 +7,10 @@ import math
 import subprocess
 import sys
 
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 
 from pyorc import TypeKind, StructRepr
 import pyorc._pyorc
@@ -90,7 +94,9 @@ TESTDATA = [
 def test_read(example, expected):
     exp_res = gzip.open(get_full_path(expected), "rb")
     with open(get_full_path(example), "rb") as fileo:
-        orc_res = pyorc._pyorc.reader(fileo, struct_repr=StructRepr.DICT)
+        orc_res = pyorc._pyorc.reader(
+            fileo, timezone=zoneinfo.ZoneInfo("UTC"), struct_repr=StructRepr.DICT
+        )
         length = 0
         for num, line in enumerate(exp_res):
             json_row = traverse_json_row(orc_res.schema, json.loads(line))
@@ -174,7 +180,8 @@ def test_metadata():
     test_data = get_full_path("complextypes_iceberg.orc")
     expected_metadata = None
     with subprocess.Popen(
-        [ORC_METADATA_PATH, test_data], stdout=subprocess.PIPE,
+        [ORC_METADATA_PATH, test_data],
+        stdout=subprocess.PIPE,
     ) as proc:
         expected_metadata = json.load(proc.stdout)
     with open(test_data, "rb") as fileo:

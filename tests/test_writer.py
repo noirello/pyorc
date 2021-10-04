@@ -425,12 +425,12 @@ def test_struct_repr():
 
 class TestConverter(ORCConverter):
     @staticmethod
-    def to_orc(obj):
+    def to_orc(obj, timezone):
         seconds, nanoseconds = obj
         return (seconds, nanoseconds)
 
     @staticmethod
-    def from_orc(seconds, nanoseconds):
+    def from_orc(seconds, nanoseconds, timezone):
         pass
 
 
