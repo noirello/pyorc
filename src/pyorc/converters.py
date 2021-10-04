@@ -1,10 +1,15 @@
 import math
 from abc import ABC, abstractmethod
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone as tz
 from decimal import Decimal, localcontext
 
 from typing import Tuple
+
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 
 from .enums import TypeKind
 
@@ -23,12 +28,16 @@ class ORCConverter(ABC):
 
 class TimestampConverter(ORCConverter):
     @staticmethod
-    def from_orc(seconds: int, nanoseconds: int) -> datetime:
-        epoch = datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
-        return epoch + timedelta(seconds=seconds, microseconds=nanoseconds // 1000)
+    def from_orc(
+        seconds: int, nanoseconds: int, timezone: zoneinfo.ZoneInfo,
+    ) -> datetime:
+        epoch = datetime(1970, 1, 1, 0, 0, 0, tzinfo=tz.utc)
+        return (
+            epoch + timedelta(seconds=seconds, microseconds=nanoseconds // 1000)
+        ).astimezone(timezone)
 
     @staticmethod
-    def to_orc(obj: datetime) -> Tuple[int, int]:
+    def to_orc(obj: datetime, timezone: zoneinfo.ZoneInfo) -> Tuple[int, int]:
         return math.floor(obj.timestamp()), obj.microsecond * 1000
 
 

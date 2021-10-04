@@ -93,6 +93,7 @@ Writer::Writer(py::object fileo,
                uint64_t compression_block_size,
                std::set<uint64_t> bloom_filter_columns,
                double bloom_filter_fpp,
+               py::object tzone,
                unsigned int struct_repr,
                py::object conv)
 {
@@ -118,12 +119,16 @@ Writer::Writer(py::object fileo,
     options = options.setRowIndexStride(row_index_stride);
     options = options.setColumnsUseBloomFilter(bloom_filter_columns);
     options = options.setBloomFilterFPP(bloom_filter_fpp);
+    if (!tzone.is_none()) {
+        std::string tzKey = py::cast<std::string>(tzone.attr("key"));
+        options = options.setTimezoneName(tzKey);
+    }
 
     outStream = std::unique_ptr<orc::OutputStream>(new PyORCOutputStream(fileo));
     writer = orc::createWriter(*type, outStream.get(), options);
     batchSize = batch_size;
     batch = writer->createRowBatch(batchSize);
-    converter = createConverter(type.get(), struct_repr, converters);
+    converter = createConverter(type.get(), struct_repr, converters, tzone);
 }
 
 void

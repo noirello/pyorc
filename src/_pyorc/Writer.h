@@ -33,6 +33,7 @@ class Writer
            uint64_t = 65536,
            std::set<uint64_t> = {},
            double = 0.05,
+           py::object = py::none(),
            unsigned int = 0,
            py::object = py::none());
     void addMetadata(py::str, py::bytes);

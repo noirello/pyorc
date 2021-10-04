@@ -1,5 +1,10 @@
 from collections import defaultdict
-from typing import Union, Optional, List, BinaryIO, Iterator
+from typing import Optional, List, BinaryIO, Iterator
+
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 
 from pyorc._pyorc import reader, stripe
 from .enums import StructRepr, TypeKind, CompressionKind, WriterVersion
@@ -50,6 +55,7 @@ class Reader(reader):
         batch_size: int = 1024,
         column_indices: Optional[List[int]] = None,
         column_names: Optional[List[str]] = None,
+        timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: Optional[dict] = None,
     ) -> None:
@@ -64,7 +70,7 @@ class Reader(reader):
         else:
             conv = converters
         super().__init__(
-            fileo, batch_size, column_indices, column_names, struct_repr, conv
+            fileo, batch_size, column_indices, column_names, timezone, struct_repr, conv
         )
 
     def __getitem__(self, col_idx) -> Column:

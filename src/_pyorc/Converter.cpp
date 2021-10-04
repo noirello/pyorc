@@ -99,9 +99,10 @@ class TimestampConverter : public Converter
     const int64_t* nanoseconds;
     py::object to_orc;
     py::object from_orc;
+    py::object timeZoneInfo;
 
   public:
-    TimestampConverter(py::dict conv);
+    TimestampConverter(py::dict conv, py::object tzone);
     virtual ~TimestampConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -164,7 +165,10 @@ class ListConverter : public Converter
     std::unique_ptr<Converter> elementConverter;
 
   public:
-    ListConverter(const orc::Type& type, unsigned int structKind, py::dict conv);
+    ListConverter(const orc::Type& type,
+                  unsigned int structKind,
+                  py::dict conv,
+                  py::object tzone);
     virtual ~ListConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -180,7 +184,10 @@ class MapConverter : public Converter
     std::unique_ptr<Converter> elementConverter;
 
   public:
-    MapConverter(const orc::Type& type, unsigned int structKind, py::dict conv);
+    MapConverter(const orc::Type& type,
+                 unsigned int structKind,
+                 py::dict conv,
+                 py::object tzone);
     virtual ~MapConverter() override{};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -197,7 +204,10 @@ class UnionConverter : public Converter
     std::map<unsigned char, uint64_t> childOffsets;
 
   public:
-    UnionConverter(const orc::Type& type, unsigned int structKind, py::dict conv);
+    UnionConverter(const orc::Type& type,
+                   unsigned int structKind,
+                   py::dict conv,
+                   py::object tzone);
     virtual ~UnionConverter() override;
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -213,7 +223,10 @@ class StructConverter : public Converter
     unsigned int kind;
 
   public:
-    StructConverter(const orc::Type& type, unsigned int kind_, py::dict conv);
+    StructConverter(const orc::Type& type,
+                    unsigned int kind_,
+                    py::dict conv,
+                    py::object tzone);
     virtual ~StructConverter() override;
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
@@ -222,7 +235,10 @@ class StructConverter : public Converter
 };
 
 std::unique_ptr<Converter>
-createConverter(const orc::Type* type, unsigned int structKind, py::dict conv)
+createConverter(const orc::Type* type,
+                unsigned int structKind,
+                py::dict conv,
+                py::object tzone)
 {
     Converter* result = nullptr;
     if (structKind > 1) {
@@ -255,16 +271,16 @@ createConverter(const orc::Type* type, unsigned int structKind, py::dict conv)
                 break;
             case orc::TIMESTAMP:
             case orc::TIMESTAMP_INSTANT:
-                result = new TimestampConverter(conv);
+                result = new TimestampConverter(conv, tzone);
                 break;
             case orc::LIST:
-                result = new ListConverter(*type, structKind, conv);
+                result = new ListConverter(*type, structKind, conv, tzone);
                 break;
             case orc::MAP:
-                result = new MapConverter(*type, structKind, conv);
+                result = new MapConverter(*type, structKind, conv, tzone);
                 break;
             case orc::STRUCT:
-                result = new StructConverter(*type, structKind, conv);
+                result = new StructConverter(*type, structKind, conv, tzone);
                 break;
             case orc::DECIMAL:
                 if (type->getPrecision() == 0 || type->getPrecision() > 18) {
@@ -279,7 +295,7 @@ createConverter(const orc::Type* type, unsigned int structKind, py::dict conv)
                 result = new DateConverter(conv);
                 break;
             case orc::UNION:
-                result = new UnionConverter(*type, structKind, conv);
+                result = new UnionConverter(*type, structKind, conv, tzone);
                 break;
             default:
                 throw py::value_error("unknown batch type");
@@ -522,12 +538,13 @@ BinaryConverter::clear()
     buffer.clear();
 }
 
-TimestampConverter::TimestampConverter(py::dict conv)
+TimestampConverter::TimestampConverter(py::dict conv, py::object tzone)
   : Converter()
   , seconds(nullptr)
   , nanoseconds(nullptr)
 {
     py::object idx(py::int_(static_cast<int>(orc::TIMESTAMP)));
+    timeZoneInfo = tzone;
     from_orc = conv[idx].attr("from_orc");
     to_orc = conv[idx].attr("to_orc");
 }
@@ -547,7 +564,7 @@ TimestampConverter::toPython(uint64_t rowId)
     if (hasNulls && !notNull[rowId]) {
         return py::none();
     } else {
-        return from_orc(seconds[rowId], nanoseconds[rowId]);
+        return from_orc(seconds[rowId], nanoseconds[rowId], timeZoneInfo);
     }
 }
 
@@ -562,7 +579,7 @@ TimestampConverter::write(orc::ColumnVectorBatch* batch,
         tsBatch->notNull[rowId] = 0;
     } else {
         try {
-            py::tuple res = to_orc(elem);
+            py::tuple res = to_orc(elem, timeZoneInfo);
             tsBatch->data[rowId] = py::cast<int64_t>(res[0]);
             tsBatch->nanoseconds[rowId] = py::cast<int64_t>(res[1]);
             tsBatch->notNull[rowId] = 1;
@@ -766,11 +783,12 @@ Decimal128Converter::write(orc::ColumnVectorBatch* batch,
 
 ListConverter::ListConverter(const orc::Type& type,
                              unsigned int structKind,
-                             py::dict conv)
+                             py::dict conv,
+                             py::object tzone)
   : Converter()
   , offsets(nullptr)
 {
-    elementConverter = createConverter(type.getSubtype(0), structKind, conv);
+    elementConverter = createConverter(type.getSubtype(0), structKind, conv, tzone);
 }
 
 void
@@ -829,12 +847,13 @@ ListConverter::clear()
 
 MapConverter::MapConverter(const orc::Type& type,
                            unsigned int structKind,
-                           py::dict conv)
+                           py::dict conv,
+                           py::object tzone)
   : Converter()
   , offsets(nullptr)
 {
-    keyConverter = createConverter(type.getSubtype(0), structKind, conv);
-    elementConverter = createConverter(type.getSubtype(1), structKind, conv);
+    keyConverter = createConverter(type.getSubtype(0), structKind, conv, tzone);
+    elementConverter = createConverter(type.getSubtype(1), structKind, conv, tzone);
 }
 
 void
@@ -901,14 +920,15 @@ MapConverter::clear()
 
 UnionConverter::UnionConverter(const orc::Type& type,
                                unsigned int structKind,
-                               py::dict conv)
+                               py::dict conv,
+                               py::object tzone)
   : Converter()
   , tags(nullptr)
   , offsets(nullptr)
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
         fieldConverters.push_back(
-          createConverter(type.getSubtype(i), structKind, conv).release());
+          createConverter(type.getSubtype(i), structKind, conv, tzone).release());
         childOffsets[static_cast<unsigned char>(i)] = 0;
     }
 }
@@ -987,13 +1007,14 @@ UnionConverter::clear()
 
 StructConverter::StructConverter(const orc::Type& type,
                                  unsigned int kind_,
-                                 py::dict conv)
+                                 py::dict conv,
+                                 py::object tzone)
   : Converter()
   , kind(kind_)
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
         fieldConverters.push_back(
-          createConverter(type.getSubtype(i), kind, conv).release());
+          createConverter(type.getSubtype(i), kind, conv, tzone).release());
         fieldNames.push_back(py::str(type.getFieldName(i)));
     }
 }

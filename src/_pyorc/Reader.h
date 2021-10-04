@@ -24,6 +24,7 @@ class ORCFileLikeObject
     std::unique_ptr<orc::ColumnVectorBatch> batch;
     std::unique_ptr<Converter> converter;
     py::dict convDict;
+    py::object timezoneInfo;
     py::dict buildStatistics(const orc::Type*, const orc::ColumnStatistics*) const;
     const orc::Type* findColumnType(const orc::Type*, uint64_t) const;
 
@@ -36,6 +37,7 @@ class ORCFileLikeObject
     uint64_t seek(int64_t, uint16_t = 0);
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
     const py::dict getConverterDict() const { return convDict; }
+    const py::object getTimeZoneInfo() const { return timezoneInfo; }
     virtual ~ORCFileLikeObject(){};
 };
 
@@ -53,6 +55,7 @@ class Reader : public ORCFileLikeObject
            uint64_t = 1024,
            std::list<uint64_t> = {},
            std::list<std::string> = {},
+           py::object = py::none(),
            unsigned int = 0,
            py::object = py::none());
     py::dict bytesLengths() const;

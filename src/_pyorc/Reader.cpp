@@ -231,7 +231,7 @@ ORCFileLikeObject::convertTimestampMillis(int64_t millisec) const
     py::object from_orc = convDict[idx].attr("from_orc");
     int64_t seconds = millisec / 1000;
     int64_t nanosecs = std::abs(millisec % 1000) * 1000 * 1000;
-    return from_orc(seconds, nanosecs);
+    return from_orc(seconds, nanosecs, timezoneInfo);
 }
 
 py::dict
@@ -364,6 +364,7 @@ Reader::Reader(py::object fileo,
                uint64_t batch_size,
                std::list<uint64_t> col_indices,
                std::list<std::string> col_names,
+               py::object tzone,
                unsigned int struct_repr,
                py::object conv)
 {
@@ -382,6 +383,11 @@ Reader::Reader(py::object fileo,
     if (!col_names.empty()) {
         rowReaderOpts = rowReaderOpts.include(col_names);
     }
+    if (!tzone.is_none()) {
+        std::string tzKey = py::cast<std::string>(tzone.attr("key"));
+        rowReaderOpts = rowReaderOpts.setTimezoneName(tzKey);
+    }
+    timezoneInfo = tzone;
     if (conv.is_none()) {
         py::dict defaultConv =
           py::module::import("pyorc.converters").attr("DEFAULT_CONVERTERS");
@@ -395,8 +401,8 @@ Reader::Reader(py::object fileo,
         batchSize = batch_size;
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
-        converter =
-          createConverter(&rowReader->getSelectedType(), structKind, convDict);
+        converter = createConverter(
+          &rowReader->getSelectedType(), structKind, convDict, timezoneInfo);
     } catch (orc::ParseError& err) {
         throw py::value_error(err.what());
     }
@@ -523,13 +529,14 @@ Stripe::Stripe(const Reader& reader_,
     stripeIndex = idx;
     stripeInfo = std::move(stripe);
     convDict = reader.getConverterDict();
+    timezoneInfo = reader.getTimeZoneInfo();
     rowReaderOpts = reader.getRowReaderOptions();
     rowReaderOpts =
       rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
     rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
-    converter =
-      createConverter(&rowReader->getSelectedType(), reader.getStructKind(), convDict);
+    converter = createConverter(
+      &rowReader->getSelectedType(), reader.getStructKind(), convDict, timezoneInfo);
     firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 

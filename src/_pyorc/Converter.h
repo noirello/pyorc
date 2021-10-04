@@ -23,6 +23,6 @@ class Converter
 };
 
 std::unique_ptr<Converter>
-createConverter(const orc::Type*, unsigned int, pybind11::dict);
+createConverter(const orc::Type*, unsigned int, pybind11::dict, pybind11::object);
 
 #endif

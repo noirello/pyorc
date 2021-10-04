@@ -1,6 +1,11 @@
 import copy
 from typing import Union, Optional, List, BinaryIO, Iterable
 
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
+
 from pyorc._pyorc import writer
 from .converters import DEFAULT_CONVERTERS
 from .enums import CompressionKind, CompressionStrategy, StructRepr
@@ -20,6 +25,7 @@ class Writer(writer):
         compression_block_size: int = 65536,
         bloom_filter_columns: Optional[List] = None,
         bloom_filter_fpp: float = 0.05,
+        timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: Optional[dict] = None,
     ) -> None:
@@ -60,6 +66,7 @@ class Writer(writer):
             compression_block_size,
             bf_set,
             bloom_filter_fpp,
+            timezone,
             struct_repr,
             conv,
         )
