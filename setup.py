@@ -216,5 +216,8 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     python_requires=">=3.6",
-    install_requires=['tzdata >= 2020.5 ; sys_platform == "win32"'],
+    install_requires=[
+        'tzdata >= 2020.5 ; sys_platform == "win32"',
+        'backports.zoneinfo >= 0.2.1 ; python_version < "3.9"',
+    ],
 )
