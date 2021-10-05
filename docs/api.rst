@@ -7,8 +7,8 @@ API documentation
 ===============
 
 .. class:: Reader(fileo, batch_size=1024, column_indices=None, \
-                  column_names=None, struct_repr=StructRepr.TUPLE, \
-                  converters=None)
+                  column_names=None, timezone=zoneinfo.ZoneInfo("UTC"), \
+                  struct_repr=StructRepr.TUPLE, converters=None)
 
     An object to read ORC files. The `fileo` must be a binary stream that
     support seeking. Either `column_indices` or `column_names` can be used
@@ -27,6 +27,8 @@ API documentation
     :param int batch_size: The size of a batch to read.
     :param list column_indices: a list of column indices to read.
     :param list column_names: a list of column names to read.
+    :param ZoneInfo timezone: a ZoneInfo object to use for parsing timestamp
+        columns.
     :param StructRepr struct_repr: An enum to set the representation for
         an ORC struct type.
     :param dict converters: a dictionary, where the keys are
@@ -125,6 +127,10 @@ API documentation
 .. attribute:: Reader.num_of_stripes
 
     The number of stripes in the ORC file.
+
+.. attribute:: Reader.row_index_stride
+
+    The size of row index stride in the ORC file.
 
 .. attribute:: Reader.schema
 
@@ -265,7 +271,8 @@ API documentation
 
         * `date`: the number of days since the epoch as a single integer.
         * `decimal`: the decimal number formatted as a string.
-        * `timestamp`: seconds and nanoseconds since the epoch as integers.
+        * `timestamp`: seconds and nanoseconds since the epoch as integers
+            and the ZoneInfo object passed to the Reader as timezone.
 
     :return: the constructed Python object.
 
@@ -274,7 +281,9 @@ API documentation
     Converts the high-level Python object to basic ORC type. Its arguments
     is a single Python object when the convert is bound to `date` or
     `timestamp`. The precision and scale are also passed to this method
-    as integers, along with the object when it's bound to a decimal type.
+    as integers, along with the object when it's bound to a decimal type,
+    and the Writer's timezone as a ZoneInfo object when it's bound to a
+    timestamp type.
 
     Expected return value:
 
@@ -363,6 +372,10 @@ API documentation
 
     Class for representing `timestamp` ORC type.
 
+.. class:: TimestampInstant()
+
+    Class for representing `timestamp with local time zone` ORC type.
+
 .. class:: Date()
 
     Class for representing `date` ORC type.
@@ -432,11 +445,12 @@ API documentation
 ===============
 
 .. class:: Writer(fileo, schema, batch_size=1024, \
-                  stripe_size=67108864, compression=CompressionKind.ZLIB, \
+                  stripe_size=67108864, row_index_stride=10000 \
+                  compression=CompressionKind.ZLIB, \
                   compression_strategy=CompressionStrategy.SPEED, \
                   compression_block_size=65536, bloom_filter_columns=None, \
-                  bloom_filter_fpp=0.05, struct_repr=StructRepr.TUPLE, \
-                  converters=None)
+                  bloom_filter_fpp=0.05, timezone=zoneinfo.ZoneInfo("UTC"), \
+                  struct_repr=StructRepr.TUPLE, converters=None)
 
     An object to write ORC files. The `fileo` must be a binary stream.
     The `schema` must be :class:`TypeDescription` or a valid ORC schema
@@ -457,6 +471,7 @@ API documentation
     :param TypeDescription|str schema: the ORC schema of the file.
     :param int batch_size: the batch size for the ORC file.
     :param int stripe_size: the stripes size in bytes.
+    :param int row_index_stride: the size of the row index stride.
     :param CompressionKind compression: the compression kind for the ORC
         file.
     :param CompressionStrategy compression_strategy: the compression
@@ -465,6 +480,8 @@ API documentation
     :param list bloom_filter_columns: list of columns to use Bloom filter.
     :param float bloom_filter_fpp: the false positive probability for the
         Bloom filter (Must be 0> and 1<).
+    :param ZoneInfo timezone: a ZoneInfo object to use for writing timestamp
+        columns.
     :param StructRepr struct_repr: An enum to set the representation for
         an ORC struct type.
     :param dict converters: a dictionary, where the keys are

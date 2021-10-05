@@ -8,9 +8,13 @@ Added
 
 - Module level variables for the ORC library version: orc_version string and
   orc_version_info namedtuple.
-- New parameter for Reader and Writer: row_index_stride.
+- New parameter for Writer: row_index_stride.
+- New read-only property for Reader: row_index_stride.
+- New parameter for Reader and Writer: timezone.
 - Trino and Scritchley writer ids.
 - Type annotations support for ORC types.
+- Support `timestamp with local time zone` type.
+- The backported zoneinfo module dependency pior to Python 3.9.
 
 Changed
 ~~~~~~~
@@ -18,6 +22,9 @@ Changed
 - ORC C++ Core updated to 1.7.0, and because many of the new features are not
   backported to the 1.6 branch, currently this is the minimum required lib
   version.
+- TimestampConverter's to_orc and from_orc methods got an extra timezone
+  parameter, that will be bound to the same ZoneInfo object passed to the
+  Reader or Writer via their timezone parameters during type convert.
 
 Fixed
 ~~~~~
