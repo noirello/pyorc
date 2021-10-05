@@ -22,6 +22,7 @@ from unittest.mock import MagicMock
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
+        # For pyorc
         if name == "typedescription":
             return object
         elif name == "reader":
@@ -32,9 +33,12 @@ class Mock(MagicMock):
             return object
         elif name == "_orc_version":
             return lambda: "0.0.0-DUMMY"
+        # For zoneinfo
+        elif name == "ZoneInfo":
+            return lambda key: object
 
 
-MOCK_MODULES = ["src.pyorc._pyorc", "pyorc", "pyorc._pyorc"]
+MOCK_MODULES = ["src.pyorc._pyorc", "pyorc", "pyorc._pyorc", "zoneinfo"]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import src.pyorc as pyorc
