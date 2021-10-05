@@ -424,3 +424,11 @@ def test_bytes_lengths():
     assert reader.bytes_lengths["file_postscript_length"] == 23
     assert reader.bytes_lengths["file_length"] == len(data.getvalue())
     assert reader.bytes_lengths["stripe_statistics_length"] == 21
+
+
+def test_software_version():
+    data = io.BytesIO()
+    with Writer(data, "int") as writer:
+        writer.writerows(range(10))
+    reader = Reader(data)
+    assert reader.software_version == "ORC C++ 1.7.0"

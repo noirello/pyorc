@@ -193,6 +193,7 @@ def test_metadata():
             f"{res.format_version[0]}.{res.format_version[1]}"
             == expected_metadata["format"]
         )
+        assert res.software_version == expected_metadata["software version"]
         assert res.compression.name.lower() == expected_metadata["compression"]
         assert res.compression_block_size == expected_metadata["compression block"]
         assert res.row_index_stride == expected_metadata["row index stride"]
