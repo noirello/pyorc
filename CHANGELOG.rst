@@ -9,7 +9,7 @@ Added
 - Module level variables for the ORC library version: orc_version string and
   orc_version_info namedtuple.
 - New parameter for Writer: row_index_stride.
-- New read-only property for Reader: row_index_stride.
+- New read-only properties for Reader: row_index_stride and software_version.
 - New parameter for Reader and Writer: timezone.
 - Trino and Scritchley writer ids.
 - Type annotations support for ORC types.

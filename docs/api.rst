@@ -144,6 +144,14 @@ API documentation
     represents the selected columns. If no columns are specified then it's
     the same as :attr:`Reader.schema`.
 
+.. attribute:: Reader.software_version
+
+    The version of the writer that created the ORC file, including the
+    used implementation as well.
+
+    >>> reader.software_version
+    'ORC C++ 1.7.0'
+
 .. attribute:: Reader.writer_id
 
     The identification of the writer that created the ORC file. The known
