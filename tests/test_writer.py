@@ -2,8 +2,13 @@ import pytest
 
 import io
 import math
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, tzinfo
 from decimal import Decimal
+
+try:
+    import zoneinfo as zi
+except ImportError:
+    from backports import zoneinfo as zi
 
 from pyorc import (
     Writer,
@@ -501,3 +506,66 @@ def test_attributes(schema, attrs):
     reader = Reader(data)
     assert len(reader) == 0
     assert reader.schema.attributes == attrs
+
+
+@pytest.mark.parametrize(
+    "schema,writer_tz,reader_tz,input,expected",
+    [
+        (
+            "struct<col0:timestamp>",
+            zi.ZoneInfo("UTC"),
+            zi.ZoneInfo("UTC"),
+            datetime(2021, 10, 10, 12, 0, 0, tzinfo=zi.ZoneInfo("UTC")),
+            datetime(2021, 10, 10, 12, 0, 0, tzinfo=zi.ZoneInfo("UTC")),
+        ),
+        (
+            "struct<col0:timestamp>",
+            zi.ZoneInfo("Asia/Tokyo"),
+            zi.ZoneInfo("UTC"),
+            datetime(2021, 10, 10, 12, 0, 0, tzinfo=zi.ZoneInfo("Asia/Tokyo")),
+            datetime(2021, 10, 10, 12, 0, 0, tzinfo=zi.ZoneInfo("UTC")),
+        ),
+        (
+            "struct<col0:timestamp>",
+            zi.ZoneInfo("America/Los_Angeles"),
+            zi.ZoneInfo("America/New_York"),
+            datetime(2014, 12, 12, 6, 0, 0, tzinfo=zi.ZoneInfo("America/Los_Angeles")),
+            datetime(2014, 12, 12, 6, 0, 0, tzinfo=zi.ZoneInfo("America/New_York")),
+        ),
+        (
+            "struct<col0:timestamp with local time zone>",
+            zi.ZoneInfo("America/Los_Angeles"),
+            zi.ZoneInfo("America/New_York"),
+            datetime(2014, 12, 12, 6, 0, 0, tzinfo=zi.ZoneInfo("America/Los_Angeles")),
+            datetime(2014, 12, 12, 9, 0, 0, tzinfo=zi.ZoneInfo("America/New_York")),
+        ),
+        (
+            "struct<col0:timestamp with local time zone>",
+            zi.ZoneInfo("UTC"),
+            zi.ZoneInfo("UTC"),
+            datetime(2021, 10, 10, 12, 0, 0, tzinfo=zi.ZoneInfo("UTC")),
+            datetime(2021, 10, 10, 12, 0, 0, tzinfo=zi.ZoneInfo("UTC")),
+        ),
+        (
+            "struct<col0:timestamp with local time zone>",
+            zi.ZoneInfo("Asia/Tokyo"),
+            zi.ZoneInfo("UTC"),
+            datetime(2021, 10, 10, 3, 0, 0, tzinfo=zi.ZoneInfo("Asia/Tokyo")),
+            datetime(2021, 10, 9, 18, 0, 0, tzinfo=zi.ZoneInfo("UTC")),
+        ),
+        (
+            "struct<col0:timestamp with local time zone>",
+            zi.ZoneInfo("Europe/Berlin"),
+            zi.ZoneInfo("Europe/London"),
+            datetime(2021, 10, 31, 3, 0, 0, tzinfo=zi.ZoneInfo("Europe/Berlin")),
+            datetime(2021, 10, 31, 2, 0, 0, tzinfo=zi.ZoneInfo("Europe/London")),
+        ),
+    ],
+)
+def test_timestamp_with_timezones(schema, writer_tz, reader_tz, input, expected):
+    data = io.BytesIO()
+    with Writer(data, schema, timezone=writer_tz) as writer:
+        writer.write((input,))
+    reader = Reader(data, timezone=reader_tz)
+    output = next(reader)[0]
+    assert output == expected
