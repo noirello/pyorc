@@ -472,6 +472,12 @@ Reader::writerVersion() const
     return reader->getWriterVersion();
 }
 
+std::string
+Reader::softwareVersion() const
+{
+    return reader->getSoftwareVersion();
+}
+
 std::unique_ptr<Stripe>
 Reader::readStripe(uint64_t idx)
 {

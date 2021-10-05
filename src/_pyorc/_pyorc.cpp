@@ -77,6 +77,7 @@ PYBIND11_MODULE(_pyorc, m)
                              [](Reader& r) { return r.numberOfStripes(); })
       .def_property_readonly("writer_id", &Reader::writerId)
       .def_property_readonly("writer_version", &Reader::writerVersion)
+      .def_property_readonly("software_version", &Reader::softwareVersion)
       .def_readonly("current_row", &Reader::currentRow);
     py::class_<Writer>(m, "writer")
       .def(py::init<py::object,
