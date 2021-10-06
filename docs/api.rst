@@ -3,12 +3,77 @@ API documentation
 
 .. automodule:: pyorc
 
+:class:`Predicate`
+==================
+
+.. class:: Predicate(operator, left, right)
+
+    An object that represents an expression for filtering row groups in an ORC
+    file. The supported operators are NOT, AND and OR, while the possible
+    operands can be a :class:`PredicateColumn` or another Predicate. A Predicate
+    is built from a :class:`PredicateColumn`, a literal value and a relation
+    between the two.
+
+    :param Operator operator: an operator type.
+    :param Predicate|PredicateColumn left: the left operand.
+    :param Predicate|PredicateColumn right: the right operand.
+
+.. method:: Predicate.__or__(other)
+
+    Set logical OR connection between to predicate expressions.
+
+    :param Predicate other: the other predicate.
+
+.. method:: Predicate.__and__(other)
+
+    Set logical AND connection between to predicate expressions.
+
+    :param Predicate other: the other predicate.
+
+.. method:: Predicate.__invert__(other)
+
+    Set logical NOT to a predicate expression.
+
+    :param Predicate other: the other predicate.
+
+:class:`PredicateColumn`
+========================
+
+.. class:: PredicateColumn(name, type_kind, precision=None, scale=None)
+
+    An object that represents a specific column to use in a predicate
+    expression. It can be compared to literal value to create a
+    :class:`Predicate`.
+
+    A simple predicate example, that filtering row groups where the
+    ``col0`` column is less than 0:
+
+    >>> pred = PredicateColumn("col0", TypeKind.INT) < 0)
+
+    :param str name: the name of the column in the ORC file.
+    :param TypeKind type_kind: the type of the column.
+    :param int precision: the precision if the column's type is decimal.
+    :param int scale: the scale if the column's type is decimal.
+
+.. method:: PredicateColumn.__eq__(other)
+.. method:: PredicateColumn.__ne__(other)
+.. method:: PredicateColumn.__lt__(other)
+.. method:: PredicateColumn.__le__(other)
+.. method:: PredicateColumn.__gt__(other)
+.. method:: PredicateColumn.__ge__(other)
+
+    Simple comparison methods to compare a column and a literal value,
+    and return a :class:`Predicate` object.
+
+    :param other: a literal value for comparison.
+
 :class:`Reader`
 ===============
 
 .. class:: Reader(fileo, batch_size=1024, column_indices=None, \
                   column_names=None, timezone=zoneinfo.ZoneInfo("UTC"), \
-                  struct_repr=StructRepr.TUPLE, converters=None)
+                  struct_repr=StructRepr.TUPLE, converters=None, \
+                  predicate=None)
 
     An object to read ORC files. The `fileo` must be a binary stream that
     support seeking. Either `column_indices` or `column_names` can be used
@@ -34,6 +99,8 @@ API documentation
     :param dict converters: a dictionary, where the keys are
         :class:`TypeKind` and the values are subclasses of
         :class:`ORCConverter`.
+    :param Predicate predicate: a predicate expression to read only specified
+        row groups.
 
 .. method:: Reader.__getitem__(col_idx)
 

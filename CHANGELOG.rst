@@ -10,11 +10,14 @@ Added
   orc_version_info namedtuple.
 - New parameter for Writer: row_index_stride.
 - New read-only properties for Reader: row_index_stride and software_version.
-- New parameter for Reader and Writer: timezone.
 - Trino and Scritchley writer ids.
 - Type annotations support for ORC types.
 - Support `timestamp with local time zone` type.
+- New parameter for Reader and Writer: timezone.
 - The backported zoneinfo module dependency pior to Python 3.9.
+- Predicate (SearchArgument) support for filtering row groups during ORC file
+  reads. New classes: Predicate and PredicateColumn.
+- New parameter for Reader: predicate.
 
 Changed
 ~~~~~~~
