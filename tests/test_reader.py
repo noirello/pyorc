@@ -492,7 +492,7 @@ def test_complex_predicate_results():
     reader = Reader(
         data,
         predicate=(PredicateColumn("c0", TypeKind.INT) >= 400)
-        & (PredicateColumn("c1", TypeKind.STRING) == "B"),
+        & (PredicateColumn("c1", TypeKind.STRING) != "A"),
     )
     result = list(reader)
     assert len(result) == 600

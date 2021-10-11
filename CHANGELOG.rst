@@ -12,7 +12,7 @@ Added
 - New read-only properties for Reader: row_index_stride and software_version.
 - Trino and Scritchley writer ids.
 - Type annotations support for ORC types.
-- Support `timestamp with local time zone` type.
+- Support for `timestamp with local time zone` type.
 - New parameter for Reader and Writer: timezone.
 - The backported zoneinfo module dependency pior to Python 3.9.
 - Predicate (SearchArgument) support for filtering row groups during ORC file

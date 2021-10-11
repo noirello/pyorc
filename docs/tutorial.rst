@@ -107,6 +107,32 @@ stripe::
 The `row_offset` returns the absolute position of the first row in the
 stripe.
 
+Filtering row groups
+--------------------
+
+It is possible to skip certain records in an ORC file using simple filter
+predicates (or search arguments). Setting a predicate expression to the
+Reader can help to exclude row groups that don't satisfy the condition
+during reading::
+
+    >>> example = open("./deps/examples/TestStringDictionary.testRowIndex.orc", "rb")
+    >>> reader = pyorc.Reader(example)
+    >>> next(reader)
+    ('row 000000',)
+    >>> reader = pyorc.Reader(example, predicate=pyorc.predicates.PredicateColumn("str", pyorc.TypeKind.STRING) > "row 004096")
+    >>> next(reader)
+    ('row 004096',)
+
+The predicate can be used to select a single row group, but not an
+individual record. The size of the row group is determined by the
+`row_index_stride`, set during writing of the file. You can create more
+complex predicate using logical expressions::
+
+    >>> pred = (PredicateColumn("c0", TypeKind.INT) > 300) & (PredicateColumn("c1", TypeKind.STRING) == "A")
+
+One of the comparands must always be a literal value (cannot compare two
+columns to each other).
+
 Writing
 -------
 
@@ -157,11 +183,11 @@ example returns the ORC timestamp values as seconds and nanoseconds pair:
     class TSConverter(ORCConverter):
         @staticmethod
         def to_orc(*args):
-            seconds, nanoseconds = args
+            seconds, nanoseconds, timezone = args
             return (seconds, nanoseconds)
 
         @staticmethod
-        def from_orc(seconds, nanoseconds):
+        def from_orc(seconds, nanoseconds, timezone):
             return (seconds, nanoseconds)
 
 To use the converter you have to set the Reader's or Writer's converters
