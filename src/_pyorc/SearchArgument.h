@@ -6,6 +6,8 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<orc::SearchArgument> createSearchArgument(py::object, py::dict);
+std::unique_ptr<orc::SearchArgument> createSearchArgument(py::object,
+                                                          py::dict,
+                                                          py::object);
 
 #endif

@@ -3,7 +3,10 @@
 #include "SearchArgument.h"
 
 std::tuple<orc::PredicateDataType, orc::Literal>
-buildLiteral(py::object column, py::object value, py::dict convDict)
+buildLiteral(py::object column,
+             py::object value,
+             py::dict convDict,
+             py::object timezoneInfo)
 {
     int colType = py::cast<int>(column.attr("type_kind"));
     switch (colType) {
@@ -59,15 +62,15 @@ buildLiteral(py::object column, py::object value, py::dict convDict)
                                                     py::cast<int64_t>(to_orc(value))));
             }
         }
-        case orc::TypeKind::TIMESTAMP: {
+        case orc::TypeKind::TIMESTAMP:
+        case orc::TypeKind::TIMESTAMP_INSTANT: {
             if (value.is_none()) {
                 return std::make_tuple(orc::PredicateDataType::TIMESTAMP,
                                        orc::Literal(orc::PredicateDataType::TIMESTAMP));
             } else {
                 py::object idx(py::int_(static_cast<int>(orc::TypeKind::TIMESTAMP)));
                 py::object to_orc = convDict[idx].attr("to_orc");
-                py::tuple data = to_orc(value);
-                py::tuple res = to_orc(value);
+                py::tuple res = to_orc(value, timezoneInfo);
                 return std::make_tuple(
                   orc::PredicateDataType::TIMESTAMP,
                   orc::Literal(py::cast<int64_t>(res[0]), py::cast<int64_t>(res[1])));
@@ -82,10 +85,10 @@ buildLiteral(py::object column, py::object value, py::dict convDict)
                 uint64_t precision = py::cast<uint64_t>(column.attr("precision"));
                 uint64_t scale = py::cast<uint64_t>(column.attr("scale"));
                 py::object to_orc = convDict[idx].attr("to_orc");
-                py::object value = to_orc(precision, scale, value);
-                std::string strVal = py::cast<std::string>(py::str(value));
+                py::object res = to_orc(precision, scale, value);
+                std::string strRes = py::cast<std::string>(py::str(res));
                 return std::make_tuple(orc::PredicateDataType::DECIMAL,
-                                       orc::Literal(orc::Int128(strVal),
+                                       orc::Literal(orc::Int128(strRes),
                                                     static_cast<int32_t>(precision),
                                                     static_cast<int32_t>(scale)));
             }
@@ -98,40 +101,47 @@ buildLiteral(py::object column, py::object value, py::dict convDict)
 orc::SearchArgumentBuilder&
 buildSearchArgument(orc::SearchArgumentBuilder& sarg,
                     py::tuple predVals,
-                    py::dict convDict)
+                    py::dict convDict,
+                    py::object timezoneInfo)
 {
     int opCode = py::cast<int>(predVals[0]);
     switch (opCode) {
         case 0: /* NOT */
-            return buildSearchArgument(sarg.startNot(), predVals[1], convDict).end();
+            return buildSearchArgument(
+                     sarg.startNot(), predVals[1], convDict, timezoneInfo)
+              .end();
         case 1: /* OR */
             return buildSearchArgument(
-                     buildSearchArgument(sarg.startOr(), predVals[1], convDict),
+                     buildSearchArgument(
+                       sarg.startOr(), predVals[1], convDict, timezoneInfo),
                      predVals[2],
-                     convDict)
+                     convDict,
+                     timezoneInfo)
               .end();
         case 2: /* AND */
             return buildSearchArgument(
-                     buildSearchArgument(sarg.startAnd(), predVals[1], convDict),
+                     buildSearchArgument(
+                       sarg.startAnd(), predVals[1], convDict, timezoneInfo),
                      predVals[2],
-                     convDict)
+                     convDict,
+                     timezoneInfo)
               .end();
         case 3: { /* EQ */
             std::string colName = py::cast<std::string>(predVals[1].attr("name"));
             std::tuple<orc::PredicateDataType, orc::Literal> res =
-              buildLiteral(predVals[1], predVals[2], convDict);
+              buildLiteral(predVals[1], predVals[2], convDict, timezoneInfo);
             return sarg.equals(colName, std::get<0>(res), std::get<1>(res));
         }
         case 4: { /* LT */
             std::string colName = py::cast<std::string>(predVals[1].attr("name"));
             std::tuple<orc::PredicateDataType, orc::Literal> res =
-              buildLiteral(predVals[1], predVals[2], convDict);
+              buildLiteral(predVals[1], predVals[2], convDict, timezoneInfo);
             return sarg.lessThan(colName, std::get<0>(res), std::get<1>(res));
         }
         case 5: { /* LE */
             std::string colName = py::cast<std::string>(predVals[1].attr("name"));
             std::tuple<orc::PredicateDataType, orc::Literal> res =
-              buildLiteral(predVals[1], predVals[2], convDict);
+              buildLiteral(predVals[1], predVals[2], convDict, timezoneInfo);
             return sarg.lessThanEquals(colName, std::get<0>(res), std::get<1>(res));
         }
         default:
@@ -141,13 +151,13 @@ buildSearchArgument(orc::SearchArgumentBuilder& sarg,
 }
 
 std::unique_ptr<orc::SearchArgument>
-createSearchArgument(py::object predicate, py::dict convDict)
+createSearchArgument(py::object predicate, py::dict convDict, py::object timezoneInfo)
 {
     std::unique_ptr<orc::SearchArgumentBuilder> builder =
       orc::SearchArgumentFactory::newBuilder();
     try {
         py::tuple predVals = predicate.attr("values");
-        buildSearchArgument(*builder.get(), predVals, convDict);
+        buildSearchArgument(*builder.get(), predVals, convDict, timezoneInfo);
         return builder->build();
     } catch (py::error_already_set& err) {
         if (err.matches(PyExc_AttributeError)) {

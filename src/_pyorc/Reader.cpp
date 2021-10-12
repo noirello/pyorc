@@ -399,7 +399,7 @@ Reader::Reader(py::object fileo,
     }
     if (!predicate.is_none()) {
         rowReaderOpts = rowReaderOpts.searchArgument(
-          std::move(createSearchArgument(predicate, convDict)));
+          std::move(createSearchArgument(predicate, convDict, timezoneInfo)));
     }
     reader = orc::createReader(
       std::unique_ptr<orc::InputStream>(new PyORCInputStream(fileo)), readerOpts);
