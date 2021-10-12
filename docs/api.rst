@@ -186,10 +186,10 @@ API documentation
     >>> reader.format_version
     (0, 11)
 
-.. attribute:: Reader.metadata
+.. attribute:: Reader.user_metadata
 
-    The metadata information of the ORC file in a dictionary. The values
-    are always bytes. 
+    The user metadata information of the ORC file in a dictionary. The
+    values are always bytes.
 
 .. attribute:: Reader.num_of_stripes
 
@@ -571,21 +571,21 @@ API documentation
 
 .. method:: Writer.close()
 
-    Close an ORC file and write out the metadata after the rows have been added.
-    Must be called to get a valid ORC file.
+    Close an ORC file and write out the metadata after the rows have been
+    added. Must be called to get a valid ORC file.
 
-.. method:: Writer.set_metadata(**kwargs)
+.. method:: Writer.set_user_metadata(**kwargs)
 
-    Set additional metadata to the ORC file. The values must be bytes. The
-    metadata is set when the Writer is closed.
+    Set additional user metadata to the ORC file. The values must be bytes.
+    The metadata is set when the Writer is closed.
 
     >>> out = open("test_metadata.orc", "wb")
     >>> wri = pyorc.Writer(out, "int")
-    >>> wri.set_metadata(extra="info".encode())
+    >>> wri.set_user_metadata(extra="info".encode())
     >>> wri.close()
     >>> inp = open("test_metadata.orc", "rb")
     >>> rdr = pyorc.Reader(inp)
-    >>> rdr.metadata
+    >>> rdr.user_metadata
     {'extra': b'info'}
 
     :param \*\*kwargs: keyword arguments to add as metadata to the file.

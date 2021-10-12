@@ -522,7 +522,7 @@ Reader::statistics(uint64_t columnIndex)
 }
 
 py::dict
-Reader::metadata()
+Reader::userMetadata()
 {
     py::dict result;
     for (std::string key : reader->getMetadataKeys()) {

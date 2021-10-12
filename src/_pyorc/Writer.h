@@ -36,7 +36,7 @@ class Writer
            py::object = py::none(),
            unsigned int = 0,
            py::object = py::none());
-    void addMetadata(py::str, py::bytes);
+    void addUserMetadata(py::str, py::bytes);
     void write(py::object);
     void close();
     ~Writer(){};

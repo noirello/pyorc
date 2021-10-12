@@ -28,6 +28,8 @@ Changed
 - TimestampConverter's to_orc and from_orc methods got an extra timezone
   parameter, that will be bound to the same ZoneInfo object passed to the
   Reader or Writer via their timezone parameters during type convert.
+- Renamed Reader.metadata property and Writer.set_metadata method to
+  user_metadata and set_user_metadata respectively to avoid confusion.
 
 Fixed
 ~~~~~

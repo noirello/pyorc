@@ -142,12 +142,12 @@ def test_read(example, expected):
 def test_metadata_read():
     with open(get_full_path("TestOrcFile.emptyFile.orc"), "rb") as fileo:
         res = pyorc._pyorc.reader(fileo, struct_repr=StructRepr.DICT)
-        assert res.metadata == {}
+        assert res.user_metadata == {}
     with open(get_full_path("TestOrcFile.metaData.orc"), "rb") as fileo:
         res = pyorc._pyorc.reader(fileo, struct_repr=StructRepr.DICT)
-        assert res.metadata["clobber"] == b"\x05\x07\x0b\r\x11\x13"
+        assert res.user_metadata["clobber"] == b"\x05\x07\x0b\r\x11\x13"
         assert (
-            res.metadata["my.meta"] == b"\x01\x02\x03\x04\x05\x06\x07\xff\xfe\x7f\x80"
+            res.user_metadata["my.meta"] == b"\x01\x02\x03\x04\x05\x06\x07\xff\xfe\x7f\x80"
         )
 
 
@@ -197,7 +197,7 @@ def test_metadata():
         assert res.compression.name.lower() == expected_metadata["compression"]
         assert res.compression_block_size == expected_metadata["compression block"]
         assert res.row_index_stride == expected_metadata["row index stride"]
-        assert res.metadata == expected_metadata["user metadata"]
+        assert res.user_metadata == expected_metadata["user metadata"]
         assert res.bytes_lengths["content_length"] == expected_metadata["content"]
         assert res.bytes_lengths["file_footer_length"] == expected_metadata["footer"]
         assert res.bytes_lengths["file_length"] == expected_metadata["file length"]

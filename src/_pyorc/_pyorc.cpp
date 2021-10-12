@@ -72,7 +72,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def_property_readonly("compression_block_size", &Reader::compressionBlockSize)
       .def_property_readonly("row_index_stride", &Reader::rowIndexStride)
       .def_property_readonly("format_version", &Reader::formatVersion)
-      .def_property_readonly("metadata", &Reader::metadata)
+      .def_property_readonly("user_metadata", &Reader::userMetadata)
       .def_property_readonly("schema", &Reader::schema)
       .def_property_readonly("selected_schema", &Reader::selectedSchema)
       .def_property_readonly("num_of_stripes",
@@ -108,7 +108,7 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("timezone", py::none(), "None"),
            py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
            py::arg_v("conv", py::none(), "None"))
-      .def("_add_metadata", &Writer::addMetadata)
+      .def("_add_user_metadata", &Writer::addUserMetadata)
       .def("write", &Writer::write)
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);

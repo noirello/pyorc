@@ -462,16 +462,16 @@ def test_converter():
     )
 
 
-def test_metadata():
+def test_User_metadata():
     data = io.BytesIO()
     with Writer(data, "int") as writer:
-        writer.set_metadata(test="test1".encode("UTF-8"), meta=b"\x30\x40\x50\x60")
-        writer.set_metadata(test="test2".encode("UTF-8"))
+        writer.set_user_metadata(test="test1".encode("UTF-8"), meta=b"\x30\x40\x50\x60")
+        writer.set_user_metadata(test="test2".encode("UTF-8"))
         with pytest.raises(TypeError):
-            writer.set_metadata(meta="string")
+            writer.set_user_metadata(meta="string")
     reader = Reader(data)
     assert len(reader) == 0
-    assert reader.metadata == {
+    assert reader.user_metadata == {
         "test": "test2".encode("UTF-8"),
         "meta": b"\x30\x40\x50\x60",
     }

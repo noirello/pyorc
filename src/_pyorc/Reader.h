@@ -74,7 +74,7 @@ class Reader : public ORCFileLikeObject
     py::object selectedSchema();
     std::unique_ptr<Stripe> readStripe(uint64_t);
     py::tuple statistics(uint64_t);
-    py::dict metadata();
+    py::dict userMetadata();
 
     const orc::Reader& getORCReader() const { return *reader; }
     const uint64_t getBatchSize() const { return batchSize; }
