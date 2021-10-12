@@ -44,7 +44,7 @@ class TypeKind(enum.IntEnum):
 
     @classmethod
     def has_value(cls, value):
-        return any(member.value for member in cls if member.value == value)
+        return any(member.value == value for member in cls)
 
 
 class StructRepr(enum.IntEnum):
