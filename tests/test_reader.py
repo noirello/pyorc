@@ -2,8 +2,10 @@ import pytest
 
 import io
 import string
-import tempfile
 from datetime import datetime, date, timezone
+from decimal import Decimal
+
+import pyorc
 
 from pyorc import (
     Reader,
@@ -17,7 +19,6 @@ from pyorc import (
     CompressionKind,
     WriterVersion,
 )
-
 from pyorc.converters import ORCConverter
 
 from conftest import output_file
@@ -496,3 +497,38 @@ def test_complex_predicate_results():
     )
     result = list(reader)
     assert len(result) == 600
+
+
+@pytest.mark.parametrize(
+    "orc_type,value",
+    [
+        (pyorc.typedescription.Boolean(), True),
+        (pyorc.typedescription.Int(), 42),
+        (pyorc.typedescription.BigInt(), 42000001),
+        (pyorc.typedescription.Double(), 3.14),
+        (pyorc.typedescription.VarChar(5), "AAAAA"),
+        (pyorc.typedescription.Date(), date(2021, 10, 12)),
+        (
+            pyorc.typedescription.Timestamp(),
+            datetime(2021, 10, 12, 20, 0, 0, tzinfo=timezone.utc),
+        ),
+        (pyorc.typedescription.Decimal(10, 3), Decimal("1001.1")),
+    ],
+)
+def test_converting_predicate(orc_type, value):
+    if orc_type.kind == TypeKind.DECIMAL:
+        pred_col = PredicateColumn(
+            "c0", orc_type.kind, orc_type.precision, orc_type.scale
+        )
+    else:
+        pred_col = PredicateColumn("c0", orc_type.kind)
+    data = io.BytesIO()
+    with Writer(data, f"struct<c0:{orc_type}>", row_index_stride=1) as writer:
+        writer.write((value,))
+        writer.write((None,))
+    reader = Reader(data, predicate=(pred_col == value))
+    result = list(reader)
+    assert result == [(value,)]
+    reader = Reader(data, predicate=(pred_col == None))
+    result = list(reader)
+    assert result == [(None,)]
