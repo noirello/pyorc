@@ -107,3 +107,9 @@ def test_not():
         ),
     )
 
+
+def test_decimal():
+    with pytest.raises(ValueError):
+        _ = PredicateColumn("something", TypeKind.DECIMAL)
+    col = PredicateColumn("colname", TypeKind.DECIMAL, 10, 3)
+    assert col is not None

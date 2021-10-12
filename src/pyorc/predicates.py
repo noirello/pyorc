@@ -48,6 +48,8 @@ class PredicateColumn:
         ):
             raise TypeError("Invalid type for PredicateColumn: %s" % type_kind)
         self.type_kind = type_kind
+        if self.type_kind == TypeKind.DECIMAL and (precision is None or scale is None):
+            raise ValueError("Both precision and scale must be set for Decimal type")
         self.precision = precision if precision is not None else 0
         self.scale = scale if scale is not None else 0
 
