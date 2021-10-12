@@ -497,6 +497,13 @@ def test_complex_predicate_results():
     )
     result = list(reader)
     assert len(result) == 600
+    reader = Reader(
+        data,
+        predicate=(PredicateColumn("c0", TypeKind.INT) < 100)
+        | (PredicateColumn("c1", TypeKind.STRING) != "B"),
+    )
+    result = list(reader)
+    assert len(result) == 300
 
 
 @pytest.mark.parametrize(
