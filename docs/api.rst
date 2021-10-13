@@ -39,11 +39,13 @@ API documentation
 :class:`PredicateColumn`
 ========================
 
-.. class:: PredicateColumn(name, type_kind, precision=None, scale=None)
+.. class:: PredicateColumn(type_kind, name=None, index=None, precision=None,
+                           scale=None)
 
     An object that represents a specific column to use in a predicate
     expression. It can be compared to literal value to create a
-    :class:`Predicate`.
+    :class:`Predicate`. A column can be addressed by either its name or its
+    index.
 
     A simple predicate example, that filtering row groups where the
     ``col0`` column is less than 0:

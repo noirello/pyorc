@@ -450,7 +450,7 @@ def test_empty_predicate_result():
     with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
         writer.writerows((i, "Even") if i % 2 == 0 else (i, "Odd") for i in range(1000))
     data.seek(0)
-    reader = Reader(data, predicate=PredicateColumn("c0", TypeKind.INT) < 0)
+    reader = Reader(data, predicate=PredicateColumn(TypeKind.INT, "c0") < 0)
     assert len(reader) != 0
     assert list(reader) == []
 
@@ -460,11 +460,11 @@ def test_simple_predicate_results():
     with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
         writer.writerows((i, "Even") if i % 2 == 0 else (i, "Odd") for i in range(1000))
     data.seek(0)
-    reader = Reader(data, predicate=PredicateColumn("c0", TypeKind.INT) < 100)
+    reader = Reader(data, predicate=PredicateColumn(TypeKind.INT, "c0") < 100)
     result = list(reader)
     assert len(result) == 100
     assert result[99] == (99, "Odd")
-    reader = Reader(data, predicate=PredicateColumn("c1", TypeKind.STRING) == "Even")
+    reader = Reader(data, predicate=PredicateColumn(TypeKind.STRING, "c1") == "Even")
     result = list(reader)
     assert len(result) == len(reader)
 
@@ -478,29 +478,29 @@ def test_complex_predicate_results():
     data.seek(0)
     reader = Reader(
         data,
-        predicate=(PredicateColumn("c0", TypeKind.INT) < 100)
-        & (PredicateColumn("c1", TypeKind.STRING) == "A"),
+        predicate=(PredicateColumn(TypeKind.INT, "c0") < 100)
+        & (PredicateColumn(TypeKind.STRING, "c1") == "A"),
     )
     assert list(reader) == []
     reader = Reader(
         data,
-        predicate=(PredicateColumn("c0", TypeKind.INT) > 300)
-        & (PredicateColumn("c1", TypeKind.STRING) == "A"),
+        predicate=(PredicateColumn(TypeKind.INT, "c0") > 300)
+        & (PredicateColumn(TypeKind.STRING, "c1") == "A"),
     )
     result = list(reader)
     assert len(result) == 200
     assert sum(1 if row[1] == "A" else 0 for row in result) == 150
     reader = Reader(
         data,
-        predicate=(PredicateColumn("c0", TypeKind.INT) >= 400)
-        & (PredicateColumn("c1", TypeKind.STRING) != "A"),
+        predicate=(PredicateColumn(TypeKind.INT, "c0") >= 400)
+        & (PredicateColumn(TypeKind.STRING, "c1") != "A"),
     )
     result = list(reader)
     assert len(result) == 600
     reader = Reader(
         data,
-        predicate=(PredicateColumn("c0", TypeKind.INT) < 100)
-        | (PredicateColumn("c1", TypeKind.STRING) != "B"),
+        predicate=(PredicateColumn(TypeKind.INT, "c0") < 100)
+        | (PredicateColumn(TypeKind.STRING, "c1") != "B"),
     )
     result = list(reader)
     assert len(result) == 300
@@ -525,10 +525,10 @@ def test_complex_predicate_results():
 def test_converting_predicate(orc_type, value):
     if orc_type.kind == TypeKind.DECIMAL:
         pred_col = PredicateColumn(
-            "c0", orc_type.kind, orc_type.precision, orc_type.scale
+            orc_type.kind, "c0", precision=orc_type.precision, scale=orc_type.scale
         )
     else:
-        pred_col = PredicateColumn("c0", orc_type.kind)
+        pred_col = PredicateColumn(orc_type.kind, "c0")
     data = io.BytesIO()
     with Writer(data, f"struct<c0:{orc_type}>", row_index_stride=1) as writer:
         writer.write((value,))

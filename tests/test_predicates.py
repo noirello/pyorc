@@ -9,70 +9,74 @@ from pyorc.enums import TypeKind
 
 def test_column_type():
     with pytest.raises(TypeError):
-        _ = PredicateColumn("something", "a")
+        _ = PredicateColumn("a", "something")
     with pytest.raises(TypeError):
-        _ = PredicateColumn("something", TypeKind.STRUCT)
-    col = PredicateColumn("colname", TypeKind.LONG)
+        _ = PredicateColumn(TypeKind.STRUCT, "something")
+    with pytest.raises(TypeError):
+        _ = PredicateColumn(TypeKind.LONG, name=0)
+    with pytest.raises(TypeError):
+        _ = PredicateColumn(TypeKind.LONG, index="a")
+    col = PredicateColumn(TypeKind.LONG, "colname")
     assert col is not None
 
 
 def test_column_fields():
-    col = PredicateColumn("colname", TypeKind.LONG)
+    col = PredicateColumn(TypeKind.LONG, "colname")
     assert col.name == "colname"
     assert col.type_kind == 4
     assert col.precision == 0
     assert col.scale == 0
-    col = PredicateColumn("colname", TypeKind.DECIMAL, precision=2, scale=3)
+    col = PredicateColumn(TypeKind.DECIMAL, "colname", precision=2, scale=3)
     assert col.type_kind == TypeKind.DECIMAL
     assert col.precision == 2
     assert col.scale == 3
 
 
 def test_equals():
-    col = PredicateColumn("colname", TypeKind.LONG)
+    col = PredicateColumn(TypeKind.LONG, "colname")
     pred = col == 100
     assert isinstance(pred, Predicate)
     assert pred.values == (Operator.EQ, col, 100)
 
 
 def test_not_equals():
-    col = PredicateColumn("colname", TypeKind.STRING)
+    col = PredicateColumn(TypeKind.STRING, "colname")
     pred = col != "test"
     assert isinstance(pred, Predicate)
     assert pred.values == (Operator.NOT, (Operator.EQ, col, "test"))
 
 
 def test_less_than():
-    col = PredicateColumn("colname", TypeKind.INT)
+    col = PredicateColumn(TypeKind.INT, "colname")
     pred = col < 100
     assert isinstance(pred, Predicate)
     assert pred.values == (Operator.LT, col, 100)
 
 
 def test_less_than_or_equals():
-    col = PredicateColumn("colname", TypeKind.LONG)
+    col = PredicateColumn(TypeKind.LONG, "colname")
     pred = col <= 50
     assert isinstance(pred, Predicate)
     assert pred.values == (Operator.LE, col, 50)
 
 
 def test_greater_than():
-    col = PredicateColumn("colname", TypeKind.DOUBLE)
+    col = PredicateColumn(TypeKind.DOUBLE, "colname")
     pred = col > 5.0
     assert isinstance(pred, Predicate)
     assert pred.values == (Operator.NOT, (Operator.LE, col, 5.0))
 
 
 def test_greater_than_or_equals():
-    col = PredicateColumn("colname", TypeKind.FLOAT)
+    col = PredicateColumn(TypeKind.FLOAT, "colname")
     pred = col >= 10.0
     assert isinstance(pred, Predicate)
     assert pred.values == (Operator.NOT, (Operator.LT, col, 10.0))
 
 
 def test_and():
-    col0 = PredicateColumn("colname0", TypeKind.LONG)
-    col1 = PredicateColumn("colname1", TypeKind.TIMESTAMP)
+    col0 = PredicateColumn(TypeKind.LONG, "colname0")
+    col1 = PredicateColumn(TypeKind.TIMESTAMP, "colname1")
     pred = (col0 < 100) & (col1 == datetime(2021, 3, 20))
     assert isinstance(pred, Predicate)
     assert pred.values == (
@@ -83,8 +87,8 @@ def test_and():
 
 
 def test_or():
-    col0 = PredicateColumn("colname0", TypeKind.SHORT)
-    col1 = PredicateColumn("colname1", TypeKind.DECIMAL, 2, 2)
+    col0 = PredicateColumn(TypeKind.SHORT, name="colname0")
+    col1 = PredicateColumn(TypeKind.DECIMAL, name="colname1", precision=2, scale=2)
     pred = (col0 < 100) & (col1 >= Decimal("20.00"))
     assert isinstance(pred, Predicate)
     assert pred.values == (
@@ -95,7 +99,7 @@ def test_or():
 
 
 def test_not():
-    col = PredicateColumn("colname", TypeKind.FLOAT)
+    col = PredicateColumn(TypeKind.FLOAT, "colname")
     pred = ~((col < 1.0) & (col > -1.0))
     assert isinstance(pred, Predicate)
     assert pred.values == (
@@ -110,6 +114,6 @@ def test_not():
 
 def test_decimal():
     with pytest.raises(ValueError):
-        _ = PredicateColumn("something", TypeKind.DECIMAL)
-    col = PredicateColumn("colname", TypeKind.DECIMAL, 10, 3)
+        _ = PredicateColumn(TypeKind.DECIMAL, "something")
+    col = PredicateColumn(TypeKind.DECIMAL, "colname", precision=10, scale=3)
     assert col is not None

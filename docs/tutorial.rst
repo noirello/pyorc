@@ -119,7 +119,7 @@ during reading::
     >>> reader = pyorc.Reader(example)
     >>> next(reader)
     ('row 000000',)
-    >>> reader = pyorc.Reader(example, predicate=pyorc.predicates.PredicateColumn("str", pyorc.TypeKind.STRING) > "row 004096")
+    >>> reader = pyorc.Reader(example, predicate=pyorc.predicates.PredicateColumn(pyorc.TypeKind.STRING, "str") > "row 004096")
     >>> next(reader)
     ('row 004096',)
 
@@ -128,7 +128,7 @@ individual record. The size of the row group is determined by the
 `row_index_stride`, set during writing of the file. You can create more
 complex predicate using logical expressions::
 
-    >>> pred = (PredicateColumn("c0", TypeKind.INT) > 300) & (PredicateColumn("c1", TypeKind.STRING) == "A")
+    >>> pred = (PredicateColumn(TypeKind.INT, "c0") > 300) & (PredicateColumn(TypeKind.STRING, "c1") == "A")
 
 One of the comparands must always be a literal value (cannot compare two
 columns to each other).

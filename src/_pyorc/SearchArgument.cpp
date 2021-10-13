@@ -127,22 +127,49 @@ buildSearchArgument(orc::SearchArgumentBuilder& sarg,
                      timezoneInfo)
               .end();
         case 3: { /* EQ */
-            std::string colName = py::cast<std::string>(predVals[1].attr("name"));
+            py::object colName = predVals[1].attr("name");
+            py::object colIdx = predVals[1].attr("index");
             std::tuple<orc::PredicateDataType, orc::Literal> res =
               buildLiteral(predVals[1], predVals[2], convDict, timezoneInfo);
-            return sarg.equals(colName, std::get<0>(res), std::get<1>(res));
+            if (!colName.is_none()) {
+                return sarg.equals(
+                  py::cast<std::string>(colName), std::get<0>(res), std::get<1>(res));
+            } else if (!colIdx.is_none()) {
+                return sarg.equals(
+                  py::cast<uint64_t>(colIdx), std::get<0>(res), std::get<1>(res));
+            } else {
+                throw py::type_error("Either name or index parameter must be set");
+            }
         }
         case 4: { /* LT */
-            std::string colName = py::cast<std::string>(predVals[1].attr("name"));
+            py::object colName = predVals[1].attr("name");
+            py::object colIdx = predVals[1].attr("index");
             std::tuple<orc::PredicateDataType, orc::Literal> res =
               buildLiteral(predVals[1], predVals[2], convDict, timezoneInfo);
-            return sarg.lessThan(colName, std::get<0>(res), std::get<1>(res));
+            if (!colName.is_none()) {
+                return sarg.lessThan(
+                  py::cast<std::string>(colName), std::get<0>(res), std::get<1>(res));
+            } else if (!colIdx.is_none()) {
+                return sarg.lessThan(
+                  py::cast<uint64_t>(colIdx), std::get<0>(res), std::get<1>(res));
+            } else {
+                throw py::type_error("Either name or index parameter must be set");
+            }
         }
         case 5: { /* LE */
-            std::string colName = py::cast<std::string>(predVals[1].attr("name"));
+            py::object colName = predVals[1].attr("name");
+            py::object colIdx = predVals[1].attr("index");
             std::tuple<orc::PredicateDataType, orc::Literal> res =
               buildLiteral(predVals[1], predVals[2], convDict, timezoneInfo);
-            return sarg.lessThanEquals(colName, std::get<0>(res), std::get<1>(res));
+            if (!colName.is_none()) {
+                return sarg.lessThanEquals(
+                  py::cast<std::string>(colName), std::get<0>(res), std::get<1>(res));
+            } else if (!colIdx.is_none()) {
+                return sarg.lessThanEquals(
+                  py::cast<uint64_t>(colIdx), std::get<0>(res), std::get<1>(res));
+            } else {
+                throw py::type_error("Either name or index parameter must be set");
+            }
         }
         default:
             throw py::type_error("Invalid operation on Literal in predicate");
