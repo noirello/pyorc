@@ -16,6 +16,8 @@ def test_column_type():
         _ = PredicateColumn(TypeKind.LONG, name=0)
     with pytest.raises(TypeError):
         _ = PredicateColumn(TypeKind.LONG, index="a")
+    with pytest.raises(TypeError):
+        _ = PredicateColumn(TypeKind.LONG, name="a", index=0)
     col = PredicateColumn(TypeKind.LONG, "colname")
     assert col is not None
 

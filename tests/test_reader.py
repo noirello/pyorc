@@ -460,13 +460,21 @@ def test_simple_predicate_results():
     with Writer(data, "struct<c0:int,c1:string>", row_index_stride=100) as writer:
         writer.writerows((i, "Even") if i % 2 == 0 else (i, "Odd") for i in range(1000))
     data.seek(0)
-    reader = Reader(data, predicate=PredicateColumn(TypeKind.INT, "c0") < 100)
-    result = list(reader)
-    assert len(result) == 100
-    assert result[99] == (99, "Odd")
-    reader = Reader(data, predicate=PredicateColumn(TypeKind.STRING, "c1") == "Even")
-    result = list(reader)
-    assert len(result) == len(reader)
+    for args in ({"name": "c0"}, {"index": 1}):
+        reader = Reader(data, predicate=PredicateColumn(TypeKind.INT, **args) < 100)
+        result = list(reader)
+        assert len(result) == 100
+        assert result[99] == (99, "Odd")
+    for args in ({"name": "c0"}, {"index": 1}):
+        reader = Reader(data, predicate=PredicateColumn(TypeKind.INT, **args) <= 100)
+        result = list(reader)
+        assert len(result) == 200
+    for args in ({"name": "c1"}, {"index": 2}):
+        reader = Reader(
+            data, predicate=PredicateColumn(TypeKind.STRING, **args) == "Even"
+        )
+        result = list(reader)
+        assert len(result) == len(reader)
 
 
 def test_complex_predicate_results():
@@ -500,10 +508,22 @@ def test_complex_predicate_results():
     reader = Reader(
         data,
         predicate=(PredicateColumn(TypeKind.INT, "c0") < 100)
-        | (PredicateColumn(TypeKind.STRING, "c1") != "B"),
+        | (PredicateColumn(TypeKind.STRING, index=2) != "B"),
     )
     result = list(reader)
     assert len(result) == 300
+
+
+def test_converting_predicate_error():
+    data = io.BytesIO()
+    with Writer(data, f"struct<c0:string>", row_index_stride=1) as writer:
+        writer.write(("test",))
+    with pytest.raises(TypeError):
+        _ = Reader(data, predicate=(PredicateColumn(TypeKind.STRING) < "test"),)
+    with pytest.raises(TypeError):
+        _ = Reader(data, predicate=(PredicateColumn(TypeKind.STRING) == "test"),)
+    with pytest.raises(TypeError):
+        _ = Reader(data, predicate=(PredicateColumn(TypeKind.STRING) <= "test"),)
 
 
 @pytest.mark.parametrize(

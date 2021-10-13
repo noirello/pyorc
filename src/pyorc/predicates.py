@@ -50,6 +50,8 @@ class PredicateColumn:
         self.type_kind = type_kind
         if self.type_kind == TypeKind.DECIMAL and (precision is None or scale is None):
             raise ValueError("Both precision and scale must be set for Decimal type")
+        if name is not None and index is not None:
+            raise TypeError("Only one of the name or index parameter must be given")
         if name is not None and not isinstance(name, str):
             raise TypeError("Name parameter must be string")
         if index is not None and not isinstance(index, int):
