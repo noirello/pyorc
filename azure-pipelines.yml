@@ -147,6 +147,8 @@ stages:
           cpython.version: cp38-cp38
         Python39:
           cpython.version: cp39-cp39
+        Python310:
+          cpython.version: cp310-cp310
     container:
       image: quay.io/pypa/manylinux2010_x86_64:latest
     steps:
@@ -184,6 +186,8 @@ stages:
           cpython.version: cp38-cp38
         Python39:
           cpython.version: cp39-cp39
+        Python310:
+          cpython.version: cp310-cp310
     steps:
     - script: docker run --rm --privileged hypriot/qemu-register
       displayName: 'Registering qemu'
@@ -195,7 +199,7 @@ stages:
                     /opt/python/$(cpython.version)/bin/python -m pip install --user cmake pybind11 && \
                     export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && cmake --version && \
                     export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && \
-                    yum update && yum -y install gcc gcc-c++ && \
+                    yum -y update && yum -y install gcc gcc-c++ && \
                     /opt/python/$(cpython.version)/bin/python setup.py build_orc --build-type=release && \
                     /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel && \
                     auditwheel repair dist/pyorc-*.whl"
