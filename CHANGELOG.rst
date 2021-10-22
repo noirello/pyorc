@@ -1,6 +1,6 @@
 Changelog
 ==========
-[0.5.0] - UNRELEASED
+[0.5.0] - 2021-10-22
 --------------------
 
 Added
@@ -18,6 +18,7 @@ Added
 - Predicate (SearchArgument) support for filtering row groups during ORC file
   reads. New classes: Predicate and PredicateColumn.
 - New parameter for Reader: predicate.
+- Build for aarch64 wheels. (PR #46, contribution of @odidev)
 
 Changed
 ~~~~~~~
@@ -31,8 +32,6 @@ Changed
 - Renamed Reader.metadata property and Writer.set_metadata method to
   user_metadata and set_user_metadata respectively to avoid confusion.
 
-Fixed
-~~~~~
 
 [0.4.0] - 2021-01-11
 --------------------
