@@ -2,6 +2,7 @@ import pytest
 
 import io
 import math
+import os
 from datetime import date, datetime, timezone, tzinfo
 from decimal import Decimal
 
@@ -462,10 +463,13 @@ def test_converter():
     )
 
 
-def test_User_metadata():
+def test_user_metadata():
+    random_val = os.urandom(64)
     data = io.BytesIO()
     with Writer(data, "int") as writer:
-        writer.set_user_metadata(test="test1".encode("UTF-8"), meta=b"\x30\x40\x50\x60")
+        writer.set_user_metadata(
+            test="test1".encode("UTF-8"), meta=b"\x30\x40\x50\x60", val=random_val
+        )
         writer.set_user_metadata(test="test2".encode("UTF-8"))
         with pytest.raises(TypeError):
             writer.set_user_metadata(meta="string")
@@ -474,6 +478,7 @@ def test_User_metadata():
     assert reader.user_metadata == {
         "test": "test2".encode("UTF-8"),
         "meta": b"\x30\x40\x50\x60",
+        "val": random_val,
     }
 
 
