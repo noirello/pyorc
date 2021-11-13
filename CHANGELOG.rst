@@ -1,5 +1,14 @@
 Changelog
 ==========
+[0.6.0] - UNRELEASED
+--------------------
+
+Fixed
+~~~~~
+
+- Unnecessary string casting of values when writing user metadata. (Issue #45)
+
+
 [0.5.0] - 2021-10-22
 --------------------
 
