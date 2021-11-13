@@ -159,5 +159,5 @@ Writer::close()
 void
 Writer::addUserMetadata(py::str key, py::bytes value)
 {
-    writer->addUserMetadata(py::cast<std::string>(key), py::str(value));
+    writer->addUserMetadata(key, value);
 }
