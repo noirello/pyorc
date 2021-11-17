@@ -28,6 +28,7 @@ class Writer(writer):
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: Optional[dict] = None,
+        dict_key_size_threshold = 0.0,
     ) -> None:
         if isinstance(schema, str):
             schema = TypeDescription.from_string(schema)
@@ -69,6 +70,7 @@ class Writer(writer):
             timezone,
             struct_repr,
             conv,
+            dict_key_size_threshold
         )
 
     def __enter__(self):
