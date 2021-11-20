@@ -18,6 +18,7 @@ from pyorc import (
     Stripe,
     CompressionKind,
     WriterVersion,
+    orc_version,
 )
 from pyorc.converters import ORCConverter
 
@@ -433,7 +434,7 @@ def test_software_version():
     with Writer(data, "int") as writer:
         writer.writerows(range(10))
     reader = Reader(data)
-    assert reader.software_version == "ORC C++ 1.7.0"
+    assert reader.software_version == f"ORC C++ {orc_version}"
 
 
 def test_wrong_predicate():
