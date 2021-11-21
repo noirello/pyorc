@@ -94,7 +94,8 @@ PYBIND11_MODULE(_pyorc, m)
                     double,
                     py::object,
                     unsigned int,
-                    py::object>(),
+                    py::object,
+                    double>(),
            py::arg("fileo"),
            py::arg("schema"),
            py::arg_v("batch_size", 1024, "1024"),
@@ -107,7 +108,8 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("bloom_filter_fpp", 0.05, "0.05"),
            py::arg_v("timezone", py::none(), "None"),
            py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
-           py::arg_v("conv", py::none(), "None"))
+           py::arg_v("conv", py::none(), "None"),
+           py::arg_v("dict_key_size_threshold", 0.0, "0.0"))
       .def("_add_user_metadata", &Writer::addUserMetadata)
       .def("write", &Writer::write)
       .def("close", &Writer::close)

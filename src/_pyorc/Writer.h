@@ -35,7 +35,8 @@ class Writer
            double = 0.05,
            py::object = py::none(),
            unsigned int = 0,
-           py::object = py::none());
+           py::object = py::none(),
+           double = 0.0);
     void addUserMetadata(py::str, py::bytes);
     void write(py::object);
     void close();

@@ -95,7 +95,8 @@ Writer::Writer(py::object fileo,
                double bloom_filter_fpp,
                py::object tzone,
                unsigned int struct_repr,
-               py::object conv)
+               py::object conv,
+               double dict_key_size_threshold)
 {
     currentRow = 0;
     batchItem = 0;
@@ -119,6 +120,7 @@ Writer::Writer(py::object fileo,
     options = options.setRowIndexStride(row_index_stride);
     options = options.setColumnsUseBloomFilter(bloom_filter_columns);
     options = options.setBloomFilterFPP(bloom_filter_fpp);
+    options = options.setDictionaryKeySizeThreshold(dict_key_size_threshold);
     if (!tzone.is_none()) {
         std::string tzKey = py::cast<std::string>(tzone.attr("key"));
         options = options.setTimezoneName(tzKey);
