@@ -1,5 +1,5 @@
 import copy
-from typing import Union, Optional, List, BinaryIO, Iterable
+from typing import Any, Union, Optional, List, BinaryIO, Iterable
 
 try:
     import zoneinfo
@@ -29,6 +29,7 @@ class Writer(writer):
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: Optional[dict] = None,
         dict_key_size_threshold: float = 0.0,
+        null_value: Any = None,
     ) -> None:
         if isinstance(schema, str):
             schema = TypeDescription.from_string(schema)
@@ -71,6 +72,7 @@ class Writer(writer):
             struct_repr,
             conv,
             dict_key_size_threshold,
+            null_value,
         )
 
     def __enter__(self):

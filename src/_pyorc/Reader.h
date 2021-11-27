@@ -50,6 +50,7 @@ class Reader : public ORCFileLikeObject
     std::unique_ptr<orc::Reader> reader;
     uint64_t batchSize;
     unsigned int structKind;
+    py::object nullValue;
 
   public:
     Reader(py::object,
@@ -58,6 +59,7 @@ class Reader : public ORCFileLikeObject
            std::list<std::string> = {},
            py::object = py::none(),
            unsigned int = 0,
+           py::object = py::none(),
            py::object = py::none(),
            py::object = py::none());
     py::dict bytesLengths() const;
@@ -79,6 +81,7 @@ class Reader : public ORCFileLikeObject
     const orc::Reader& getORCReader() const { return *reader; }
     const uint64_t getBatchSize() const { return batchSize; }
     const unsigned int getStructKind() const { return structKind; }
+    const py::object getNullValue() const { return nullValue; }
     ~Reader(){};
 };
 

@@ -52,6 +52,7 @@ PYBIND11_MODULE(_pyorc, m)
                     py::object,
                     unsigned int,
                     py::object,
+                    py::object,
                     py::object>(),
            py::arg("fileo"),
            py::arg_v("batch_size", 1024, "1024"),
@@ -60,7 +61,8 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("timezone", py::none(), "None"),
            py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
            py::arg_v("conv", py::none(), "None"),
-           py::arg_v("predicate", py::none(), "None"))
+           py::arg_v("predicate", py::none(), "None"),
+           py::arg_v("null_value", py::none(), "None"))
       .def("__next__", [](Reader& r) -> py::object { return r.next(); })
       .def("__iter__", [](Reader& r) -> Reader& { return r; })
       .def("__len__", &Reader::len)
@@ -95,7 +97,8 @@ PYBIND11_MODULE(_pyorc, m)
                     py::object,
                     unsigned int,
                     py::object,
-                    double>(),
+                    double,
+                    py::object>(),
            py::arg("fileo"),
            py::arg("schema"),
            py::arg_v("batch_size", 1024, "1024"),
@@ -109,7 +112,8 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("timezone", py::none(), "None"),
            py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
            py::arg_v("conv", py::none(), "None"),
-           py::arg_v("dict_key_size_threshold", 0.0, "0.0"))
+           py::arg_v("dict_key_size_threshold", 0.0, "0.0"),
+           py::arg_v("null_value", py::none(), "None"))
       .def("_add_user_metadata", &Writer::addUserMetadata)
       .def("write", &Writer::write)
       .def("close", &Writer::close)

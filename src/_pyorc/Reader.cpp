@@ -368,13 +368,15 @@ Reader::Reader(py::object fileo,
                py::object tzone,
                unsigned int struct_repr,
                py::object conv,
-               py::object predicate)
+               py::object predicate,
+               py::object null_value)
 {
     orc::ReaderOptions readerOpts;
     batchItem = 0;
     currentRow = 0;
     firstRowOfStripe = 0;
     structKind = struct_repr;
+    nullValue = null_value;
     if (!col_indices.empty() && !col_names.empty()) {
         throw py::value_error(
           "Either col_indices or col_names can be set to select columns");
@@ -408,7 +410,7 @@ Reader::Reader(py::object fileo,
         rowReader = reader->createRowReader(rowReaderOpts);
         batch = rowReader->createRowBatch(batchSize);
         converter = createConverter(
-          &rowReader->getSelectedType(), structKind, convDict, timezoneInfo);
+          &rowReader->getSelectedType(), structKind, convDict, timezoneInfo, nullValue);
     } catch (orc::ParseError& err) {
         throw py::value_error(err.what());
     }
@@ -547,8 +549,11 @@ Stripe::Stripe(const Reader& reader_,
       rowReaderOpts.range(stripeInfo->getOffset(), stripeInfo->getLength());
     rowReader = reader.getORCReader().createRowReader(rowReaderOpts);
     batch = rowReader->createRowBatch(reader.getBatchSize());
-    converter = createConverter(
-      &rowReader->getSelectedType(), reader.getStructKind(), convDict, timezoneInfo);
+    converter = createConverter(&rowReader->getSelectedType(),
+                                reader.getStructKind(),
+                                convDict,
+                                timezoneInfo,
+                                reader.getNullValue());
     firstRowOfStripe = rowReader->getRowNumber() + 1;
 }
 

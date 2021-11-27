@@ -1,5 +1,5 @@
-#include "Writer.h"
 #include "PyORCStream.h"
+#include "Writer.h"
 
 void
 setTypeAttributes(orc::Type* type, py::handle schema)
@@ -96,7 +96,8 @@ Writer::Writer(py::object fileo,
                py::object tzone,
                unsigned int struct_repr,
                py::object conv,
-               double dict_key_size_threshold)
+               double dict_key_size_threshold,
+               py::object null_value)
 {
     currentRow = 0;
     batchItem = 0;
@@ -130,7 +131,7 @@ Writer::Writer(py::object fileo,
     writer = orc::createWriter(*type, outStream.get(), options);
     batchSize = batch_size;
     batch = writer->createRowBatch(batchSize);
-    converter = createConverter(type.get(), struct_repr, converters, tzone);
+    converter = createConverter(type.get(), struct_repr, converters, tzone, null_value);
 }
 
 void

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Optional, List, BinaryIO, Iterator
+from typing import Any, Optional, List, BinaryIO, Iterator
 
 try:
     import zoneinfo
@@ -60,6 +60,7 @@ class Reader(reader):
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: Optional[dict] = None,
         predicate: Optional[Predicate] = None,
+        null_value: Any = None,
     ) -> None:
         if column_indices is None:
             column_indices = []
@@ -80,6 +81,7 @@ class Reader(reader):
             struct_repr,
             conv,
             predicate,
+            null_value,
         )
 
     def __getitem__(self, col_idx) -> Column:
