@@ -527,7 +527,8 @@ API documentation
                   compression_strategy=CompressionStrategy.SPEED, \
                   compression_block_size=65536, bloom_filter_columns=None, \
                   bloom_filter_fpp=0.05, timezone=zoneinfo.ZoneInfo("UTC"), \
-                  struct_repr=StructRepr.TUPLE, converters=None)
+                  struct_repr=StructRepr.TUPLE, converters=None, \
+                  dict_key_size_threshold=0.0)
 
     An object to write ORC files. The `fileo` must be a binary stream.
     The `schema` must be :class:`TypeDescription` or a valid ORC schema
@@ -564,6 +565,7 @@ API documentation
     :param dict converters: a dictionary, where the keys are
         :class:`TypeKind` and the values are subclasses of
         :class:`ORCConverter`.
+    :param float dict_key_size_threshold: threshold for dictionary encoding.
 
 .. method:: Writer.__enter__()
 .. method:: Writer.__exit__()

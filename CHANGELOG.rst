@@ -3,6 +3,12 @@ Changelog
 [0.6.0] - UNRELEASED
 --------------------
 
+Added
+~~~~~
+
+- New parameter to Writer: dict_key_size_threshold for setting threshold
+  for dictionary encoding. (PR #46, contribution of @dirtysalt)
+
 Fixed
 ~~~~~
 
@@ -27,7 +33,7 @@ Added
 - Predicate (SearchArgument) support for filtering row groups during ORC file
   reads. New classes: Predicate and PredicateColumn.
 - New parameter for Reader: predicate.
-- Build for aarch64 wheels. (PR #46, contribution of @odidev)
+- Build for aarch64 wheels. (PR #43, contribution of @odidev)
 
 Changed
 ~~~~~~~
