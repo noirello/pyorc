@@ -8,6 +8,8 @@ Added
 
 - New parameter to Writer: dict_key_size_threshold for setting threshold
   for dictionary encoding. (PR #46, contribution of @dirtysalt)
+- New parameter to Reader and Writer: null_value for changing representation
+  of ORC null value. The value must be a singleton object.
 
 Fixed
 ~~~~~

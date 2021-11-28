@@ -75,7 +75,7 @@ API documentation
 .. class:: Reader(fileo, batch_size=1024, column_indices=None, \
                   column_names=None, timezone=zoneinfo.ZoneInfo("UTC"), \
                   struct_repr=StructRepr.TUPLE, converters=None, \
-                  predicate=None)
+                  predicate=None, null_value=None)
 
     An object to read ORC files. The `fileo` must be a binary stream that
     support seeking. Either `column_indices` or `column_names` can be used
@@ -103,6 +103,7 @@ API documentation
         :class:`ORCConverter`.
     :param Predicate predicate: a predicate expression to read only specified
         row groups.
+    :param object null_value: a singleton object to represent ORC null value.
 
 .. method:: Reader.__getitem__(col_idx)
 
@@ -528,7 +529,7 @@ API documentation
                   compression_block_size=65536, bloom_filter_columns=None, \
                   bloom_filter_fpp=0.05, timezone=zoneinfo.ZoneInfo("UTC"), \
                   struct_repr=StructRepr.TUPLE, converters=None, \
-                  dict_key_size_threshold=0.0)
+                  dict_key_size_threshold=0.0, null_value=None)
 
     An object to write ORC files. The `fileo` must be a binary stream.
     The `schema` must be :class:`TypeDescription` or a valid ORC schema
@@ -566,6 +567,7 @@ API documentation
         :class:`TypeKind` and the values are subclasses of
         :class:`ORCConverter`.
     :param float dict_key_size_threshold: threshold for dictionary encoding.
+    :param object null_value: a singleton object to represent ORC null value.
 
 .. method:: Writer.__enter__()
 .. method:: Writer.__exit__()
