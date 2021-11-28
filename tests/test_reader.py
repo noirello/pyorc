@@ -1,6 +1,7 @@
 import pytest
 
 import io
+import math
 import string
 from datetime import datetime, date, timezone
 from decimal import Decimal
@@ -22,7 +23,7 @@ from pyorc import (
 )
 from pyorc.converters import ORCConverter
 
-from conftest import output_file
+from conftest import output_file, NullValue
 
 
 @pytest.fixture
@@ -520,11 +521,20 @@ def test_converting_predicate_error():
     with Writer(data, f"struct<c0:string>", row_index_stride=1) as writer:
         writer.write(("test",))
     with pytest.raises(TypeError):
-        _ = Reader(data, predicate=(PredicateColumn(TypeKind.STRING) < "test"),)
+        _ = Reader(
+            data,
+            predicate=(PredicateColumn(TypeKind.STRING) < "test"),
+        )
     with pytest.raises(TypeError):
-        _ = Reader(data, predicate=(PredicateColumn(TypeKind.STRING) == "test"),)
+        _ = Reader(
+            data,
+            predicate=(PredicateColumn(TypeKind.STRING) == "test"),
+        )
     with pytest.raises(TypeError):
-        _ = Reader(data, predicate=(PredicateColumn(TypeKind.STRING) <= "test"),)
+        _ = Reader(
+            data,
+            predicate=(PredicateColumn(TypeKind.STRING) <= "test"),
+        )
 
 
 @pytest.mark.parametrize(
@@ -560,3 +570,34 @@ def test_converting_predicate(orc_type, value):
     reader = Reader(data, predicate=(pred_col == None))
     result = list(reader)
     assert result == [(None,)]
+
+
+TESTDATA = [
+    ("int", 42),
+    ("bigint", 560000000000001),
+    ("float", 3.14),
+    ("double", math.e),
+    ("string", "test"),
+    ("binary", b"\x23\x45\x45"),
+    ("varchar(4)", "four"),
+    ("timestamp", datetime(2019, 11, 10, 12, 59, 59, 100, tzinfo=timezone.utc)),
+    ("date", date(2010, 9, 1)),
+    ("decimal(10,0)", Decimal("1000000000")),
+    ("array<int>", [0, 1, 2, 3]),
+    ("map<string,string>", {"test": "example"}),
+    ("struct<col0:int,col1:string>", (0, "test")),
+]
+
+
+@pytest.mark.parametrize("orc_type,value", TESTDATA)
+def test_read_custom_null_value(orc_type, value):
+    data = io.BytesIO()
+    with Writer(data, orc_type) as writer:
+        writer.write(value)
+        writer.write(None)
+    reader = Reader(data, null_value=NullValue())
+    if orc_type in ("float", "double"):
+        assert math.isclose(next(reader), value, rel_tol=1e-07, abs_tol=0.0)
+    else:
+        assert next(reader) == value
+    assert next(reader) is NullValue()
