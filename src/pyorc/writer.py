@@ -97,10 +97,3 @@ class Writer(writer):
                     "All values must be bytes, key '{0}' is {1}".format(key, type(val))
                 )
             self.__user_metadata[key] = val
-
-    def writerows(self, rows: Iterable) -> int:
-        num = 0
-        for row in rows:
-            self.write(row)
-            num += 1
-        return num

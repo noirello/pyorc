@@ -40,6 +40,7 @@ class Writer
            py::object = py::none());
     void addUserMetadata(py::str, py::bytes);
     void write(py::object);
+    uint64_t writerows(py::iterable);
     void close();
     ~Writer(){};
 };

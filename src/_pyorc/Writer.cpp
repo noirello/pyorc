@@ -148,6 +148,18 @@ Writer::write(py::object row)
     }
 }
 
+uint64_t
+Writer::writerows(py::iterable iter)
+{
+    uint64_t rows = 0;
+    for (auto handle : iter) {
+        auto obj = py::cast<py::object>(handle);
+        this->write(obj);
+        ++rows;
+    }
+    return rows;
+}
+
 void
 Writer::close()
 {

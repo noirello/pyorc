@@ -116,6 +116,7 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("null_value", py::none(), "None"))
       .def("_add_user_metadata", &Writer::addUserMetadata)
       .def("write", &Writer::write)
+      .def("writerows", &Writer::writerows)
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);
 }
