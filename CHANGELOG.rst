@@ -11,6 +11,11 @@ Added
 - New parameter to Reader and Writer: null_value for changing representation
   of ORC null value. The value must be a singleton object.
 
+Changed
+~~~~~~~
+
+- Writer.writerows method reimplemented in C++.
+
 Fixed
 ~~~~~
 
