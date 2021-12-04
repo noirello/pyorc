@@ -207,6 +207,7 @@ setup(
     ext_modules=EXT_MODULES,
     package_dir={"pyorc": "src/pyorc"},
     packages=["pyorc"],
+    package_data={"pyorc": ["py.typed", "_pyorc.pyi"]},
     include_package_data=True,
     cmdclass={"build_ext": BuildExt, "build_orc": BuildORCLib},
     keywords=["python3", "orc", "apache-orc"],
