@@ -13,7 +13,7 @@ class TypeDescription:
 
     def __init__(self) -> None:
         self._column_id = 0
-        self._attributes = {}
+        self._attributes: Dict[str, str] = {}
 
     def __str__(self) -> str:
         return self.name
@@ -31,7 +31,7 @@ class TypeDescription:
                 self._attributes = val
             else:
                 raise TypeError(
-                    "The all keys and values in the attributes dictinoary must be string"
+                    "The all keys and values in the attributes dictionary must be string"
                 )
         else:
             raise TypeError("The attributes must be a dictionary")
@@ -155,7 +155,7 @@ class Union(TypeDescription):
     name = "uniontype"
     kind = TypeKind.UNION
 
-    def __init__(self, *cont_types) -> None:
+    def __init__(self, *cont_types: TypeDescription) -> None:
         super().__init__()
         for c_types in cont_types:
             if not isinstance(c_types, TypeDescription):
@@ -178,7 +178,7 @@ class Union(TypeDescription):
         return val
 
     @property
-    def cont_types(self) -> Tuple[TypeDescription]:
+    def cont_types(self) -> Tuple[TypeDescription, ...]:
         return self.__cont_types
 
 
@@ -242,7 +242,7 @@ class Struct(TypeDescription):
     name = "struct"
     kind = TypeKind.STRUCT
 
-    def __init__(self, **fields) -> None:
+    def __init__(self, **fields: TypeDescription) -> None:
         super().__init__()
         for fld in fields.values():
             if not isinstance(fld, TypeDescription):

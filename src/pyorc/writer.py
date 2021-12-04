@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Union, Optional, List, BinaryIO, Iterable
+from typing import Any, Union, Optional, List, BinaryIO, Dict
 
 try:
     import zoneinfo
@@ -38,7 +38,7 @@ class Writer(writer):
         if 0.0 >= bloom_filter_fpp or bloom_filter_fpp >= 1.0:
             raise ValueError("False positive probability should be > 0.0 & < 1.0")
         self.__schema = schema
-        self.__user_metadata = {}
+        self.__user_metadata: Dict[str, bytes] = {}
         comp = CompressionKind(compression)
         comp_strat = CompressionStrategy(compression_strategy)
         bf_set = set()
