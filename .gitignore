@@ -8,3 +8,4 @@ pyorc.egg-info/
 .pytest_cache/
 __pycache__/
 tests/__pycache__
+.mypy_cache/
