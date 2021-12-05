@@ -90,7 +90,7 @@ class Writer(writer):
     def schema(self) -> TypeDescription:
         return copy.deepcopy(self.__schema)
 
-    def set_user_metadata(self, **kwargs) -> None:
+    def set_user_metadata(self, **kwargs: bytes) -> None:
         for key, val in kwargs.items():
             if not isinstance(val, bytes):
                 raise TypeError(
