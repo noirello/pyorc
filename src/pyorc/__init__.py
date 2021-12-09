@@ -1,7 +1,7 @@
 import os
 import sys
 
-from collections import namedtuple
+from typing import NamedTuple
 
 if sys.platform.startswith("win32") and "TZDIR" not in os.environ:
     # Windows does not come with a standard IANA time zone database,
@@ -25,7 +25,10 @@ orc_version = _orc_version()
 
 
 def __extract_version_info():
-    _orc_version_info = namedtuple("orc_version_info", "major minor patch releaselevel")
+    _orc_version_info = NamedTuple(
+        "orc_version_info",
+        [("major", int), ("minor", int), ("patch", int), ("releaselevel", str)],
+    )
     splitted = _orc_version().split("-")
     ver = splitted[0]
     rel_level = splitted[1] if len(splitted) > 1 else ""
