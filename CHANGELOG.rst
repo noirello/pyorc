@@ -10,11 +10,13 @@ Added
   for dictionary encoding. (PR #46, contribution of @dirtysalt)
 - New parameter to Reader and Writer: null_value for changing representation
   of ORC null value. The value must be a singleton object.
+- Type stubs for classes imlemented in C++.
 
 Changed
 ~~~~~~~
 
 - Writer.writerows method reimplemented in C++.
+- Improved type annotations.
 
 Fixed
 ~~~~~
