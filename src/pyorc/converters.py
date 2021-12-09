@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta, timezone as tz
 from decimal import Decimal, localcontext
 
-from typing import Tuple
+from typing import Dict, Tuple, Type
 
 try:
     import zoneinfo
@@ -29,7 +29,9 @@ class ORCConverter(ABC):
 class TimestampConverter(ORCConverter):
     @staticmethod
     def from_orc(
-        seconds: int, nanoseconds: int, timezone: zoneinfo.ZoneInfo,
+        seconds: int,
+        nanoseconds: int,
+        timezone: zoneinfo.ZoneInfo,
     ) -> datetime:
         epoch = datetime(1970, 1, 1, 0, 0, 0, tzinfo=tz.utc)
         return (
@@ -89,7 +91,7 @@ class DecimalConverter(ORCConverter):
                 ) from None
 
 
-DEFAULT_CONVERTERS = {
+DEFAULT_CONVERTERS: Dict[TypeKind, Type[ORCConverter]] = {
     TypeKind.DATE: DateConverter,
     TypeKind.DECIMAL: DecimalConverter,
     TypeKind.TIMESTAMP: TimestampConverter,

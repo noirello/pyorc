@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, Optional, List, BinaryIO, Iterator
+from typing import Any, Optional, List, BinaryIO, Iterator, Dict, Type
 
 try:
     import zoneinfo
@@ -8,7 +8,7 @@ except ImportError:
 
 from pyorc._pyorc import reader, stripe
 from .enums import StructRepr, TypeKind, CompressionKind, WriterVersion
-from .converters import DEFAULT_CONVERTERS
+from .converters import DEFAULT_CONVERTERS, ORCConverter
 from .predicates import Predicate
 
 
@@ -58,7 +58,7 @@ class Reader(reader):
         column_names: Optional[List[str]] = None,
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
-        converters: Optional[dict] = None,
+        converters: Optional[Dict[TypeKind, Type[ORCConverter]]] = None,
         predicate: Optional[Predicate] = None,
         null_value: Any = None,
     ) -> None:

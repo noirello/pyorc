@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Union, Optional, List, BinaryIO, Dict
+from typing import Any, Union, Optional, List, BinaryIO, Dict, Type
 
 try:
     import zoneinfo
@@ -7,8 +7,8 @@ except ImportError:
     from backports import zoneinfo
 
 from pyorc._pyorc import writer
-from .converters import DEFAULT_CONVERTERS
-from .enums import CompressionKind, CompressionStrategy, StructRepr
+from .converters import DEFAULT_CONVERTERS, ORCConverter
+from .enums import CompressionKind, CompressionStrategy, StructRepr, TypeKind
 from .typedescription import TypeDescription
 
 
@@ -27,7 +27,7 @@ class Writer(writer):
         bloom_filter_fpp: float = 0.05,
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
-        converters: Optional[dict] = None,
+        converters: Optional[Dict[TypeKind, Type[ORCConverter]]] = None,
         dict_key_size_threshold: float = 0.0,
         null_value: Any = None,
     ) -> None:
