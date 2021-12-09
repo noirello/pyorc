@@ -1,9 +1,7 @@
 """_pyorc c++ extension"""
 import typing
-from pyorc import CompressionKind
-from pyorc import CompressionStrategy
-from pyorc import StructRepr
-from pyorc import TypeDescription
+from .enums import CompressionKind, CompressionStrategy, StructRepr
+from .typedescription import TypeDescription
 
 __all__ = ["reader", "stripe", "writer"]
 
