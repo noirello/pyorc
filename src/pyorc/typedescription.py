@@ -121,7 +121,7 @@ class Char(TypeDescription):
         super().__init__()
 
     def __str__(self) -> str:
-        return "{name}({len})".format(name=self.__class__.name, len=self.max_length)
+        return "{name}({len})".format(name=Char.name, len=self.max_length)
 
 
 class VarChar(TypeDescription):
@@ -133,7 +133,7 @@ class VarChar(TypeDescription):
         self.max_length = max_length
 
     def __str__(self) -> str:
-        return "{name}({len})".format(name=self.__class__.name, len=self.max_length)
+        return "{name}({len})".format(name=VarChar.name, len=self.max_length)
 
 
 class Decimal(TypeDescription):
@@ -147,7 +147,7 @@ class Decimal(TypeDescription):
 
     def __str__(self) -> str:
         return "{name}({prc},{scl})".format(
-            name=self.__class__.name, prc=self.precision, scl=self.scale
+            name=Decimal.name, prc=self.precision, scl=self.scale
         )
 
 
@@ -164,7 +164,7 @@ class Union(TypeDescription):
 
     def __str__(self):
         return "{name}<{types}>".format(
-            name=self.__class__.name,
+            name=Union.name,
             types=",".join(str(typ) for typ in self.__cont_types),
         )
 
@@ -193,7 +193,7 @@ class Array(TypeDescription):
         self.__type = cont_type
 
     def __str__(self) -> str:
-        return "{name}<{type}>".format(name=self.__class__.name, type=str(self.__type))
+        return "{name}<{type}>".format(name=Array.name, type=str(self.__type))
 
     def set_column_id(self, val: int) -> int:
         self._column_id = val
@@ -220,7 +220,7 @@ class Map(TypeDescription):
 
     def __str__(self) -> str:
         return "{name}<{key},{val}>".format(
-            name=self.__class__.name, key=str(self.__key), val=str(self.__value)
+            name=Map.name, key=str(self.__key), val=str(self.__value)
         )
 
     def set_column_id(self, val: int) -> int:
@@ -254,7 +254,7 @@ class Struct(TypeDescription):
 
     def __str__(self) -> str:
         return "{name}<{fields}>".format(
-            name=self.__class__.name,
+            name=Struct.name,
             fields=",".join(
                 "{field}:{type}".format(field=key, type=str(val))
                 for key, val in self.__fields.items()
