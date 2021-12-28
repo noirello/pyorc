@@ -1,5 +1,6 @@
 """_pyorc c++ extension"""
 import typing
+
 from .enums import CompressionKind, CompressionStrategy, StructRepr
 from .typedescription import TypeDescription
 

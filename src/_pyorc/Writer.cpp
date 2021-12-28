@@ -1,5 +1,5 @@
-#include "PyORCStream.h"
 #include "Writer.h"
+#include "PyORCStream.h"
 
 void
 setTypeAttributes(orc::Type* type, py::handle schema)

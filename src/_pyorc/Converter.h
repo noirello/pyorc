@@ -16,7 +16,8 @@ class Converter
     py::object nullValue = py::none();
 
   public:
-    Converter(py::object nv): nullValue(nv) {};
+    Converter(py::object nv)
+      : nullValue(nv){};
     virtual ~Converter() = default;
     virtual py::object toPython(uint64_t) = 0;
     virtual void write(orc::ColumnVectorBatch*, uint64_t, py::object) = 0;

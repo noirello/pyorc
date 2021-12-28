@@ -1,15 +1,16 @@
 import copy
-from typing import Any, Union, Optional, List, BinaryIO, Dict, Type
+from typing import Any, BinaryIO, Dict, List, Optional, Type, Union
+
+from pyorc._pyorc import writer
+
+from .converters import DEFAULT_CONVERTERS, ORCConverter
+from .enums import CompressionKind, CompressionStrategy, StructRepr, TypeKind
+from .typedescription import TypeDescription
 
 try:
     import zoneinfo
 except ImportError:
     from backports import zoneinfo
-
-from pyorc._pyorc import writer
-from .converters import DEFAULT_CONVERTERS, ORCConverter
-from .enums import CompressionKind, CompressionStrategy, StructRepr, TypeKind
-from .typedescription import TypeDescription
 
 
 class Writer(writer):

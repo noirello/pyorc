@@ -1,17 +1,15 @@
-import math
 from abc import ABC, abstractmethod
-
 from datetime import date, datetime, timedelta, timezone as tz
 from decimal import Decimal, localcontext
-
+import math
 from typing import Dict, Tuple, Type
+
+from .enums import TypeKind
 
 try:
     import zoneinfo
 except ImportError:
     from backports import zoneinfo
-
-from .enums import TypeKind
 
 
 class ORCConverter(ABC):
@@ -29,9 +27,7 @@ class ORCConverter(ABC):
 class TimestampConverter(ORCConverter):
     @staticmethod
     def from_orc(
-        seconds: int,
-        nanoseconds: int,
-        timezone: zoneinfo.ZoneInfo,
+        seconds: int, nanoseconds: int, timezone: zoneinfo.ZoneInfo,
     ) -> datetime:
         epoch = datetime(1970, 1, 1, 0, 0, 0, tzinfo=tz.utc)
         return (

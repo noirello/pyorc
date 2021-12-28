@@ -1,5 +1,5 @@
 import enum
-from typing import Optional, Any
+from typing import Any, Optional
 
 from .enums import TypeKind
 

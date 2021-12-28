@@ -1,15 +1,16 @@
 from collections import defaultdict
-from typing import Any, Optional, List, BinaryIO, Iterator, Dict, Type
+from typing import Any, BinaryIO, Dict, Iterator, List, Optional, Type
+
+from pyorc._pyorc import reader, stripe
+
+from .converters import DEFAULT_CONVERTERS, ORCConverter
+from .enums import CompressionKind, StructRepr, TypeKind, WriterVersion
+from .predicates import Predicate
 
 try:
     import zoneinfo
 except ImportError:
     from backports import zoneinfo
-
-from pyorc._pyorc import reader, stripe
-from .enums import StructRepr, TypeKind, CompressionKind, WriterVersion
-from .converters import DEFAULT_CONVERTERS, ORCConverter
-from .predicates import Predicate
 
 
 class Column:

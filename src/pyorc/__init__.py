@@ -1,6 +1,5 @@
 import os
 import sys
-
 from typing import NamedTuple
 
 if sys.platform.startswith("win32") and "TZDIR" not in os.environ:
@@ -11,13 +10,14 @@ if sys.platform.startswith("win32") and "TZDIR" not in os.environ:
 
     os.environ["TZDIR"] = os.path.join(os.path.dirname(tzdata.__file__), "zoneinfo")
 
+from pyorc._pyorc import _orc_version
+
 from .enums import *
 from .errors import *
-from .reader import Column, Reader, Stripe
-from .writer import Writer
-from .typedescription import *
 from .predicates import PredicateColumn
-from pyorc._pyorc import _orc_version
+from .reader import Column, Reader, Stripe
+from .typedescription import *
+from .writer import Writer
 
 __version__ = "0.6.0"
 

@@ -1,7 +1,7 @@
 import re
-
-from typing import Mapping, Tuple, Dict
 from types import MappingProxyType
+from typing import Dict, Mapping, Tuple
+
 from pyorc._pyorc import _schema_from_string
 
 from .enums import TypeKind
@@ -164,8 +164,7 @@ class Union(TypeDescription):
 
     def __str__(self):
         return "{name}<{types}>".format(
-            name=Union.name,
-            types=",".join(str(typ) for typ in self.__cont_types),
+            name=Union.name, types=",".join(str(typ) for typ in self.__cont_types),
         )
 
     def __getitem__(self, idx: int) -> TypeDescription:
