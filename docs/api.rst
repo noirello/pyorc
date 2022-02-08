@@ -523,7 +523,7 @@ API documentation
 ===============
 
 .. class:: Writer(fileo, schema, batch_size=1024, \
-                  stripe_size=67108864, row_index_stride=10000 \
+                  stripe_size=67108864, row_index_stride=10000, \
                   compression=CompressionKind.ZLIB, \
                   compression_strategy=CompressionStrategy.SPEED, \
                   compression_block_size=65536, bloom_filter_columns=None, \
