@@ -28,7 +28,7 @@ class BuildORCLib(Command):
 
     def initialize_options(self):
         """Set default values for options."""
-        self.orc_version = "1.7.2"
+        self.orc_version = "1.7.3"
         self.output_dir = "deps"
         self.source_url = "https://downloads.apache.org/orc/"
         self.build_type = "debug"
