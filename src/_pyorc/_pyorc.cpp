@@ -98,6 +98,7 @@ PYBIND11_MODULE(_pyorc, m)
                     unsigned int,
                     py::object,
                     double,
+                    double,
                     py::object>(),
            py::arg("fileo"),
            py::arg("schema"),
@@ -112,6 +113,7 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("timezone", py::none(), "None"),
            py::arg_v("struct_repr", 0, "StructRepr.TUPLE"),
            py::arg_v("conv", py::none(), "None"),
+           py::arg_v("padding_tolerance", 0.0, "0.0"),
            py::arg_v("dict_key_size_threshold", 0.0, "0.0"),
            py::arg_v("null_value", py::none(), "None"))
       .def("_add_user_metadata", &Writer::addUserMetadata)

@@ -96,6 +96,7 @@ Writer::Writer(py::object fileo,
                py::object tzone,
                unsigned int struct_repr,
                py::object conv,
+               double padding_tolerance,
                double dict_key_size_threshold,
                py::object null_value)
 {
@@ -122,6 +123,7 @@ Writer::Writer(py::object fileo,
     options = options.setColumnsUseBloomFilter(bloom_filter_columns);
     options = options.setBloomFilterFPP(bloom_filter_fpp);
     options = options.setDictionaryKeySizeThreshold(dict_key_size_threshold);
+    options = options.setPaddingTolerance(padding_tolerance);
     if (!tzone.is_none()) {
         std::string tzKey = py::cast<std::string>(tzone.attr("key"));
         options = options.setTimezoneName(tzKey);

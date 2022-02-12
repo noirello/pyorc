@@ -140,6 +140,8 @@ def test_init():
         compression_block_size=1,
         bloom_filter_columns=[0],
         bloom_filter_fpp=0.5,
+        padding_tolerance=0.5,
+        dict_key_size_threshold=0.5,
     )
     assert isinstance(writer, Writer)
 

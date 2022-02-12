@@ -29,6 +29,7 @@ class Writer(writer):
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: Optional[Dict[TypeKind, Type[ORCConverter]]] = None,
+        padding_tolerance: float = 0.0,
         dict_key_size_threshold: float = 0.0,
         null_value: Any = None,
     ) -> None:
@@ -72,6 +73,7 @@ class Writer(writer):
             timezone,
             struct_repr,
             conv,
+            padding_tolerance,
             dict_key_size_threshold,
             null_value,
         )

@@ -148,6 +148,7 @@ class writer:
         timezone: object = None,
         struct_repr: int = StructRepr.TUPLE,
         conv: object = None,
+        padding_tolerance: float = 0.0,
         dict_key_size_threshold: float = 0.0,
         null_value: object = None,
     ) -> None: ...
