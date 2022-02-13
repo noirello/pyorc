@@ -3,6 +3,72 @@ API documentation
 
 .. automodule:: pyorc
 
+:class:`Column`
+===============
+
+.. class:: Column(stream, index)
+
+    An object that represents a column in an ORC file. It contains
+    statistics about the column. If the `stream` is a :class:`Reader`
+    object then the column refers to the entire ORC file, if its a 
+    :class:`Stripe` then just the specified ORC stripe.
+
+    :param Reader|Stripe stream: an ORC stream object (:class:`Reader`
+        or :class:`Stripe`).
+    :param int index: the index of the column.
+
+.. attribute:: Column.statistics
+
+    A dictionary object about the Column's statistics. It always contains
+    the kind of the column, the number of values that does not include null
+    values and a boolean value about either containing null values or not.
+    It may contain other information depending on the kind of the column
+    like minimum and maximum values, sums etc.
+
+
+:class:`ORCConverter`
+=====================
+
+.. class:: ORCConverter()
+
+    An abstract class for implementing own converters for `date`, `decimal`
+    and `timestamp` types. These types are stored as integers in the ORC file
+    and can be transformed into more convenient Python objects.
+
+    The converter can be set to a :class:`Reader` or :class:`Writer` with
+    the converters parameter, as a dictionary where the key is
+    one of :attr:`TypeKind.DATE`, :attr:`TypeKind.DECIMAL`, or
+    :attr:`TypeKind.TIMESTAMP`, and the value is the converter itself.
+
+.. staticmethod:: ORCConverter.from_orc(*args)
+
+    Builds high-level objects from basic ORC type. Its arguments depend on
+    what ORC type the converter is bound:
+
+        * `date`: the number of days since the epoch as a single integer.
+        * `decimal`: the decimal number formatted as a string.
+        * `timestamp`: seconds and nanoseconds since the epoch as integers
+            and the ZoneInfo object passed to the Reader as timezone.
+
+    :return: the constructed Python object.
+
+.. staticmethod:: ORCConverter.to_orc(*args)
+
+    Converts the high-level Python object to basic ORC type. Its arguments
+    is a single Python object when the convert is bound to `date` or
+    `timestamp`. The precision and scale are also passed to this method
+    as integers, along with the object when it's bound to a decimal type,
+    and the Writer's timezone as a ZoneInfo object when it's bound to a
+    timestamp type.
+
+    Expected return value:
+
+        * `date`: the number of days since the epoch as a single integer.
+        * `decimal`: an integer adjusted to the set precision and scale.
+        * `timestamp`: a tuple of seconds and nanoseconds since the epoch
+          as integers.
+
+
 :class:`Predicate`
 ==================
 
@@ -36,6 +102,7 @@ API documentation
 
     :param Predicate other: the other predicate.
 
+
 :class:`PredicateColumn`
 ========================
 
@@ -68,6 +135,7 @@ API documentation
     and return a :class:`Predicate` object.
 
     :param other: a literal value for comparison.
+
 
 :class:`Reader`
 ===============
@@ -305,71 +373,6 @@ API documentation
     The timezone information of the writer.
 
 
-:class:`Column`
-===============
-
-.. class:: Column(stream, index)
-
-    An object that represents a column in an ORC file. It contains
-    statistics about the column. If the `stream` is a :class:`Reader`
-    object then the column refers to the entire ORC file, if its a 
-    :class:`Stripe` then just the specified ORC stripe.
-
-    :param Reader|Stripe stream: an ORC stream object (:class:`Reader`
-        or :class:`Stripe`).
-    :param int index: the index of the column.
-
-.. attribute:: Column.statistics
-
-    A dictionary object about the Column's statistics. It always contains
-    the kind of the column, the number of values that does not include null
-    values and a boolean value about either containing null values or not.
-    It may contain other information depending on the kind of the column
-    like minimum and maximum values, sums etc.
-
-
-:class:`ORCConverter`
-=====================
-
-.. class:: ORCConverter()
-
-    An abstract class for implementing own converters for `date`, `decimal`
-    and `timestamp` types. These types are stored as integers in the ORC file
-    and can be transformed into more convenient Python objects.
-
-    The converter can be set to a :class:`Reader` or :class:`Writer` with
-    the converters parameter, as a dictionary where the key is
-    one of :attr:`TypeKind.DATE`, :attr:`TypeKind.DECIMAL`, or
-    :attr:`TypeKind.TIMESTAMP`, and the value is the converter itself.
-
-.. staticmethod:: ORCConverter.from_orc(*args)
-
-    Builds high-level objects from basic ORC type. Its arguments depend on
-    what ORC type the converter is bound:
-
-        * `date`: the number of days since the epoch as a single integer.
-        * `decimal`: the decimal number formatted as a string.
-        * `timestamp`: seconds and nanoseconds since the epoch as integers
-            and the ZoneInfo object passed to the Reader as timezone.
-
-    :return: the constructed Python object.
-
-.. staticmethod:: ORCConverter.to_orc(*args)
-
-    Converts the high-level Python object to basic ORC type. Its arguments
-    is a single Python object when the convert is bound to `date` or
-    `timestamp`. The precision and scale are also passed to this method
-    as integers, along with the object when it's bound to a decimal type,
-    and the Writer's timezone as a ZoneInfo object when it's bound to a
-    timestamp type.
-
-    Expected return value:
-
-        * `date`: the number of days since the epoch as a single integer.
-        * `decimal`: an integer adjusted to the set precision and scale.
-        * `timestamp`: a tuple of seconds and nanoseconds since the epoch
-          as integers.
-
 :class:`TypeDescription`
 ========================
 
@@ -518,6 +521,7 @@ API documentation
 
     :param TypeDescription \**fields: the keywords of TypeDescription
         instances for the possible fields in the struct.
+
 
 :class:`Writer`
 ===============
