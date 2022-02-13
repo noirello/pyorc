@@ -138,7 +138,7 @@ class BuildExt(build_ext):
                     "--build",
                     ".",
                     "--config",
-                    self.build_type,
+                    build_type,
                     "--target",
                     "PACKAGE",
                 ],
@@ -159,7 +159,11 @@ class BuildExt(build_ext):
             else sys.platform.title().replace("32", platform.architecture()[0][:2])
         )
         pack_dir = os.path.join(
-            build_dir, "_CPack_Packages", plat, "TGZ", f"ORC-{self.orc_version}-{plat}",
+            build_dir,
+            "_CPack_Packages",
+            plat,
+            "TGZ",
+            f"ORC-{self.orc_version}-{plat}",
         )
         logging.info(
             "Move artifacts from '%s' to the '%s' folder" % (pack_dir, self.output_dir)
@@ -170,7 +174,11 @@ class BuildExt(build_ext):
             if not sys.platform.startswith("win32"):
                 shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
             shutil.move(
-                os.path.join(self.output_dir, f"orc-{self.orc_version}", "examples",),
+                os.path.join(
+                    self.output_dir,
+                    f"orc-{self.orc_version}",
+                    "examples",
+                ),
                 self.output_dir,
             )
         except Exception as exc:

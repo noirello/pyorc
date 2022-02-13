@@ -106,13 +106,8 @@ stages:
         echo $(pythonbin)
         $(pythonbin) --version
       displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov patch
+    - script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov
       displayName: Install dependencies
-    - script: |
-        $(pythonbin) setup.py build_ext --download-only
-        $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
-        $(pythonbin) -m patch .azure-pipelines\ExpressionTree.hh.patch
-      displayName: Patch ORC Lib
     - script: |
         $(pythonbin) setup.py build -g
         $(pythonbin) setup.py install --user
@@ -319,14 +314,8 @@ stages:
         echo $(pythonbin)
         $(pythonbin) --version
       displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U wheel patch pybind11
+    - script: $(pythonbin) -m pip install --user -U wheel pybind11
       displayName: Install dependencies
-    
-    - script: |
-        $(pythonbin) setup.py build_ext --download-only
-        $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
-        $(pythonbin) -m patch .azure-pipelines\ExpressionTree.hh.patch
-      displayName: Patch ORC Lib
     - script: $(pythonbin) setup.py bdist_wheel
       displayName: Build wheel
     - task: CopyFiles@2
