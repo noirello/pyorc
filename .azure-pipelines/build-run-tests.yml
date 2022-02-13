@@ -6,8 +6,6 @@ steps:
 - script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov
   displayName: Install dependencies
 
-- script: $(pythonbin) setup.py build_orc --build-type=debug
-  displayName: Build ORC Lib
 - script: |
     CFLAGS="-coverage" $(pythonbin) setup.py build -g
     $(pythonbin) setup.py install --user

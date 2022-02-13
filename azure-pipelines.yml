@@ -109,11 +109,10 @@ stages:
     - script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov patch
       displayName: Install dependencies
     - script: |
-        $(pythonbin) setup.py build_orc --download-only=True
+        $(pythonbin) setup.py build_ext --download-only
         $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
         $(pythonbin) -m patch .azure-pipelines\ExpressionTree.hh.patch
-        $(pythonbin) setup.py build_orc
-      displayName: Build ORC Lib
+      displayName: Patch ORC Lib
     - script: |
         $(pythonbin) setup.py build -g
         $(pythonbin) setup.py install --user
@@ -162,10 +161,8 @@ stages:
       displayName: Check cmake
     - bash: |
         PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH
-        /opt/python/$(cpython.version)/bin/python setup.py build_orc --build-type=release
-      displayName: Build ORC Lib
-    - bash: /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel
-      displayName: Build wheel
+        /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel
+      displayName: Build ORC lib and wheel
     - bash: auditwheel repair dist/pyorc-*.whl
       displayName: Repair wheel
     - task: CopyFiles@2
@@ -204,7 +201,6 @@ stages:
                     export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && cmake --version && \
                     export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && \
                     yum -y update && yum -y install gcc gcc-c++ && \
-                    /opt/python/$(cpython.version)/bin/python setup.py build_orc --build-type=release && \
                     /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel && \
                     auditwheel repair dist/pyorc-*.whl"
       displayName: 'Running AArch64 build'
@@ -249,11 +245,8 @@ stages:
       displayName: Check Python path
     - script: $(pythonbin) -m pip install --user -U wheel pybind11
       displayName: Install dependencies
-
-    - script: $(pythonbin) setup.py build_orc --build-type=release
-      displayName: Build ORC Lib
     - script: $(pythonbin) setup.py bdist_wheel
-      displayName: Build wheel
+      displayName: Build ORC lib and wheel
     - task: CopyFiles@2
       inputs:
         sourceFolder: '$(Build.SourcesDirectory)/dist/'
@@ -286,11 +279,8 @@ stages:
       displayName: Check Python path
     - script: $(pythonbin) -m pip install --user -U wheel pybind11
       displayName: Install dependencies
-
-    - script: $(pythonbin) setup.py build_orc --build-type=release
-      displayName: Build ORC Lib
     - script: $(pythonbin) setup.py bdist_wheel
-      displayName: Build wheel
+      displayName: Build ORC lib and wheel
     - task: CopyFiles@2
       inputs:
         sourceFolder: '$(Build.SourcesDirectory)/dist/'
@@ -333,11 +323,10 @@ stages:
       displayName: Install dependencies
     
     - script: |
-        $(pythonbin) setup.py build_orc --download-only=True
+        $(pythonbin) setup.py build_ext --download-only
         $(pythonbin) -m patch .azure-pipelines\orc_thirdpartytoolchain_tzdata.patch
         $(pythonbin) -m patch .azure-pipelines\ExpressionTree.hh.patch
-        $(pythonbin) setup.py build_orc --build-type=release
-      displayName: Build ORC Lib
+      displayName: Patch ORC Lib
     - script: $(pythonbin) setup.py bdist_wheel
       displayName: Build wheel
     - task: CopyFiles@2
