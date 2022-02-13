@@ -98,10 +98,8 @@ class BuildExt(build_ext):
     def _get_build_envs() -> dict:
         env = os.environ.copy()
 
-        curr_cflags = env.get("CFLAGS", "")
-        curr_cxxflags = env.get("CXXFLAGS", "")
-        env["CFLAGS"] = f"{curr_cflags} -fPIC"
-        env["CXXFLAGS"] = f"{curr_cxxflags} -fPIC"
+        env["CFLAGS"] = "-fPIC"
+        env["CXXFLAGS"] = "-fPIC"
 
         return env
 
@@ -152,45 +150,31 @@ class BuildExt(build_ext):
         return build_dir
 
     def _build_orc_lib(self):
-        if not os.path.isdir(
-            os.path.join(self.output_dir, "orc-{ver}".format(ver=self.orc_version))
-        ):
-            self._download_source()
-        if not self.download_only:
-            logging.info("Build ORC C++ Core library")
-            build_dir = self._build_with_cmake()
-            plat = (
-                sys.platform.title()
-                if not sys.platform.startswith("win32")
-                # Change platform title on Windows depending on arch (32/64bit)
-                else sys.platform.title().replace("32", platform.architecture()[0][:2])
+        logging.info("Build ORC C++ Core library")
+        build_dir = self._build_with_cmake()
+        plat = (
+            sys.platform.title()
+            if not sys.platform.startswith("win32")
+            # Change platform title on Windows depending on arch (32/64bit)
+            else sys.platform.title().replace("32", platform.architecture()[0][:2])
+        )
+        pack_dir = os.path.join(
+            build_dir, "_CPack_Packages", plat, "TGZ", f"ORC-{self.orc_version}-{plat}",
+        )
+        logging.info(
+            "Move artifacts from '%s' to the '%s' folder" % (pack_dir, self.output_dir)
+        )
+        try:
+            shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
+            shutil.move(os.path.join(pack_dir, "lib"), self.output_dir)
+            if not sys.platform.startswith("win32"):
+                shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
+            shutil.move(
+                os.path.join(self.output_dir, f"orc-{self.orc_version}", "examples",),
+                self.output_dir,
             )
-            pack_dir = os.path.join(
-                build_dir,
-                "_CPack_Packages",
-                plat,
-                "TGZ",
-                "ORC-{ver}-{plat}".format(ver=self.orc_version, plat=plat),
-            )
-            logging.info(
-                "Move artifacts from '%s' to the '%s' folder"
-                % (pack_dir, self.output_dir)
-            )
-            try:
-                shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
-                shutil.move(os.path.join(pack_dir, "lib"), self.output_dir)
-                if not sys.platform.startswith("win32"):
-                    shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
-                shutil.move(
-                    os.path.join(
-                        self.output_dir,
-                        "orc-{ver}".format(ver=self.orc_version),
-                        "examples",
-                    ),
-                    self.output_dir,
-                )
-            except Exception as exc:
-                logging.warning(exc)
+        except Exception as exc:
+            logging.warning(exc)
 
     def build_extensions(self):
         if not self.skip_orc_build:
@@ -199,6 +183,15 @@ class BuildExt(build_ext):
                 "lib",
                 "orc.lib" if sys.platform.startswith("win32") else "liborc.a",
             )
+            if not os.path.isdir(
+                os.path.join(self.output_dir, "orc-{ver}".format(ver=self.orc_version))
+            ):
+                self._download_source()
+
+            if self.download_only:
+                logging.info("Only downloaded the ORC library source. Skip build_ext")
+                return
+
             if not os.path.exists(orc_lib):
                 self._build_orc_lib()
 
