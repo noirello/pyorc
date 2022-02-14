@@ -19,6 +19,8 @@ Changed
 - Writer.writerows method reimplemented in C++.
 - Improved type annotations.
 - ORC C++ Core updated to 1.7.3.
+- Removed build_orc setup.py command, moved the same functionality to
+  build_ext command.
 
 Fixed
 ~~~~~
