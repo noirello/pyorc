@@ -31,33 +31,31 @@ you might need to build PyORC from source.
 Install from source
 -------------------
 
-To install the module from source you need to build the Apache ORC C++ Core
-library with its dependencies first, which requires `cmake` -- in addition of
-a suitable C++ complier. Without it, the standard ``setup.py install``
-command will fail (more likely with the error of missing the ``orc/OrcFile.hh``
-header file).
+To install from source, the module requires the Apache ORC C++ Core library.
+During the extension build step, the module will build the ORC core library
+before building the extension module itself. It requires `cmake` -- in
+addition of a suitable C++ complier. The following steps take place during
+the `build_ext` command:
 
-To make that easier, the project's `setup.py` file also contains a
-``build_orc`` command that:
-
-    1. Downloads the Apache ORC release package.
-    2. Extracts the package to a directory named `deps` into the project's
+    1. Downloading the Apache ORC release package.
+    2. Extracting the package to a directory named `deps` into the project's
        root directory.
-    3. Runs cmake to configure the ORC C++ library.
-    4. Runs the ``make package`` command.
-    5. Finally, moves the include headers, ORC example files and ORC tools
+    3. Running cmake to configure the ORC C++ library.
+    4. Running the ``make package`` command.
+    5. Finally, moving the include headers, ORC example files and ORC tools
        to the top level of the `deps` directory for the `setup.py` and tests
        to find.
+    6. Building the C++ extension part of PyORC.
 
 .. note::
-    The ``build_orc`` command has a ``--orc-version`` and a ``--source-url``
+    The ``build_ext`` command has a ``--orc-version`` and a ``--source-url``
     parameter for changing the default ORC library version or the URL of the
-    source zip to download respectively.
+    source zip to download respectively. It also has a ``--skip-orc-build``
+    flag to skip ORC library build steps.
 
 You also need the `pybind11` Python package to be installed before running
 the installation::
 
-    $ python3 setup.py build_orc
     $ pip3 install pybind11
     $ python3 setup.py install
 
