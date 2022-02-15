@@ -130,200 +130,50 @@ stages:
         CODECOV_TOKEN: $(codecov)
       displayName: Report Coverage
       condition: succeeded()
+
 - stage: Build
   jobs:
-  - job: manylinux_wheels
+  - job: linux
     pool:
-      vmImage: "ubuntu-latest"
-    strategy:
-      matrix:
-        Python36:
-          cpython.version: cp36-cp36m
-        Python37:
-          cpython.version: cp37-cp37m
-        Python38:
-          cpython.version: cp38-cp38
-        Python39:
-          cpython.version: cp39-cp39
-        Python310:
-          cpython.version: cp310-cp310
-    container:
-      image: quay.io/pypa/manylinux2010_x86_64:latest
+      vmImage: 'ubuntu-latest'
     steps:
-    - bash: /opt/python/$(cpython.version)/bin/python -m pip install --user cmake pybind11
-      displayName: Install dependencies
-    - bash: PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH cmake --version
-      displayName: Check cmake
-    - bash: |
-        PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH
-        /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel
-      displayName: Build ORC lib and wheel
-    - bash: auditwheel repair dist/pyorc-*.whl
-      displayName: Repair wheel
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/wheelhouse/'
-        contents: '*'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: wheels
-  - job: manylinux_aarch64_wheels
-    pool:
-      vmImage: "ubuntu-latest"
-    strategy:
-      matrix:
-        Python36:
-          cpython.version: cp36-cp36m
-        Python37:
-          cpython.version: cp37-cp37m
-        Python38:
-          cpython.version: cp38-cp38
-        Python39:
-          cpython.version: cp39-cp39
-        Python310:
-          cpython.version: cp310-cp310
-    steps:
-    - script: docker run --rm --privileged hypriot/qemu-register
-      displayName: 'Registering qemu'
-    - script: |
-        docker run -v $(pwd):"${DOCKER_ROOT_DIRECTORY}":rw,z \
-                   -e HOST_USER_ID \
-                    "quay.io/pypa/manylinux2014_aarch64:latest" \
-                    bash -c "cd $DOCKER_ROOT_DIRECTORY;
-                    /opt/python/$(cpython.version)/bin/python -m pip install --user cmake pybind11 && \
-                    export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && cmake --version && \
-                    export PATH=`/opt/python/$(cpython.version)/bin/python -c 'import cmake; print(cmake.CMAKE_BIN_DIR)'`:$PATH && \
-                    yum -y update && yum -y install gcc gcc-c++ && \
-                    /opt/python/$(cpython.version)/bin/python setup.py bdist_wheel && \
-                    auditwheel repair dist/pyorc-*.whl"
-      displayName: 'Running AArch64 build'
-      env:
-        DOCKER_ROOT_DIRECTORY: "/home/source_root"
-        HOST_USER_ID: $(id -u)
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/wheelhouse/'
-        contents: '*'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: wheels
-  - job: macos_wheels
+      - task: UsePythonVersion@0
+      - bash: |
+          set -o errexit
+          python3 -m pip install --upgrade pip
+          pip3 install cibuildwheel==2.3.1
+        displayName: Install cibuildwheel dependencies
+      - bash: cibuildwheel --output-dir wheelhouse .
+        displayName: Build wheels
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: 'wheelhouse'}
+
+  - job: macos
     pool:
       vmImage: 'macOS-latest'
-    strategy:
-      matrix:
-        Python37:
-          python.version: '3.7'
-        Python38:
-          python.version: '3.8'
-        Python39:
-          python.version: '3.9'
-        Python310:
-          python.version: '3.10'
     steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(python.version)'
-        architecture: 'x64'
-      name: pybin
-    - script: |
-        PYTHONBIN=$(pybin.pythonLocation)/bin/python
-        echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
-      displayName: Set Python $(python.version)
-    - script: |
-        echo $(pythonbin)
-        $(pythonbin) --version
-      displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U wheel pybind11
-      displayName: Install dependencies
-    - script: $(pythonbin) setup.py bdist_wheel
-      displayName: Build ORC lib and wheel
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/dist/'
-        contents: '*'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: wheels
-  - job: macos_10_15_wheels
-    pool:
-      vmImage: 'macos-10.15'
-    strategy:
-      matrix:
-        Python36:
-          python.version: '3.6'
-    steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(python.version)'
-        architecture: 'x64'
-      name: pybin
-    - script: |
-        PYTHONBIN=$(pybin.pythonLocation)/bin/python
-        echo "##vso[task.setvariable variable=pythonbin]$PYTHONBIN"
-      displayName: Set Python $(python.version)
-    - script: |
-        echo $(pythonbin)
-        $(pythonbin) --version
-      displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U wheel pybind11
-      displayName: Install dependencies
-    - script: $(pythonbin) setup.py bdist_wheel
-      displayName: Build ORC lib and wheel
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/dist/'
-        contents: '*'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: wheels
-  - job: windows_wheels
+      - task: UsePythonVersion@0
+      - bash: |
+          set -o errexit
+          python3 -m pip install --upgrade pip
+          python3 -m pip install cibuildwheel==2.3.1
+        displayName: Install cibuildwheel dependencies
+      - bash: cibuildwheel --output-dir wheelhouse .
+        displayName: Build wheels
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: wheelhouse}
+
+  - job: windows
     pool:
       vmImage: 'windows-latest'
-    strategy:
-      matrix:
-        Python36:
-          python.version: '3.6'
-        Python37:
-          python.version: '3.7'
-        Python38:
-          python.version: '3.8'
-        Python39:
-          python.version: '3.9'
-        Python310:
-          python.version: '3.10'
     steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(python.version)'
-        architecture: 'x64'
-      name: pybin
-    - script: |
-        set PYTHONBIN=$(pybin.pythonLocation)\python.exe
-        echo ##vso[task.setvariable variable=pythonbin]%PYTHONBIN%
-      displayName: Set Python $(python.version)
-    - script: |
-        echo $(pythonbin)
-        $(pythonbin) --version
-      displayName: Check Python path
-    - script: $(pythonbin) -m pip install --user -U wheel pybind11
-      displayName: Install dependencies
-    - script: $(pythonbin) setup.py bdist_wheel
-      displayName: Build wheel
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/dist/'
-        contents: '*'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: wheels
+      - task: UsePythonVersion@0
+      - bash: |
+          set -o errexit
+          python -m pip install --upgrade pip
+          pip install cibuildwheel==2.3.1
+        displayName: Install cibuildwheel dependencies
+      - bash: cibuildwheel --output-dir wheelhouse .
+        displayName: Build wheels
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: 'wheelhouse'}
