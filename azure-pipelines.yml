@@ -133,7 +133,7 @@ stages:
 
 - stage: Build
   jobs:
-  - job: linux
+  - job: linux_x86_64
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -144,9 +144,13 @@ stages:
           pip3 install cibuildwheel==2.3.1
         displayName: Install cibuildwheel dependencies
       - bash: cibuildwheel --output-dir wheelhouse .
+        env:
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ARCHS: x86_64
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
-        inputs: {pathtoPublish: 'wheelhouse'}
+        inputs:
+          pathtoPublish: 'wheelhouse'
 
   - job: macos
     pool:
@@ -159,11 +163,13 @@ stages:
           python3 -m pip install cibuildwheel==2.3.1
         displayName: Install cibuildwheel dependencies
       - bash: cibuildwheel --output-dir wheelhouse .
+        env:
+          CIBW_BUILD_VERBOSITY: 3
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: wheelhouse}
 
-  - job: windows
+  - job: windows_amd64
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -174,6 +180,9 @@ stages:
           pip install cibuildwheel==2.3.1
         displayName: Install cibuildwheel dependencies
       - bash: cibuildwheel --output-dir wheelhouse .
+        env:
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ARCHS: AMD64
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: 'wheelhouse'}
