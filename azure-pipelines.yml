@@ -151,6 +151,29 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs:
           pathtoPublish: 'wheelhouse'
+          artifactName: wheels
+
+  - job: linux_aarch64
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: UsePythonVersion@0
+      - bash: |
+          set -o errexit
+          python3 -m pip install --upgrade pip
+          pip3 install cibuildwheel==2.3.1
+        displayName: Install cibuildwheel dependencies
+      - script: docker run --privileged --rm tonistiigi/binfmt --install all
+        displayName: Register QEMU
+      - bash: cibuildwheel --output-dir wheelhouse .
+        env:
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ARCHS: aarch64
+        displayName: Build wheels
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathtoPublish: 'wheelhouse'
+          artifactName: wheels
 
   - job: macos
     pool:
@@ -167,7 +190,9 @@ stages:
           CIBW_BUILD_VERBOSITY: 3
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
-        inputs: {pathtoPublish: wheelhouse}
+        inputs:
+          pathtoPublish: wheelhouse
+          artifactName: wheels
 
   - job: windows_amd64
     pool:
@@ -185,4 +210,6 @@ stages:
           CIBW_ARCHS: AMD64
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
-        inputs: {pathtoPublish: 'wheelhouse'}
+        inputs:
+          pathtoPublish: 'wheelhouse'
+          artifactName: wheels
