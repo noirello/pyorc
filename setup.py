@@ -144,7 +144,8 @@ class BuildExt(build_ext):
                 env=env,
             )
         else:
-            subprocess.check_call(["make", "-j4", "package"], cwd=build_dir, env=env)
+            j_flag = f"-j{os.cpu_count() or 1}"
+            subprocess.check_call(["make", j_flag, "package"], cwd=build_dir, env=env)
         return build_dir
 
     def _build_orc_lib(self):
