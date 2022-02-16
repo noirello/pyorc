@@ -6,6 +6,7 @@ import os
 import math
 import subprocess
 import sys
+import platform
 
 try:
     import zoneinfo
@@ -92,6 +93,8 @@ TESTDATA = [
 
 @pytest.mark.parametrize("example,expected", TESTDATA, ids=idfn)
 def test_read(example, expected):
+    if example == "demo-12-zlib.orc" and platform.python_implementation() == "PyPy":
+        pytest.skip("This test runs waaay too long on PyPy.")
     exp_res = gzip.open(get_full_path(expected), "rb")
     with open(get_full_path(example), "rb") as fileo:
         orc_res = pyorc._pyorc.reader(
@@ -147,7 +150,8 @@ def test_metadata_read():
         res = pyorc._pyorc.reader(fileo, struct_repr=StructRepr.DICT)
         assert res.user_metadata["clobber"] == b"\x05\x07\x0b\r\x11\x13"
         assert (
-            res.user_metadata["my.meta"] == b"\x01\x02\x03\x04\x05\x06\x07\xff\xfe\x7f\x80"
+            res.user_metadata["my.meta"]
+            == b"\x01\x02\x03\x04\x05\x06\x07\xff\xfe\x7f\x80"
         )
 
 
