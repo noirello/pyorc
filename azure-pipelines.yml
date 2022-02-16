@@ -176,6 +176,7 @@ stages:
           artifactName: wheels
 
   - job: manylinux_aarch64
+    timeoutInMinutes: 100
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -199,6 +200,7 @@ stages:
           artifactName: wheels
 
   - job: musllinux_aarch64
+    timeoutInMinutes: 150
     pool:
       vmImage: 'ubuntu-latest'
     steps:
