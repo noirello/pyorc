@@ -63,7 +63,7 @@ class BuildExt(build_ext):
         ("output-dir=", None, "the output directory"),
         ("source-url=", None, "the HTTP url for downloading the ORC source"),
         ("download-only", None, "just download and extract the ORC source"),
-        ("skip-orc-build", None, "skip bulding ORC C++ Core library"),
+        ("skip-orc-build", None, "skip building ORC C++ Core library"),
     ]
 
     boolean_options = build_ext.boolean_options + [
@@ -71,7 +71,7 @@ class BuildExt(build_ext):
         "skip-orc-build",
     ]
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         """Set default values for options."""
         super().initialize_options()
         self.orc_version = "1.7.3"
@@ -79,6 +79,15 @@ class BuildExt(build_ext):
         self.source_url = "https://downloads.apache.org/orc/"
         self.download_only = False
         self.skip_orc_build = False
+
+    def finalize_options(self) -> None:
+        # Workaround to set options with environment variables,
+        # because pip fails to pass parameters to build_ext.
+        if os.getenv("PYORC_DEBUG", 0):
+            self.debug = True
+        if os.getenv("PYORC_SKIP_ORC_BUILD", 0):
+            self.skip_orc_build = True
+        super().finalize_options()
 
     def _download_source(self) -> None:
         tmp_tar = io.BytesIO()
