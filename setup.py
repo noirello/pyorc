@@ -114,13 +114,11 @@ class BuildExt(build_ext):
             "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
         ]
         if sys.platform == "win32":
-            cmake_args.extend(
-                [
-                    "-DBUILD_CPP_TESTS=OFF",
-                    "-DBUILD_TOOLS=OFF",
-                    "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
-                ]
-            )
+            cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
+        if not self.debug or sys.platform == "win32":
+            # Skip building tools and tests.
+            cmake_args.append("-DBUILD_TOOLS=OFF")
+            cmake_args.append("-DBUILD_CPP_TESTS=OFF")
         env = self._get_build_envs()
         build_dir = os.path.join(
             self.output_dir, "orc-{ver}".format(ver=self.orc_version), "build"
