@@ -1,21 +1,40 @@
+parameters:
+- name: windows
+  type: boolean
+  default: false
+
 steps:
 - script: |
     echo $(pythonbin)
     $(pythonbin) --version
   displayName: Check Python path
-- script: $(pythonbin) -m pip install --user -U pybind11 pytest pytest-cov coverage codecov
-  displayName: Install dependencies
 
-- script: |
-    CFLAGS="-coverage" $(pythonbin) setup.py build -g
-    $(pythonbin) setup.py install --user
-  displayName: Install package
+- script: $(pythonbin) -m pip install --user -U pytest pytest-cov coverage codecov
+  displayName: Install test dependencies
 
-- script: |
-    INSTALLDIR=$($(pythonbin) -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
-    echo $INSTALLDIR
-    $(pythonbin) -m pytest -vs --junitxml=./test-results.xml --cov="$INSTALLDIR" tests/
-  displayName: Run pytest
+- ${{ if eq(parameters.windows, true) }}:
+
+  - script: |
+      $(pythonbin) -m pip install --user --global-option build --global-option --debug .
+    displayName: Install package
+
+  - script: |
+      FOR /F "tokens=* USEBACKQ" %%F IN (`$(pythonbin) -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))"`) DO (SET INSTALLDIR=%%F)
+      echo %INSTALLDIR%
+      $(pythonbin) -m pytest -vs --junitxml=./test-results.xml --cov=%INSTALLDIR% tests/
+    displayName: Run pytest (Windows)
+
+- ${{ else }}:
+
+  - script: |
+      CFLAGS="-coverage" $(pythonbin) -m pip install --user --global-option build --global-option --debug .
+    displayName: Install package (with coverage flag)
+
+  - script: |
+      INSTALLDIR=$($(pythonbin) -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
+      echo $INSTALLDIR
+      $(pythonbin) -m pytest -vs --junitxml=./test-results.xml --cov="$INSTALLDIR" tests/
+    displayName: Run pytest (Unix)
 
 - task: PublishTestResults@2
   inputs:
@@ -23,9 +42,7 @@ steps:
     testRunTitle: Tests on $(Agent.OS) with Python $(python.version)
   condition: succeededOrFailed()
 
-- script: |
-      PATH=$HOME/.local/bin:$PATH
-      codecov
+- script: $(pythonbin) -m codecov
   env:
     CODECOV_TOKEN: $(codecov)
   displayName: Report Coverage
