@@ -1,6 +1,6 @@
 Changelog
 ==========
-[0.6.0] - UNRELEASED
+[0.6.0] - 2022-02-18
 --------------------
 
 Added
@@ -12,7 +12,7 @@ Added
 - New parameter to Reader and Writer: null_value for changing representation
   of ORC null value. The value must be a singleton object.
 - Type stubs for classes implemented in C++.
-- Experimental musllinux and PyPy wheels. 
+- Experimental musllinux and PyPy wheels.
 
 Changed
 ~~~~~~~
