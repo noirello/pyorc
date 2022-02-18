@@ -11,8 +11,6 @@ stages:
       vmImage: "ubuntu-latest"
     strategy:
       matrix:
-        Python36:
-          python.version: '3.6'
         Python37:
           python.version: '3.7'
         Python38:
@@ -72,8 +70,6 @@ stages:
       vmImage: 'windows-latest'
     strategy:
       matrix:
-        Python36:
-          python.version: '3.6'
         Python37:
           python.version: '3.7'
         Python38:
@@ -108,6 +104,7 @@ stages:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ARCHS: x86_64
           CIBW_BUILD: "*-manylinux_*"
+          CIBW_SKIP: "cp36-*"
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:
@@ -129,6 +126,7 @@ stages:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ARCHS: x86_64
           CIBW_BUILD: "*-musllinux_*"
+          CIBW_SKIP: "cp36-*"
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:
@@ -153,6 +151,7 @@ stages:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ARCHS: aarch64
           CIBW_BUILD: "*-manylinux_*"
+          CIBW_SKIP: "cp36-*"
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:
@@ -177,6 +176,7 @@ stages:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ARCHS: aarch64
           CIBW_BUILD: "*-musllinux_*"
+          CIBW_SKIP: "cp36-*"
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:
@@ -196,6 +196,7 @@ stages:
       - bash: cibuildwheel --output-dir wheelhouse .
         env:
           CIBW_BUILD_VERBOSITY: 3
+          CIBW_SKIP: "cp36-*"
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:
@@ -216,6 +217,7 @@ stages:
         env:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ARCHS: AMD64
+          CIBW_SKIP: "cp36-*"
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:

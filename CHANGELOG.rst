@@ -1,5 +1,19 @@
 Changelog
 ==========
+[0.7.0] - UNRELEASED
+--------------------
+
+Added
+~~~~~
+
+Changed
+~~~~~~~
+
+- Dropped support for Python 3.6.
+
+Fixed
+~~~~~
+
 [0.6.0] - 2022-02-18
 --------------------
 
