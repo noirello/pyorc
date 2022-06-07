@@ -76,7 +76,7 @@ class BuildExt(build_ext):
         super().initialize_options()
         self.orc_version = "1.7.4"
         self.output_dir = "deps"
-        self.source_url = "https://downloads.apache.org/orc/"
+        self.source_url = "https://archive.apache.org/dist/orc/"
         self.download_only = False
         self.skip_orc_build = False
 
