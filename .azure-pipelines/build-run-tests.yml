@@ -9,7 +9,7 @@ steps:
     python -V
   displayName: Check Python $(python.version) path
 
-- script: python -m pip install --user -U pytest pytest-cov coverage codecov
+- script: python -m pip install --user -U pytest pytest-cov pytest-xdist[psutil] coverage codecov
   displayName: Install test dependencies
 
 - ${{ if eq(parameters.windows, true) }}:
@@ -22,7 +22,7 @@ steps:
   - script: |
       FOR /F "tokens=* USEBACKQ" %%F IN (`python -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))"`) DO (SET INSTALLDIR=%%F)
       echo %INSTALLDIR%
-      python -m pytest -vs --junitxml=./test-results.xml --cov=%INSTALLDIR% tests/
+      python -m pytest -vs --junitxml=./test-results.xml -n auto --cov=%INSTALLDIR% tests/
     displayName: Run pytest (Windows)
 
 - ${{ else }}:
@@ -34,7 +34,7 @@ steps:
   - script: |
       INSTALLDIR=$(python -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
       echo $INSTALLDIR
-      python -m pytest -vs --junitxml=./test-results.xml --cov="$INSTALLDIR" tests/
+      python -m pytest -vs --junitxml=./test-results.xml -n auto --cov="$INSTALLDIR" tests/
     displayName: Run pytest (Unix)
 
 - task: PublishTestResults@2
