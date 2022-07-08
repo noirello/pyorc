@@ -42,13 +42,14 @@ stages:
       - bash: cibuildwheel --output-dir wheelhouse .
         env:
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_SKIP: "cp36-* cp37-*"
+          CIBW_SKIP: "cp36-* cp37-* cp38-*"
           ABI_VERSION: 'cp36'
           DEPLOYMENT_TARGET: '10.10'
           CIBW_ARCHS_MACOS: universal2
           CIBW_ENVIRONMENT: "CLAGS='-mmacosx-version-min=10.10'"
           ARCHFLAGS: '-arch x86_64 -arch arm64'
           _PYTHON_HOST_PLATFORM: 'macosx-10.9-universal2'
+          CMAKE_OSX_ARCHITECTURES: 'x86_64;arm64'
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:
