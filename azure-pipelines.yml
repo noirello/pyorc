@@ -29,7 +29,7 @@ stages:
 
 - stage: build_wheels
   jobs:
-  - job: macos
+  - job: macos_universal2
     pool:
       vmImage: 'macOS-12'
     steps:
@@ -42,9 +42,13 @@ stages:
       - bash: cibuildwheel --output-dir wheelhouse .
         env:
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_SKIP: "cp36-*"
-          CIBW_ARCHS_MACOS: x86_64 universal2
-          CIBW_BUILD_VERBOSITY: 1
+          CIBW_SKIP: "cp36-* cp37-*"
+          ABI_VERSION: 'cp36'
+          DEPLOYMENT_TARGET: '10.10'
+          CIBW_ARCHS_MACOS: universal2
+          CIBW_ENVIRONMENT: "CLAGS='-mmacosx-version-min=10.10'"
+          ARCHFLAGS: '-arch x86_64 -arch arm64'
+          _PYTHON_HOST_PLATFORM: 'macosx-10.9-universal2'
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:
