@@ -128,6 +128,8 @@ class BuildExt(build_ext):
             # Skip building tools and tests.
             cmake_args.append("-DBUILD_TOOLS=OFF")
             cmake_args.append("-DBUILD_CPP_TESTS=OFF")
+        if sys.platform == 'darwin' and 'arm64' in os.environ.get('ARCHFLAGS', ''):
+            cmake_args.append("-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64")
         env = self._get_build_envs()
         build_dir = os.path.join(
             self.output_dir, "orc-{ver}".format(ver=self.orc_version), "build"
