@@ -44,6 +44,7 @@ stages:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_SKIP: "cp36-*"
           CIBW_ARCHS_MACOS: x86_64 universal2
+          CIBW_BUILD_VERBOSITY: 1
         displayName: Build wheels
       - task: PublishBuildArtifacts@1
         inputs:

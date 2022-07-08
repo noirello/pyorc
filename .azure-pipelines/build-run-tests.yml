@@ -28,13 +28,11 @@ steps:
 - ${{ else }}:
 
   - script: |
-      PYORC_DEBUG=1 CFLAGS="-coverage" python -m pip install -vvv --user .
+      echo "skipping for the moment"
     displayName: Install package
 
   - script: |
-      INSTALLDIR=$(python -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
-      echo $INSTALLDIR
-      python -m pytest -vs --junitxml=./test-results.xml --cov="$INSTALLDIR" tests/ -n auto
+      echo "skipping for the moment"
     displayName: Run pytest (Unix)
 
 - task: PublishTestResults@2
