@@ -208,10 +208,6 @@ stages:
       vmImage: 'macOS-12'
     steps:
       - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '3.10'
-          architecture: 'x64'
-
       - bash: |
           set -o errexit
           python3 -m pip install --upgrade pip
