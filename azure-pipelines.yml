@@ -215,7 +215,6 @@ stages:
         displayName: Install cibuildwheel dependencies
       - bash: cibuildwheel --output-dir wheelhouse .
         env:
-          ABI_VERSION: 'cp36'
           CMAKE_OSX_ARCHITECTURES: 'x86_64;arm64'
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ARCHS_MACOS: universal2
