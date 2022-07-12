@@ -203,6 +203,27 @@ stages:
           pathtoPublish: wheelhouse
           artifactName: wheels
 
+  - job: macos_universal2
+    pool:
+      vmImage: 'macOS-12'
+    steps:
+      - task: UsePythonVersion@0
+      - bash: |
+          set -o errexit
+          python3 -m pip install --upgrade pip
+          python3 -m pip install cibuildwheel==2.8.0
+        displayName: Install cibuildwheel dependencies
+      - bash: cibuildwheel --output-dir wheelhouse .
+        env:
+          CMAKE_OSX_ARCHITECTURES: 'x86_64;arm64'
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ARCHS_MACOS: universal2
+        displayName: Build wheels
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathtoPublish: wheelhouse
+          artifactName: wheels
+
   - job: windows_amd64
     pool:
       vmImage: 'windows-latest'
