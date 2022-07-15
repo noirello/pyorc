@@ -1,0 +1,26 @@
+parameters:
+- name: qemu
+  type: boolean
+  default: false
+- name: cibwStep
+  type: step
+
+steps:
+- task: UsePythonVersion@0
+- bash: |
+    set -o errexit
+    python3 -m pip install --upgrade pip
+    python3 -m pip install cibuildwheel==2.8.0
+  displayName: Install cibuildwheel dependencies
+
+- ${{ if eq(parameters.qemu, true) }}:
+
+  - script: docker run --privileged --rm tonistiigi/binfmt --install all
+    displayName: Register QEMU
+
+- ${{ parameters.cibwStep }}
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: 'wheelhouse'
+    artifactName: wheels
+
