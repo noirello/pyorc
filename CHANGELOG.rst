@@ -6,10 +6,13 @@ Changelog
 Added
 ~~~~~
 
+- Universal2 wheels for MacOS. (PR #55, contribution of @dbaxa)
+
 Changed
 ~~~~~~~
 
 - Dropped support for Python 3.6.
+- ORC C++ Core updated to 1.7.5.
 
 Fixed
 ~~~~~
