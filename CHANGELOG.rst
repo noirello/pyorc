@@ -1,12 +1,13 @@
 Changelog
 ==========
-[0.7.0] - UNRELEASED
+[0.7.0] - 2022-07-16
 --------------------
 
 Added
 ~~~~~
 
 - Universal2 wheels for MacOS. (PR #55, contribution of @dbaxa)
+- ORC-517, ORC-203, and ORC-14 versions to WriterVersion enum.
 
 Changed
 ~~~~~~~
@@ -14,8 +15,6 @@ Changed
 - Dropped support for Python 3.6.
 - ORC C++ Core updated to 1.7.5.
 
-Fixed
-~~~~~
 
 [0.6.0] - 2022-02-18
 --------------------
