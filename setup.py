@@ -236,6 +236,7 @@ setup(
     author_email="noirello@gmail.com",
     url="https://github.com/noirello/pyorc",
     long_description=LONG_DESC,
+    long_description_content_type="text/x-rst",
     license="Apache License, Version 2.0",
     ext_modules=EXT_MODULES,
     package_dir={"pyorc": "src/pyorc"},

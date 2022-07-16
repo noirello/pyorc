@@ -19,7 +19,7 @@ from .reader import Column, Reader, Stripe
 from .typedescription import *
 from .writer import Writer
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 orc_version = _orc_version()
 
