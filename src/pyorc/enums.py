@@ -64,3 +64,6 @@ class WriterVersion(enum.IntEnum):
     HIVE_13083 = 4
     ORC_101 = 5
     ORC_135 = 6
+    ORC_517 = 7
+    ORC_203 = 8
+    ORC_14 = 9
