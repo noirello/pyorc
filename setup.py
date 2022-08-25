@@ -74,7 +74,7 @@ class BuildExt(build_ext):
     def initialize_options(self) -> None:
         """Set default values for options."""
         super().initialize_options()
-        self.orc_version = "1.7.5"
+        self.orc_version = "1.7.6"
         self.output_dir = "deps"
         self.source_url = "https://archive.apache.org/dist/orc/"
         self.download_only = False
