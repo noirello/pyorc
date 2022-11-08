@@ -10,7 +10,7 @@ steps:
 - bash: |
     set -o errexit
     python3 -m pip install --upgrade pip
-    python3 -m pip install cibuildwheel==2.8.0
+    python3 -m pip install cibuildwheel==2.11.2
   displayName: Install cibuildwheel dependencies
 
 - ${{ if eq(parameters.qemu, true) }}:
