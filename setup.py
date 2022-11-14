@@ -40,6 +40,8 @@ if sys.platform.startswith("win32"):
 else:
     LIBS = ["orc", "protobuf", "protoc", "lz4", "zstd", "z", "snappy", "pthread"]
 
+LIBS = os.getenv("PYORC_LIBRARIES", ",".join(LIBS)).split(",")
+
 EXT_MODULES = [
     Pybind11Extension(
         "pyorc._pyorc",
