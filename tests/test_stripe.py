@@ -8,10 +8,8 @@ from datetime import datetime, timedelta, timezone
 from pyorc import (
     Reader,
     Writer,
-    TypeKind,
-    StructRepr,
-    ParseError,
     Stripe,
+    orc_version_info,
 )
 
 
@@ -58,21 +56,29 @@ def test_len(striped_orc_data):
 
 
 def test_bytes_length(striped_orc_data):
+    expected_bytes_length = (
+        392 if orc_version_info.major == 1 and orc_version_info.minor < 8 else 359
+    )  # Bold, hardcoded length values.
+
     data = striped_orc_data("int", (i for i in range(100000)))
     reader = Reader(data)
     stripe = Stripe(reader, 1)
 
-    assert stripe.bytes_length == 392  # Bold, hardcoded length value.
+    assert stripe.bytes_length == expected_bytes_length
     with pytest.raises(AttributeError):
         stripe.bytes_length = "false"
 
 
 def test_bytes_offset(striped_orc_data):
+    expected_bytes_offset = (
+        658 if orc_version_info.major == 1 and orc_version_info.minor < 8 else 614
+    )  # Bold, hardcoded offset value.
+
     data = striped_orc_data("int", (i for i in range(100000)))
     reader = Reader(data)
     stripe = Stripe(reader, 1)
 
-    assert stripe.bytes_offset == 658  # Bold, hardcoded offset value.
+    assert stripe.bytes_offset == expected_bytes_offset
     with pytest.raises(AttributeError):
         stripe.bytes_offset = 5
 
@@ -123,9 +129,8 @@ def test_writer_timezone(striped_orc_data):
     with pytest.raises(AttributeError):
         stripe.writer_timezone = "UTC-9:00"
 
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="Seeking fails on Windows"
-)
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Seeking fails on Windows")
 def test_seek_and_read(striped_orc_data):
     data = striped_orc_data(
         "struct<col0:int,col1:string>",

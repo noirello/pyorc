@@ -419,11 +419,18 @@ def test_bytes_lengths():
     assert reader.bytes_lengths["file_postscript_length"] == 23
     assert reader.bytes_lengths["file_length"] == 65
     assert reader.bytes_lengths["stripe_statistics_length"] == 0
+
+    expected_content_length = (
+        76
+        if pyorc.orc_version_info.major == 1 and pyorc.orc_version_info.minor < 8
+        else 63
+    )
+
     data = io.BytesIO()
     with Writer(data, "int") as writer:
         writer.writerows(range(100))
     reader = Reader(data)
-    assert reader.bytes_lengths["content_length"] == 76
+    assert reader.bytes_lengths["content_length"] == expected_content_length
     assert reader.bytes_lengths["file_footer_length"] == 59
     assert reader.bytes_lengths["file_postscript_length"] == 23
     assert reader.bytes_lengths["file_length"] == len(data.getvalue())
