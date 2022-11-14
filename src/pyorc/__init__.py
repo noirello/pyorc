@@ -37,3 +37,44 @@ def __extract_version_info():
 
 
 orc_version_info = __extract_version_info()
+
+__all__ = [
+    "Column",
+    "PredicateColumn",
+    "Reader",
+    "Stripe",
+    "Writer",
+    # Enums
+    "CompressionKind",
+    "CompressionStrategy",
+    "TypeKind",
+    "StructRepr",
+    "WriterVersion",
+    # Errors
+    "ORCError",
+    "ParseError",
+    # Type descriptiona
+    "TypeDescription",
+    "Boolean",
+    "TinyInt",
+    "SmallInt",
+    "Int",
+    "BigInt",
+    "Float",
+    "Double",
+    "String",
+    "Binary",
+    "Timestamp",
+    "TimestampInstant",
+    "Date",
+    "Char",
+    "VarChar",
+    "Decimal",
+    "Union",
+    "Array",
+    "Map",
+    "Struct",
+    # Version info
+    "orc_version",
+    "orc_version_info",
+]
