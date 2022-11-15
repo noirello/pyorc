@@ -11,8 +11,8 @@ class reader:
         self,
         fileo: object,
         batch_size: int = 1024,
-        col_indices: typing.List[int] = None,
-        col_names: typing.List[str] = None,
+        col_indices: typing.Optional[typing.List[int]] = None,
+        col_names: typing.Optional[typing.List[str]] = None,
         timezone: object = None,
         struct_repr: int = StructRepr.TUPLE,
         conv: object = None,
@@ -26,7 +26,7 @@ class reader:
     def read(self, num: int = -1) -> list: ...
     def seek(self, row: int, whence: int = 0) -> int: ...
     @property
-    def bytes_lengths(self) -> dict:
+    def bytes_lengths(self) -> typing.Dict[str, int]:
         """
         :type: dict
         """
@@ -46,7 +46,7 @@ class reader:
         :type: int
         """
     @property
-    def format_version(self) -> tuple:
+    def format_version(self) -> typing.Tuple[int, int]:
         """
         :type: tuple
         """
@@ -76,7 +76,7 @@ class reader:
         :type: str
         """
     @property
-    def user_metadata(self) -> dict:
+    def user_metadata(self) -> typing.Dict[str, bytes]:
         """
         :type: dict
         """
@@ -101,7 +101,7 @@ class stripe:
     def read(self, num: int = -1) -> list: ...
     def seek(self, row: int, whence: int = 0) -> int: ...
     @property
-    def bloom_filter_columns(self) -> tuple:
+    def bloom_filter_columns(self) -> typing.Tuple[int, ...]:
         """
         :type: tuple
         """
@@ -143,7 +143,7 @@ class writer:
         compression: int = CompressionKind.ZLIB,
         compression_strategy: int = CompressionStrategy.SPEED,
         compression_block_size: int = 65536,
-        bloom_filter_columns: typing.Set[int] = None,
+        bloom_filter_columns: typing.Optional[typing.Set[int]] = None,
         bloom_filter_fpp: float = 0.05,
         timezone: object = None,
         struct_repr: int = StructRepr.TUPLE,

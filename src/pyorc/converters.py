@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta, timezone as tz
 from decimal import Decimal, localcontext
 import math
-from typing import Dict, Tuple, Type
+from typing import Dict, Tuple, Type, Any
 
 from .enums import TypeKind
 

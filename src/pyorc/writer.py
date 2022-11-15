@@ -24,7 +24,7 @@ class Writer(writer):
         compression: CompressionKind = CompressionKind.ZLIB,
         compression_strategy: CompressionStrategy = CompressionStrategy.SPEED,
         compression_block_size: int = 65536,
-        bloom_filter_columns: Optional[List] = None,
+        bloom_filter_columns: Optional[List[Union[str, int]]] = None,
         bloom_filter_fpp: float = 0.05,
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
@@ -54,6 +54,7 @@ class Writer(writer):
                     bf_set.add(item)
                 elif isinstance(item, str):
                     bf_set.add(self.__schema.find_column_id(item))
+        conv = None
         if converters:
             conv = DEFAULT_CONVERTERS.copy()
             conv.update(converters)
@@ -78,10 +79,10 @@ class Writer(writer):
             null_value,
         )
 
-    def __enter__(self):
+    def __enter__(self) -> "Writer":
         return self
 
-    def __exit__(self, *exc):
+    def __exit__(self, *exc: Any) -> None:
         self.close()
 
     def close(self) -> None:

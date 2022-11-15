@@ -43,7 +43,7 @@ class TypeKind(enum.IntEnum):
     TIMESTAMP_INSTANT = 18
 
     @classmethod
-    def has_value(cls, value):
+    def has_value(cls, value: int) -> bool:
         return any(member.value == value for member in cls)
 
 

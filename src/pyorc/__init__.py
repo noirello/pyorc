@@ -23,17 +23,18 @@ __version__ = "0.8.0"
 
 orc_version = _orc_version()
 
+ORCVersionInfo = NamedTuple(
+    "ORCVersionInfo",
+    [("major", int), ("minor", int), ("patch", int), ("releaselevel", str)],
+)
 
-def __extract_version_info():
-    _orc_version_info = NamedTuple(
-        "orc_version_info",
-        [("major", int), ("minor", int), ("patch", int), ("releaselevel", str)],
-    )
+
+def __extract_version_info() -> ORCVersionInfo:
     splitted = _orc_version().split("-")
     ver = splitted[0]
     rel_level = splitted[1] if len(splitted) > 1 else ""
     major, minor, patch = map(int, ver.split("."))
-    return _orc_version_info(major, minor, patch, rel_level)
+    return ORCVersionInfo(major, minor, patch, rel_level)
 
 
 orc_version_info = __extract_version_info()

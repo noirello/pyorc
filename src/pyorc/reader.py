@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, BinaryIO, Dict, Iterator, List, Optional, Type
+from typing import Any, BinaryIO, Dict, Iterator, List, Optional, Type, Union
 
 from pyorc._pyorc import reader, stripe
 
@@ -14,13 +14,13 @@ except ImportError:
 
 
 class Column:
-    def __init__(self, stream, index):
+    def __init__(self, stream: Union["Reader", "Stripe"], index: int):
         self.index = index
         self.stream = stream
         self._stats = self.stream._statistics(self.index)
 
     @property
-    def statistics(self):
+    def statistics(self) -> Dict[str, Any]:
         result = {}
         result_list = defaultdict(list)
         for stat in self._stats:
@@ -46,7 +46,7 @@ class Column:
 
 
 class Stripe(stripe):
-    def __getitem__(self, col_idx):
+    def __getitem__(self, col_idx: int) -> "Column":
         return Column(self, col_idx)
 
 
@@ -68,6 +68,7 @@ class Reader(reader):
         if column_names is None:
             column_names = []
         struct_repr = StructRepr(struct_repr)
+        conv = None
         if converters:
             conv = DEFAULT_CONVERTERS.copy()
             conv.update(converters)
@@ -85,10 +86,10 @@ class Reader(reader):
             null_value,
         )
 
-    def __getitem__(self, col_idx) -> Column:
+    def __getitem__(self, col_idx: int) -> Column:
         return Column(self, col_idx)
 
-    def read_stripe(self, stripe_idx) -> Stripe:
+    def read_stripe(self, stripe_idx: int) -> Stripe:
         return Stripe(self, stripe_idx)
 
     def iter_stripes(self) -> Iterator[Stripe]:
