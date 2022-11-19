@@ -1,16 +1,18 @@
 Changelog
 ==========
-[0.8.0] - UNRELEASED
+[0.8.0] - 2022-11-19
 --------------------
 
 Added
 ~~~~~
 
+- Python 3.11 wheels. (PR #58, contribution of @dbaxa)
+
 Changed
 ~~~~~~~
 
-Fixed
-~~~~~
+- ORC C++ Core updated to 1.7.7.
+- Improved type annotations, set module's __all__ variable.
 
 
 [0.7.0] - 2022-07-16
