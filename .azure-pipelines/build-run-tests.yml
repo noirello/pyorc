@@ -19,6 +19,17 @@ steps:
       python -m pip install -vvv --user .
     displayName: Install package
 
+  - powershell: |
+      $files = Get-ChildItem -path .\deps\orc-*\build\*\*\*-stamp\*.log
+      $output = ".\\buildlogs\\logs-$env:AGENT_OS-$env:PYTHON_VER.zip"
+      New-Item -Path .\ -Name "buildlogs" -ItemType "directory"
+      Compress-Archive -LiteralPath $files -Destination $output
+    env:
+      PYTHON_VER: $(python.version)
+      AGENT_OS: $(Agent.OS)
+    displayName: Collect build logs
+    condition: succeededOrFailed()
+
   - script: |
       FOR /F "tokens=* USEBACKQ" %%F IN (`python -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))"`) DO (SET INSTALLDIR=%%F)
       echo %INSTALLDIR%
@@ -32,6 +43,17 @@ steps:
     displayName: Install package
 
   - script: |
+      mkdir ./buildlogs
+      mkdir "$AGENT_OS-$PYTHON_VER"
+      cp $(ls deps/orc-1.*/build/*/*/*-stamp/*.log) "$AGENT_OS-$PYTHON_VER"
+      tar -czvf "buildlogs/logs-$AGENT_OS-$PYTHON_VER.tar.gz" "$AGENT_OS-$PYTHON_VER"
+    env:
+      PYTHON_VER: $(python.version)
+      AGENT_OS: $(Agent.OS)
+    displayName: Collect build logs
+    condition: succeededOrFailed()
+
+  - script: |
       INSTALLDIR=$(python -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
       echo $INSTALLDIR
       python -m pytest -vs --junitxml=./test-results.xml -n auto --cov="$INSTALLDIR" tests/
@@ -41,6 +63,12 @@ steps:
   inputs:
     testResultsFiles: test-results.xml
     testRunTitle: Tests on $(Agent.OS) with Python $(python.version)
+  condition: succeededOrFailed()
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: 'buildlogs'
+    artifactName: logs
   condition: succeededOrFailed()
 
 - script: python -m codecov
