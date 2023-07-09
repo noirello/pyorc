@@ -109,8 +109,9 @@ class BuildExt(build_ext):
     def _get_build_envs() -> dict:
         env = os.environ.copy()
 
-        env["CFLAGS"] = "-fPIC"
-        env["CXXFLAGS"] = "-fPIC"
+        if sys.platform != "win32":
+            env["CFLAGS"] = "-fPIC"
+            env["CXXFLAGS"] = "-fPIC"
 
         return env
 
