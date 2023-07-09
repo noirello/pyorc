@@ -71,7 +71,7 @@ stages:
 
   - job: windows
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'windows-2019'
     strategy:
       matrix:
         Python37:
@@ -190,7 +190,7 @@ stages:
 
   - job: windows_amd64
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'windows-2019'
     steps:
       - template: .azure-pipelines/prepare-and-push-wheels.yml
         parameters:
