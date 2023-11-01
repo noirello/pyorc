@@ -18,13 +18,13 @@ There could be some drawbacks of the bundled libraries in the package, when
 using together with other Python modules. If another module is loaded into
 the Python runtime besides PyORC that also pre-bundles one of the required
 C/C++ libraries but a slightly different version, then the two libraries
-will collide and the interpreter will crash with segmentation fault at some
+will collide, and the interpreter will crash with segmentation fault at some
 point during the execution.
 
 It's easy to run into this situation. For example, ``libprotobuf`` is
-one of required library for ORC and it's quite popular for other projects
+one of required library for ORC, and it's quite popular for other projects
 as well. To avoid this, you have to make sure that the very same version
-of the common library is used by both of the modules and therefore 
+of the common library is used by both of the modules, and therefore 
 you might need to build PyORC from source.
 
 
@@ -34,7 +34,7 @@ Install from source
 To install from source, the module requires the Apache ORC C++ Core library.
 During the extension build step, the module will build the ORC core library
 before building the extension module itself. It requires `cmake` -- in
-addition of a suitable C++ complier. The following steps take place during
+addition of a suitable C++ compiler. The following steps take place during
 the `build_ext` command:
 
     1. Downloading the Apache ORC release package.
@@ -42,7 +42,7 @@ the `build_ext` command:
        root directory.
     3. Running cmake to configure the ORC C++ library.
     4. Running the ``make package`` command.
-    5. Finally, moving the include headers, ORC example files and ORC tools
+    5. Finally, moving the C++ headers, ORC example files and ORC tools
        to the top level of the `deps` directory for the `setup.py` and tests
        to find.
     6. Building the C++ extension part of PyORC.

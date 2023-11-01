@@ -36,7 +36,7 @@ API documentation
     and can be transformed into more convenient Python objects.
 
     The converter can be set to a :class:`Reader` or :class:`Writer` with
-    the converters parameter, as a dictionary where the key is
+    the converters parameter as a dictionary, where the key is
     one of :attr:`TypeKind.DATE`, :attr:`TypeKind.DECIMAL`, or
     :attr:`TypeKind.TIMESTAMP`, and the value is the converter itself.
 
@@ -54,11 +54,11 @@ API documentation
 
 .. staticmethod:: ORCConverter.to_orc(*args)
 
-    Converts the high-level Python object to basic ORC type. Its arguments
-    is a single Python object when the convert is bound to `date` or
+    Converts the high-level Python object to basic ORC type. Its argument
+    is a single Python object, when the convert is bound to `date` or
     `timestamp`. The precision and scale are also passed to this method
     as integers, along with the object when it's bound to a decimal type,
-    and the Writer's timezone as a ZoneInfo object when it's bound to a
+    and the Writer's timezone as a ZoneInfo object, when it's bound to a
     timestamp type.
 
     Expected return value:
@@ -150,8 +150,8 @@ API documentation
     to select specific columns from the ORC file.
 
     The object iterates over rows by calling :meth:`Reader.__next__`. By
-    default the ORC struct type represented as a tuple, but it can be change
-    by changing `struct_repr` to a valid :class:`StructRepr` value.
+    default, the ORC struct type represented as a tuple, but it can be
+    changed by changing `struct_repr` to a valid :class:`StructRepr` value.
 
     For decimal, date and timestamp ORC types the default converters to
     Python objects can be change by setting a dictionary to the `converters`
@@ -358,7 +358,7 @@ API documentation
 
 .. attribute:: Stripe.bytes_offset
 
-    The bytes offset where the stripes starts in the file.
+    The bytes offset where the stripe starts in the file.
 
 .. attribute:: Stripe.current_row
 
@@ -366,7 +366,7 @@ API documentation
 
 .. attribute:: Stripe.row_offset
 
-    The row offset where the stripes starts in the file.
+    The row offset where the stripe starts in the file.
 
 .. attribute:: Stripe.writer_timezone
 
@@ -378,13 +378,13 @@ API documentation
 
 .. class:: TypeDescription()
 
-    The base class for representing a type of an ORC schema. A schema
+    The base class for representing a type of ORC schema. A schema
     consists one or more instances that are inherited from the
     TypeDescription class.
 
 .. staticmethod:: TypeDescription.from_string(schema)
 
-    Returns instances of TypeDescription objects from a string
+    Return instances of TypeDescription objects from a string
     representation of an ORC schema.
 
 .. method:: TypeDescription.find_column_id(name)
