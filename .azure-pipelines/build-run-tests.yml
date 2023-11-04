@@ -2,6 +2,9 @@ parameters:
 - name: windows
   type: boolean
   default: false
+- name: orc_version
+  type: string
+  default: ""
 
 steps:
 - script: |
@@ -13,11 +16,17 @@ steps:
   displayName: Install test dependencies
 
 - ${{ if eq(parameters.windows, true) }}:
-
-  - script: |
-      set PYORC_DEBUG=1
-      python -m pip install -vvv --user .
-    displayName: Install package
+  - ${{ if ne(parameters.orc_version, '') }}:
+    - script: |
+        set PYORC_DEBUG=1
+        set PYORC_LIB_VERSION=${{ parameters.orc_version }}
+        python -m pip install -vvv --user .
+      displayName: Install package
+  - ${{ else }}:
+    - script: |
+        set PYORC_DEBUG=1
+        python -m pip install -vvv --user .
+      displayName: Install package
 
   - powershell: |
       $files = Get-ChildItem -path .\deps\orc-*\build\*\*\*-stamp\*.log
@@ -37,10 +46,14 @@ steps:
     displayName: Run pytest (Windows)
 
 - ${{ else }}:
-
-  - script: |
-      PYORC_DEBUG=1 CFLAGS="-coverage" python -m pip install -vvv --user .
-    displayName: Install package
+  - ${{ if ne(parameters.orc_version, '') }}:
+    - script: |
+        PYORC_DEBUG=1 PYORC_LIB_VERSION=${{ parameters.orc_version }} CFLAGS="-coverage" python -m pip install -vvv --user .
+      displayName: Install package
+  - ${{ else }}:
+    - script: |
+        PYORC_DEBUG=1 CFLAGS="-coverage" python -m pip install -vvv --user .
+      displayName: Install package
 
   - script: |
       mkdir ./buildlogs

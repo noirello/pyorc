@@ -47,6 +47,24 @@ stages:
         architecture: 'x64'
     - template: .azure-pipelines/build-run-tests.yml
 
+  - job: previous_orc_versions
+    pool:
+      vmImage: "ubuntu-latest"
+    strategy:
+      matrix:
+        ORC17:
+          orc.version: '1.7.9'
+        ORC18:
+          orc.version: '1.8.5'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.8'
+        architecture: 'x64'
+    - template: .azure-pipelines/build-run-tests.yml
+      parameters:
+        orc_version: '$(orc.version)'
+
   - job: macos
     pool:
       vmImage: 'macOS-latest'
