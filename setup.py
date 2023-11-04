@@ -1,5 +1,6 @@
 import io
 import os
+import pathlib
 import platform
 import sys
 import shutil
@@ -116,7 +117,6 @@ class BuildExt(build_ext):
         return env
 
     def _build_with_cmake(self) -> str:
-
         build_type = "DEBUG" if self.debug else "RELEASE"
 
         cmake_args = [
@@ -222,11 +222,12 @@ class BuildExt(build_ext):
         super().build_extensions()
 
 
-with open("README.rst") as file:
+CURRDIR = pathlib.Path(__file__).resolve().parent
+with open(CURRDIR / "README.rst") as file:
     LONG_DESC = file.read()
 
 # Get version number from the module's __init__.py file.
-with open(os.path.join(".", "src", "pyorc", "__init__.py")) as src:
+with open(CURRDIR / "src" / "pyorc" / "__init__.py") as src:
     VER = [
         line.split('"')[1] for line in src.readlines() if line.startswith("__version__")
     ][0]
