@@ -11,7 +11,7 @@ It uses the Apache ORC's Core C++ API under the hood, and provides a similar
 interface as the `csv module`_ in the Python standard library.
 
 .. note::
-    The module is compatible with Python 3.7 or newer releases.
+    The module is compatible with Python 3.8 or newer releases.
 
 
 Features
