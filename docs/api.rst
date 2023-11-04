@@ -429,10 +429,6 @@ API documentation
 
     Class for representing `bigint` ORC type.
 
-.. class:: SmallInt()
-
-    Class for representing `smallint` ORC type.
-
 .. class:: Float()
 
     Class for representing `float` ORC type.
@@ -615,6 +611,16 @@ API documentation
 
     :param iterable rows: an iterable with the rows.
     :return: the written number of rows.
+    :rtype: int
+
+.. method:: Writer.write_intermediate_footer()
+
+    *Required ORC version: 1.9.0*
+
+    Write an intermediate footer on the file. If the file is truncated
+    to the returned offset, it would be a valid ORC file.
+
+    :return: the byte offset.
     :rtype: int
 
 .. attribute:: Writer.current_row
