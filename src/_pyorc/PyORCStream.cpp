@@ -144,6 +144,16 @@ PyORCOutputStream::close()
     }
 }
 
+#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+void
+PyORCOutputStream::flush()
+{
+    if (!closed) {
+        pyflush();
+    }
+}
+#endif
+
 PyORCOutputStream::~PyORCOutputStream()
 {
     close();

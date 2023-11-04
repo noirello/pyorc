@@ -41,6 +41,9 @@ class PyORCOutputStream : public orc::OutputStream
     const std::string& getName() const override;
     void write(const void*, size_t) override;
     void close() override;
+#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+    void flush() override;
+#endif
 };
 
 #endif

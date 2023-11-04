@@ -178,3 +178,11 @@ Writer::addUserMetadata(py::str key, py::bytes value)
 {
     writer->addUserMetadata(key, value);
 }
+
+#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+uint64_t
+Writer::writeIntermediateFooter()
+{
+    return writer->writeIntermediateFooter();
+}
+#endif

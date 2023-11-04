@@ -119,6 +119,9 @@ PYBIND11_MODULE(_pyorc, m)
       .def("_add_user_metadata", &Writer::addUserMetadata)
       .def("write", &Writer::write)
       .def("writerows", &Writer::writerows)
+#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+      .def("write_intermediate_footer", &Writer::writeIntermediateFooter)
+#endif
       .def("close", &Writer::close)
       .def_readonly("current_row", &Writer::currentRow);
 }

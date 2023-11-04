@@ -42,6 +42,9 @@ class Writer
     void addUserMetadata(py::str, py::bytes);
     void write(py::object);
     uint64_t writerows(py::iterable);
+#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+    uint64_t writeIntermediateFooter();
+#endif
     void close();
     ~Writer(){};
 };
