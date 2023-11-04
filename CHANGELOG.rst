@@ -1,13 +1,19 @@
 Changelog
 ==========
-[0.9.0] - UNRELEASED
+[0.9.0] - 2023-11-04
 --------------------
 
 Added
 ~~~~~
 
+- Writer.write_intermediate_footer method for ORC library 1.9.0 and newer.
+- Python 3.12 wheels.
+
 Changed
 ~~~~~~~
+
+- Dropped support for Python 3.7.
+- ORC C++ Core updated to 1.9.1.
 
 Fixed
 ~~~~~
