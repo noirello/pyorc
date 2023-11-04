@@ -90,6 +90,7 @@ class BuildExt(build_ext):
             self.debug = True
         if os.getenv("PYORC_SKIP_ORC_BUILD", 0):
             self.skip_orc_build = True
+        self.orc_version = os.getenv("PYORC_LIB_VERSION", self.orc_version)
         super().finalize_options()
 
     def _download_source(self) -> None:
@@ -195,6 +196,14 @@ class BuildExt(build_ext):
         except Exception as exc:
             logging.warning(exc)
 
+    def get_version_macros(self):
+        parts = self.orc_version.split(".")
+        return (
+            ("ORC_VERSION_MAJOR", int(parts[0])),
+            ("ORC_VERSION_MINOR", int(parts[1])),
+            ("ORC_VERSION_PATCH", int(parts[2])),
+        )
+
     def build_extensions(self):
         if not self.skip_orc_build:
             orc_lib = os.path.join(
@@ -219,6 +228,7 @@ class BuildExt(build_ext):
                 lib if lib != "zlibstatic" else "zlibstaticd"
                 for lib in self.extensions[0].libraries
             ]
+        self.extensions[0].define_macros.extend(self.get_version_macros())
         super().build_extensions()
 
 
