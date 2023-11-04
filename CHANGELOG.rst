@@ -1,5 +1,18 @@
 Changelog
 ==========
+[0.10.0] - UNRELEASED
+---------------------
+
+Added
+~~~~~
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~
+
+
 [0.9.0] - 2023-11-04
 --------------------
 
@@ -15,8 +28,6 @@ Changed
 - Dropped support for Python 3.7.
 - ORC C++ Core updated to 1.9.1.
 
-Fixed
-~~~~~
 
 [0.8.0] - 2022-11-19
 --------------------
