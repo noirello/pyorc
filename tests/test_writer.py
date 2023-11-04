@@ -3,7 +3,7 @@ import pytest
 import io
 import math
 import os
-from datetime import date, datetime, timezone, tzinfo
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 try:
@@ -19,6 +19,8 @@ from pyorc import (
     TypeKind,
     StructRepr,
     CompressionKind,
+    orc_version,
+    orc_version_info,
 )
 from pyorc.converters import ORCConverter
 
@@ -609,3 +611,27 @@ def test_write_custom_null_value(orc_type, value):
     else:
         assert next(reader) == value
     assert next(reader) is None
+
+
+@pytest.mark.skipif(
+    orc_version_info.major <= 1 and orc_version_info.minor < 9,
+    reason=f"write_intermediate_footer is unsupported for {orc_version}",
+)
+def test_write_intermediate_footer():
+    data = io.BytesIO()
+    writer = Writer(data, "int", stripe_size=1024, compression_block_size=1024)
+    writer.writerows(range(65536))
+    with pytest.raises(ParseError):
+        _ = Reader(data)
+    offset = writer.write_intermediate_footer()
+    assert isinstance(offset, int)
+    assert offset > 0
+    reader = Reader(data)
+    assert reader.bytes_lengths["file_length"] == offset
+    assert len(reader) == 65536
+    assert reader.read()[-1] == 65535
+    data.seek(offset)
+    writer.close()
+    reader = Reader(data)
+    assert len(reader) == 65536
+    assert reader.bytes_lengths["file_length"] >= offset
