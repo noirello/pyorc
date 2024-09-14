@@ -30,6 +30,7 @@ stages:
       inputs:
         versionSpec: '$(python.version)'
         architecture: 'x64'
+        allowUnstable: true
     - template: .azure-pipelines/build-run-tests.yml
 
   - job: ubuntu_eastern_timezone
@@ -89,6 +90,7 @@ stages:
       inputs:
         versionSpec: '$(python.version)'
         architecture: 'x64'
+        allowUnstable: true
     - template: .azure-pipelines/build-run-tests.yml
 
   - job: windows
@@ -114,6 +116,7 @@ stages:
       inputs:
         versionSpec: '$(python.version)'
         architecture: 'x64'
+        allowUnstable: true
     - template: .azure-pipelines/build-run-tests.yml
       parameters:
         windows: true
