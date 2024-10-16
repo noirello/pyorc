@@ -154,7 +154,7 @@ stages:
             displayName: Build wheels
 
   - job: manylinux_aarch64
-    timeoutInMinutes: 120
+    timeoutInMinutes: 165
     pool:
       vmImage: 'ubuntu-latest'
     steps:
