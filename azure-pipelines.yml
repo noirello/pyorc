@@ -56,9 +56,11 @@ stages:
     strategy:
       matrix:
         ORC17:
-          orc.version: '1.7.9'
+          orc.version: '1.7.11'
         ORC18:
-          orc.version: '1.8.5'
+          orc.version: '1.8.8'
+        ORC19:
+          orc.version: '1.9.5'
     steps:
     - task: UsePythonVersion@0
       inputs:
