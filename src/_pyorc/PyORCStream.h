@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 
 #include "orc/OrcFile.hh"
+#include "verguard.h"
 
 namespace py = pybind11;
 
@@ -41,7 +42,7 @@ class PyORCOutputStream : public orc::OutputStream
     const std::string& getName() const override;
     void write(const void*, size_t) override;
     void close() override;
-#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+#if ORC_VERSION_AT_LEAST(1, 9, 0)
     void flush() override;
 #endif
 };

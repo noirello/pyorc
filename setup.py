@@ -26,7 +26,14 @@ SOURCES = [
     "Writer.cpp",
 ]
 
-HEADERS = ["Converter.h", "PyORCStream.h", "Reader.h", "SearchArgument.h", "Writer.h"]
+HEADERS = [
+    "Converter.h",
+    "PyORCStream.h",
+    "Reader.h",
+    "SearchArgument.h",
+    "Writer.h",
+    "verguard.h",
+]
 
 if sys.platform.startswith("win32"):
     LIBS = [

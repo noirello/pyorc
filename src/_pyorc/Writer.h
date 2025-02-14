@@ -7,6 +7,7 @@
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
+#include "verguard.h"
 
 namespace py = pybind11;
 
@@ -42,7 +43,7 @@ class Writer
     void addUserMetadata(py::str, py::bytes);
     void write(py::object);
     uint64_t writerows(py::iterable);
-#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+#if ORC_VERSION_AT_LEAST(1, 9, 0)
     uint64_t writeIntermediateFooter();
 #endif
     void close();

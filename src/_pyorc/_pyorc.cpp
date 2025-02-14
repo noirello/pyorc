@@ -1,5 +1,7 @@
 #include "Reader.h"
 #include "Writer.h"
+#include "verguard.h"
+
 #include <orc/orc-config.hh>
 
 namespace py = pybind11;
@@ -119,7 +121,7 @@ PYBIND11_MODULE(_pyorc, m)
       .def("_add_user_metadata", &Writer::addUserMetadata)
       .def("write", &Writer::write)
       .def("writerows", &Writer::writerows)
-#if !(ORC_VERSION_MAJOR <= 1 && ORC_VERSION_MINOR < 9)
+#if ORC_VERSION_AT_LEAST(1, 9, 0)
       .def("write_intermediate_footer", &Writer::writeIntermediateFooter)
 #endif
       .def("close", &Writer::close)
