@@ -144,6 +144,7 @@ def test_init():
         bloom_filter_fpp=0.5,
         padding_tolerance=0.5,
         dict_key_size_threshold=0.5,
+        memory_block_size=1,
     )
     assert isinstance(writer, Writer)
 
@@ -619,7 +620,13 @@ def test_write_custom_null_value(orc_type, value):
 )
 def test_write_intermediate_footer():
     data = io.BytesIO()
-    writer = Writer(data, "int", stripe_size=1024, compression_block_size=1024)
+    writer = Writer(
+        data,
+        "int",
+        stripe_size=1024,
+        compression_block_size=1024,
+        memory_block_size=512,
+    )
     writer.writerows(range(65536))
     with pytest.raises(ParseError):
         _ = Reader(data)

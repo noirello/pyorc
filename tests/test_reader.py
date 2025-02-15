@@ -56,6 +56,7 @@ def striped_orc_data():
             batch_size=65535,
             stripe_size=128,
             compression_block_size=128,
+            memory_block_size=64,
         ) as writer:
             for i in range(row):
                 writer.write((i,))
@@ -375,7 +376,9 @@ def test_compression(kind):
 @pytest.mark.parametrize("block_size", (10000, 20000, 30000))
 def test_compression_block_size(block_size):
     data = io.BytesIO()
-    with Writer(data, "int", compression_block_size=block_size) as writer:
+    with Writer(
+        data, "int", compression_block_size=block_size, memory_block_size=1000
+    ) as writer:
         writer.writerows(range(10))
     reader = Reader(data)
     assert reader.compression_block_size == block_size

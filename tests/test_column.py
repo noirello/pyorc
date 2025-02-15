@@ -28,6 +28,7 @@ def striped_orc_data():
             stripe_size=128,
             compression_block_size=128,
             bloom_filter_columns=bfc,
+            memory_block_size=64,
         ) as writer:
             writer.writerows(rows)
         data.seek(0)
