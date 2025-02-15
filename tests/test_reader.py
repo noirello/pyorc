@@ -417,10 +417,24 @@ def test_bytes_lengths():
     data = io.BytesIO()
     Writer(data, "string", compression=0).close()
     reader = Reader(data)
+    expected_footer_length = (
+        39
+        if pyorc.orc_version_info.major == 1
+        and pyorc.orc_version_info.minor == 7
+        and pyorc.orc_version_info.patch > 9
+        else 38
+    )
+    expected_file_length = (
+        66
+        if pyorc.orc_version_info.major == 1
+        and pyorc.orc_version_info.minor == 7
+        and pyorc.orc_version_info.patch > 9
+        else 65
+    )
     assert reader.bytes_lengths["content_length"] == 0
-    assert reader.bytes_lengths["file_footer_length"] == 38
+    assert reader.bytes_lengths["file_footer_length"] == expected_footer_length
     assert reader.bytes_lengths["file_postscript_length"] == 23
-    assert reader.bytes_lengths["file_length"] == 65
+    assert reader.bytes_lengths["file_length"] == expected_file_length
     assert reader.bytes_lengths["stripe_statistics_length"] == 0
 
     expected_content_length = (
@@ -428,13 +442,20 @@ def test_bytes_lengths():
         if pyorc.orc_version_info.major == 1 and pyorc.orc_version_info.minor < 8
         else 63
     )
+    expected_footer_length = (
+        60
+        if pyorc.orc_version_info.major == 1
+        and pyorc.orc_version_info.minor == 7
+        and pyorc.orc_version_info.patch > 9
+        else 59
+    )
 
     data = io.BytesIO()
     with Writer(data, "int") as writer:
         writer.writerows(range(100))
     reader = Reader(data)
     assert reader.bytes_lengths["content_length"] == expected_content_length
-    assert reader.bytes_lengths["file_footer_length"] == 59
+    assert reader.bytes_lengths["file_footer_length"] == expected_footer_length
     assert reader.bytes_lengths["file_postscript_length"] == 23
     assert reader.bytes_lengths["file_length"] == len(data.getvalue())
     assert reader.bytes_lengths["stripe_statistics_length"] == 21
