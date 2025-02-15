@@ -15,18 +15,19 @@ from pyorc.typedescription import TypeDescription, Timestamp
 
 from conftest import output_file
 
-pytestmark = pytest.mark.skipif(sys.platform == 'win32', reason="No orc-tools on Windows")
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32", reason="No orc-tools on Windows"
+)
 
 ORC_CONTENTS_PATH = "deps/bin/orc-contents"
+
 
 def transform(schema, value):
     if schema.kind < 8:
         # Primitive types, no transformation.
         return value
     elif schema.kind == TypeKind.STRUCT:
-        return {
-            col: transform(schema[col], field) for col, field in value.items()
-        }
+        return {col: transform(schema[col], field) for col, field in value.items()}
     elif schema.kind == TypeKind.MAP:
         return {
             keypair["key"]: transform(schema.value, keypair["value"])
@@ -73,6 +74,17 @@ def idfn(val):
     return val[:40]
 
 
+def create_orc_output_for_test(schema, file_out, file_in):
+    writer = pyorc._pyorc.writer(file_out, schema, struct_repr=StructRepr.DICT)
+    num = 0
+    for row in read_expected_json_record(get_full_path(file_in)):
+        orc_row = transform(schema, row)
+        writer.write(orc_row)
+        num += 1
+    assert num == writer.current_row
+    writer.close()
+
+
 TESTDATA = [
     (
         "TestOrcFile.test1.jsn.gz",
@@ -93,21 +105,14 @@ TESTDATA = [
         "demo-12-zlib.jsn.gz",
         "struct<_col0:int,_col1:string,_col2:string,_col3:string,_col4:int,_col5:string,_col6:int,_col7:int,_col8:int>",
     ),
-    ("decimal.jsn.gz", "struct<_col0:decimal(10,5)>"),
 ]
 
 
 @pytest.mark.parametrize("expected,schema", TESTDATA, ids=idfn)
 def test_write(expected, schema, output_file):
-    schema = TypeDescription.from_string(schema)
-    writer = pyorc._pyorc.writer(output_file, schema, struct_repr=StructRepr.DICT)
-    num = 0
-    for row in read_expected_json_record(get_full_path(expected)):
-        orc_row = transform(schema, row)
-        writer.write(orc_row)
-        num += 1
-    assert num == writer.current_row
-    writer.close()
+    create_orc_output_for_test(
+        TypeDescription.from_string(schema), output_file, expected
+    )
     exp_res = read_expected_json_record(get_full_path(expected))
     with subprocess.Popen(
         [ORC_CONTENTS_PATH, output_file.name], stdout=subprocess.PIPE
@@ -118,25 +123,34 @@ def test_write(expected, schema, output_file):
         next(exp_res)
 
 
-def test_write_timestamp(output_file):
-    writer = pyorc._pyorc.writer(
+def test_write_decimal(output_file):
+    input_filename = "decimal.jsn.gz"
+    create_orc_output_for_test(
+        TypeDescription.from_string("struct<_col0:decimal(10,5)>"),
         output_file,
-        Timestamp(),
-        struct_repr=StructRepr.DICT,
+        input_filename,
     )
-    num = 0
-    for row in read_expected_json_record(
-        get_full_path("TestOrcFile.testTimestamp.jsn.gz")
-    ):
-        ts = datetime.strptime(row[:26], "%Y-%m-%d %H:%M:%S.%f")
-        orc_row = ts.replace(tzinfo=timezone.utc)
-        writer.write(orc_row)
-        num += 1
-    assert num == writer.current_row
-    writer.close()
-    exp_res = read_expected_json_record(
-        get_full_path("TestOrcFile.testTimestamp.jsn.gz")
-    )
+    exp_res = read_expected_json_record(get_full_path(input_filename))
+    with subprocess.Popen(
+        [ORC_CONTENTS_PATH, output_file.name], stdout=subprocess.PIPE
+    ) as proc:
+        for line in proc.stdout:
+            data = next(exp_res)
+            if pyorc.orc_version_info.major >= 2 and pyorc.orc_version_info.minor > 0:
+                # From 2.1.0, orc-content returns decimals as string to the output,
+                # whilte the example json has floats in it.
+                data["_col0"] = (
+                    data["_col0"] if data["_col0"] is None else str(data["_col0"])
+                )
+            assert json.loads(line) == data
+    with pytest.raises(StopIteration):
+        next(exp_res)
+
+
+def test_write_timestamp(output_file):
+    input_filename = "TestOrcFile.testTimestamp.jsn.gz"
+    create_orc_output_for_test(Timestamp(), output_file, input_filename)
+    exp_res = read_expected_json_record(get_full_path(input_filename))
     with subprocess.Popen(
         [ORC_CONTENTS_PATH, output_file.name], stdout=subprocess.PIPE
     ) as proc:
