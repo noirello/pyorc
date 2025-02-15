@@ -101,7 +101,8 @@ PYBIND11_MODULE(_pyorc, m)
                     py::object,
                     double,
                     double,
-                    py::object>(),
+                    py::object,
+                    unsigned int>(),
            py::arg("fileo"),
            py::arg("schema"),
            py::arg_v("batch_size", 1024, "1024"),
@@ -117,7 +118,8 @@ PYBIND11_MODULE(_pyorc, m)
            py::arg_v("conv", py::none(), "None"),
            py::arg_v("padding_tolerance", 0.0, "0.0"),
            py::arg_v("dict_key_size_threshold", 0.0, "0.0"),
-           py::arg_v("null_value", py::none(), "None"))
+           py::arg_v("null_value", py::none(), "None"),
+           py::arg_v("memory_block_size", 65536, "65536"))
       .def("_add_user_metadata", &Writer::addUserMetadata)
       .def("write", &Writer::write)
       .def("writerows", &Writer::writerows)

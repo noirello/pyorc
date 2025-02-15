@@ -98,7 +98,8 @@ Writer::Writer(py::object fileo,
                py::object conv,
                double padding_tolerance,
                double dict_key_size_threshold,
-               py::object null_value)
+               py::object null_value,
+               unsigned int memory_block_size)
 {
     currentRow = 0;
     batchItem = 0;
@@ -124,6 +125,9 @@ Writer::Writer(py::object fileo,
     options = options.setBloomFilterFPP(bloom_filter_fpp);
     options = options.setDictionaryKeySizeThreshold(dict_key_size_threshold);
     options = options.setPaddingTolerance(padding_tolerance);
+#if ORC_VERSION_AT_LEAST(2, 1, 0)
+    options = options.setMemoryBlockSize(memory_block_size);
+#endif
     if (!tzone.is_none()) {
         std::string tzKey = py::cast<std::string>(tzone.attr("key"));
         options = options.setTimezoneName(tzKey);

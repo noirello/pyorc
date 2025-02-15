@@ -32,6 +32,7 @@ class Writer(writer):
         padding_tolerance: float = 0.0,
         dict_key_size_threshold: float = 0.0,
         null_value: Any = None,
+        memory_block_size = 65536,
     ) -> None:
         if isinstance(schema, str):
             schema = TypeDescription.from_string(schema)
@@ -77,6 +78,7 @@ class Writer(writer):
             padding_tolerance,
             dict_key_size_threshold,
             null_value,
+            memory_block_size,
         )
 
     def __enter__(self) -> "Writer":

@@ -39,7 +39,8 @@ class Writer
            py::object = py::none(),
            double = 0.0,
            double = 0.0,
-           py::object = py::none());
+           py::object = py::none(),
+           unsigned int = 65536);
     void addUserMetadata(py::str, py::bytes);
     void write(py::object);
     uint64_t writerows(py::iterable);
