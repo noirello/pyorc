@@ -189,7 +189,12 @@ class BuildExt(build_ext):
         )
         try:
             shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
-            shutil.move(os.path.join(pack_dir, "lib"), self.output_dir)
+            lib_dir = (
+                "lib64" if os.path.exists(os.path.join(pack_dir, "lib64")) else "lib"
+            )
+            shutil.move(
+                os.path.join(pack_dir, lib_dir), os.path.join(self.output_dir, "lib")
+            )
             if self.debug and not sys.platform.startswith("win32"):
                 shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
             shutil.move(
