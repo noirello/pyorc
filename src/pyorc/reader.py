@@ -113,6 +113,8 @@ class Reader(reader):
             return "SCRITCHLEY_GO"
         elif wid == 4:
             return "TRINO_WRITER"
+        elif wid == 5:
+            return "CUDF_WRITER"
         else:
             return "UNKNOWN_WRITER"
 
