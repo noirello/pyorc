@@ -198,6 +198,7 @@ stages:
           cibwStep:
             bash: cibuildwheel --output-dir wheelhouse .
             env:
+              CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.13"
               CIBW_BUILD_VERBOSITY: 3
               CIBW_SKIP: "cp36-* cp37-*"
             displayName: Build wheels
@@ -211,6 +212,7 @@ stages:
           cibwStep:
             bash: cibuildwheel --output-dir wheelhouse .
             env:
+              CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.13"
               CIBW_BUILD_VERBOSITY: 3
               CMAKE_OSX_ARCHITECTURES: 'x86_64;arm64'
               CIBW_ARCHS_MACOS: universal2
