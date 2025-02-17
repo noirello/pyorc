@@ -530,7 +530,7 @@ API documentation
                   bloom_filter_fpp=0.05, timezone=zoneinfo.ZoneInfo("UTC"), \
                   struct_repr=StructRepr.TUPLE, converters=None, \
                   padding_tolerance=0.0, dict_key_size_threshold=0.0, \
-                  null_value=None)
+                  null_value=None, memory_block_size=65536)
 
     An object to write ORC files. The `fileo` must be a binary stream.
     The `schema` must be :class:`TypeDescription` or a valid ORC schema
@@ -570,6 +570,8 @@ API documentation
     :param float padding_tolerance: tolerance for block padding.
     :param float dict_key_size_threshold: threshold for dictionary encoding.
     :param object null_value: a singleton object to represent ORC null value.
+    :param int memory_block_size: the initial block size of the original
+        input buffer
 
 .. method:: Writer.__enter__()
 .. method:: Writer.__exit__()
