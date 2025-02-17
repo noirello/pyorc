@@ -205,7 +205,7 @@ stages:
 
   - job: macos_universal2
     pool:
-      vmImage: 'macOS-12'
+      vmImage: 'macOS-latest'
     steps:
       - template: .azure-pipelines/prepare-and-push-wheels.yml
         parameters:
