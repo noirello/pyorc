@@ -571,7 +571,7 @@ API documentation
     :param float dict_key_size_threshold: threshold for dictionary encoding.
     :param object null_value: a singleton object to represent ORC null value.
     :param int memory_block_size: the initial block size of the original
-        input buffer
+        input buffer.
 
 .. method:: Writer.__enter__()
 .. method:: Writer.__exit__()
