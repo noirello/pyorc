@@ -12,6 +12,13 @@ steps:
     python3 -m pip install --upgrade pip
     python3 -m pip install cibuildwheel==2.22.0
   displayName: Install cibuildwheel dependencies
+- bash: |
+    echo "Worker Arch: ${ARCH}; OS: ${OS};"
+  env:
+    ARCH: $(Agent.OSArchitecture)
+    OS: $(Agent.OS)
+  displayName: Worker info
+
 
 - ${{ if eq(parameters.qemu, true) }}:
 
