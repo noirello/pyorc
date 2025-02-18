@@ -131,7 +131,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: x86_64
               CIBW_BUILD: "*-manylinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
             displayName: Build wheels
 
   - job: musllinux_x86_64
@@ -146,10 +146,10 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: x86_64
               CIBW_BUILD: "*-musllinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
             displayName: Build wheels
 
-  - job: manylinux_aarch64
+  - job: manylinux_cpy_aarch64
     timeoutInMinutes: 165
     pool:
       vmImage: 'ubuntu-latest'
@@ -163,7 +163,24 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: aarch64
               CIBW_BUILD: "*-manylinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "pp* cp36-* cp37-* cp38-*"
+            displayName: Build wheels
+
+  - job: manylinux_pypy_aarch64
+    timeoutInMinutes: 165
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - template: .azure-pipelines/prepare-and-push-wheels.yml
+        parameters:
+          qemu: true
+          cibwStep:
+            bash: cibuildwheel --output-dir wheelhouse .
+            env:
+              CIBW_BUILD_VERBOSITY: 3
+              CIBW_ARCHS: aarch64
+              CIBW_BUILD: "*-manylinux_*"
+              CIBW_SKIP: "cp* pp37-* pp38-*"
             displayName: Build wheels
 
   - job: musllinux_aarch64
@@ -180,7 +197,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: aarch64
               CIBW_BUILD: "*-musllinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
             displayName: Build wheels
 
   - job: macos
@@ -194,7 +211,7 @@ stages:
             env:
               CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.13"
               CIBW_BUILD_VERBOSITY: 3
-              CIBW_SKIP: "cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
             displayName: Build wheels
 
   - job: macos_universal2
@@ -224,5 +241,5 @@ stages:
             env:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: AMD64
-              CIBW_SKIP: "cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
             displayName: Build wheels
