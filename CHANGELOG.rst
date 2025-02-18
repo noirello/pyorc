@@ -1,16 +1,22 @@
 Changelog
 ==========
-[0.10.0] - UNRELEASED
+[0.10.0] - 2025-02-18
 ---------------------
 
 Added
 ~~~~~
 
+- New parameter to Writer: memory_block_size for setting initial block
+  size of original input buffer.
+- Add CUDF_Writer to Reader's writer_id.
+- Python 3.13 wheels.
+
 Changed
 ~~~~~~~
 
-Fixed
-~~~~~
+- Dropped support for Python 3.8.
+- ORC C++ Core updated to 2.1.0.
+- Pinned setuptools<72.2 for PyPy to avoid TypeError during build.
 
 
 [0.9.0] - 2023-11-04
