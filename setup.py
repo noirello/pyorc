@@ -275,7 +275,6 @@ setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: C++",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.10",
