@@ -49,7 +49,7 @@ sys.modules["pyorc"] = pyorc
 # -- Project information -----------------------------------------------------
 
 project = "PyORC"
-copyright = "2019-2025, noirello"
+copyright = "2019-2026, noirello"
 author = "noirello"
 
 # The full version, including alpha/beta/rc tags
