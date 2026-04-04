@@ -58,7 +58,7 @@ steps:
   - script: |
       mkdir ./buildlogs
       mkdir "$AGENT_OS-$PYTHON_VER"
-      cp $(ls deps/orc-1.*/build/*/*/*-stamp/*.log) "$AGENT_OS-$PYTHON_VER"
+      cp $(ls deps/orc-*/build/*/*/*-stamp/*.log) "$AGENT_OS-$PYTHON_VER"
       tar -czvf "buildlogs/logs-$AGENT_OS-$PYTHON_VER.tar.gz" "$AGENT_OS-$PYTHON_VER"
     env:
       PYTHON_VER: $(python.version)
