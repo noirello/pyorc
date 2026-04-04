@@ -11,8 +11,6 @@ stages:
       vmImage: "ubuntu-latest"
     strategy:
       matrix:
-        Python39:
-          python.version: '3.9'
         Python310:
           python.version: '3.10'
         Python311:
@@ -38,8 +36,8 @@ stages:
       vmImage: "ubuntu-latest"
     strategy:
       matrix:
-        Python38:
-          python.version: '3.11'
+        Python3:
+          python.version: '3.12'
     steps:
     - bash: sudo timedatectl set-timezone America/New_York
       displayName: Set timezone
@@ -75,8 +73,6 @@ stages:
       vmImage: 'macOS-latest'
     strategy:
       matrix:
-        Python39:
-          python.version: '3.9'
         Python310:
           python.version: '3.10'
         Python311:
@@ -100,8 +96,6 @@ stages:
       vmImage: 'windows-2019'
     strategy:
       matrix:
-        Python39:
-          python.version: '3.9'
         Python310:
           python.version: '3.10'
         Python311:
@@ -136,7 +130,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: x86_64
               CIBW_BUILD: "*-manylinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
             displayName: Build wheels
 
   - job: musllinux_x86_64
@@ -151,7 +145,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: x86_64
               CIBW_BUILD: "*-musllinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
             displayName: Build wheels
 
   - job: manylinux_cpy_aarch64
@@ -168,7 +162,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: aarch64
               CIBW_BUILD: "*-manylinux_*"
-              CIBW_SKIP: "pp* cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "pp* cp36-* cp37-* cp38-* cp39-*"
             displayName: Build wheels
 
   - job: manylinux_pypy_aarch64
@@ -202,7 +196,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: aarch64
               CIBW_BUILD: "*-musllinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
             displayName: Build wheels
 
   - job: macos
@@ -216,7 +210,7 @@ stages:
             env:
               CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.13"
               CIBW_BUILD_VERBOSITY: 3
-              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
             displayName: Build wheels
 
   - job: macos_universal2
@@ -232,7 +226,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CMAKE_OSX_ARCHITECTURES: 'x86_64;arm64'
               CIBW_ARCHS_MACOS: universal2
-              CIBW_SKIP: "cp36-* cp37-* cp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-*"
             displayName: Build wheels
 
   - job: windows_amd64
@@ -246,5 +240,5 @@ stages:
             env:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: AMD64
-              CIBW_SKIP: "cp36-* cp37-* cp38-* pp37-* pp38-*"
+              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
             displayName: Build wheels
