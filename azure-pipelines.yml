@@ -4,6 +4,7 @@ trigger:
     - '*'
 
 variables:
+  CMAKE_POLICY_VERSION_MINIMUM: '3.5'
   PYORC_OVERRIDDEN_PROTOBUF_VERSION: '3.21.12'
 
 stages:

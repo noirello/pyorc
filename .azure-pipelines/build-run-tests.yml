@@ -18,14 +18,12 @@ steps:
 - ${{ if eq(parameters.windows, true) }}:
   - ${{ if ne(parameters.orc_version, '') }}:
     - script: |
-        set CMAKE_POLICY_VERSION_MINIMUM=3.5
         set PYORC_DEBUG=1
         set PYORC_LIB_VERSION=${{ parameters.orc_version }}
         python -m pip install -vvv --user .
       displayName: Install package
   - ${{ else }}:
     - script: |
-        set CMAKE_POLICY_VERSION_MINIMUM=3.5
         set PYORC_DEBUG=1
         python -m pip install -vvv --user .
       displayName: Install package
@@ -50,11 +48,11 @@ steps:
 - ${{ else }}:
   - ${{ if ne(parameters.orc_version, '') }}:
     - script: |
-        CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_DEBUG=1 PYORC_LIB_VERSION=${{ parameters.orc_version }} CFLAGS="-coverage" python -m pip install -vvv --user .
+        PYORC_DEBUG=1 PYORC_LIB_VERSION=${{ parameters.orc_version }} CFLAGS="-coverage" python -m pip install -vvv --user .
       displayName: Install package
   - ${{ else }}:
     - script: |
-        CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_DEBUG=1 CFLAGS="-coverage" python -m pip install -vvv --user .
+        PYORC_DEBUG=1 CFLAGS="-coverage" python -m pip install -vvv --user .
       displayName: Install package
 
   - script: |
