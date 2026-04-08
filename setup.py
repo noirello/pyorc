@@ -8,6 +8,7 @@ import subprocess
 import urllib.request
 import tarfile
 import logging
+import fileinput
 
 from setuptools import setup
 
@@ -113,6 +114,20 @@ class BuildExt(build_ext):
         logging.info("Extract archives in: %s" % self.output_dir)
         tar_src.extractall(self.output_dir)
         tar_src.close()
+
+    def _patch_protobuf_version(self, version) -> None:
+        file_path = os.path.join(
+            self.output_dir,
+            "orc-{ver}".format(ver=self.orc_version),
+            "cmake_modules",
+            "ThirdpartyToolchain.cmake",
+        )
+        with fileinput.input(file_path, inplace=True, encoding="utf-8") as cmake_file:
+            for line in cmake_file:
+                if "set(PROTOBUF_VERSION " in line:
+                    line = f'set(PROTOBUF_VERSION "{version}")\n'
+                print(line, end="")
+        logging.info(f"Overrode protobuf version to: {version}")
 
     @staticmethod
     def _get_build_envs() -> dict:
@@ -242,6 +257,10 @@ class BuildExt(build_ext):
             if self.download_only:
                 logging.info("Only downloaded the ORC library source. Skip build_ext")
                 return
+
+            protobuf_ver = os.getenv("PYORC_OVERRIDDEN_PROTOBUF_VERSION")
+            if protobuf_ver:
+                self._patch_protobuf_version(protobuf_ver)
 
             if not os.path.exists(orc_lib):
                 self._build_orc_lib()
