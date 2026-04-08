@@ -184,11 +184,22 @@ class BuildExt(build_ext):
             "TGZ",
             f"ORC-{self.orc_version}-{plat}",
         )
+        proto_src_dir = os.path.join(
+            build_dir,
+            "protobuf_ep-prefix",
+            "src",
+            "protobuf_ep",
+            "src",
+        )
         logging.info(
             "Move artifacts from '%s' to the '%s' folder" % (pack_dir, self.output_dir)
         )
         try:
             shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
+            shutil.move(
+                os.path.join(proto_src_dir, "google"),
+                os.path.join(self.output_dir, "include"),
+            )
             lib_dir = (
                 "lib64" if os.path.exists(os.path.join(pack_dir, "lib64")) else "lib"
             )
