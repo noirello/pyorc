@@ -1,7 +1,6 @@
-from collections import namedtuple
 import pytest
 
-from pyorc import orc_version, orc_version_info
+from pyorc import orc_version, orc_version_info, protobuf_version, protobuf_version_info
 
 
 def test_orc_version():
@@ -21,3 +20,16 @@ def test_orc_version_info():
         == f"{inf.major}.{inf.minor}.{inf.patch}{'-' if inf.releaselevel else ''}{inf.releaselevel}"
     )
 
+
+def test_protobuf_version():
+    assert isinstance(protobuf_version, str)
+    assert len(protobuf_version.split(".")) == 3
+
+
+def test_protobuf_version_info():
+    assert isinstance(protobuf_version_info, tuple)
+    assert isinstance(protobuf_version_info.major, int)
+    assert isinstance(protobuf_version_info.minor, int)
+    assert isinstance(protobuf_version_info.micro, int)
+    inf = protobuf_version_info
+    assert protobuf_version == f"{inf.major}.{inf.minor}.{inf.micro}"
