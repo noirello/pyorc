@@ -60,9 +60,11 @@ stages:
         ORC17:
           orc.version: '1.7.11'
         ORC18:
-          orc.version: '1.8.8'
+          orc.version: '1.8.10'
         ORC19:
-          orc.version: '1.9.5'
+          orc.version: '1.9.8'
+        ORC20:
+          orc.version: '2.0.7'
     variables:
       # Use "shipped" protobuf version for older libs
       PYORC_OVERRIDDEN_PROTOBUF_VERSION: ''
