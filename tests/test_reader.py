@@ -417,20 +417,11 @@ def test_bytes_lengths():
     data = io.BytesIO()
     Writer(data, "string", compression=0).close()
     reader = Reader(data)
-    expected_footer_length = (
-        39
-        if pyorc.orc_version_info.major == 1
-        and pyorc.orc_version_info.minor == 7
-        and pyorc.orc_version_info.patch > 9
-        else 38
-    )
-    expected_file_length = (
-        66
-        if pyorc.orc_version_info.major == 1
-        and pyorc.orc_version_info.minor == 7
-        and pyorc.orc_version_info.patch > 9
-        else 65
-    )
+
+    # The lengths depend on how much space the version number needs.
+    expected_footer_length = 33 + len(pyorc.orc_version)
+    expected_file_length = 60 + len(pyorc.orc_version)
+
     assert reader.bytes_lengths["content_length"] == 0
     assert reader.bytes_lengths["file_footer_length"] == expected_footer_length
     assert reader.bytes_lengths["file_postscript_length"] == 23
@@ -442,13 +433,8 @@ def test_bytes_lengths():
         if pyorc.orc_version_info.major == 1 and pyorc.orc_version_info.minor < 8
         else 63
     )
-    expected_footer_length = (
-        60
-        if pyorc.orc_version_info.major == 1
-        and pyorc.orc_version_info.minor == 7
-        and pyorc.orc_version_info.patch > 9
-        else 59
-    )
+
+    expected_footer_length = 54 + len(pyorc.orc_version)
 
     data = io.BytesIO()
     with Writer(data, "int") as writer:

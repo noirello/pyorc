@@ -138,7 +138,7 @@ def test_write_decimal(output_file):
             data = next(exp_res)
             if pyorc.orc_version_info.major >= 2 and pyorc.orc_version_info.minor > 0:
                 # From 2.1.0, orc-content returns decimals as string to the output,
-                # whilte the example json has floats in it.
+                # while the example json has floats in it.
                 data["_col0"] = (
                     data["_col0"] if data["_col0"] is None else str(data["_col0"])
                 )
