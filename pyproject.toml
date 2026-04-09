@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pyorc"
 description = "Python module for reading and writing Apache ORC file format."
-license = { text = "Apache 2.0" }
+license = "Apache-2.0"
 dynamic = ["version"]
 authors = [{ name = "noirello", email = "noirello@gmail.com" }]
 requires-python = '>=3.6,<4.0'
