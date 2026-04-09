@@ -1,7 +1,6 @@
 [build-system]
 requires = [
     "setuptools>=61.0.0",
-    "setuptools>=61.0.0,<72.2; implementation_name == 'pypy'", # https://github.com/pypa/distutils/issues/283
     "wheel>=0.30.0",
     "pybind11>2.6.0,<3.0",
 ]
