@@ -14,7 +14,6 @@ from setuptools import setup
 
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
-
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
@@ -86,7 +85,7 @@ class BuildExt(build_ext):
         """Set default values for options."""
         super().initialize_options()
         self.orc_version = "2.1.4"
-        self.output_dir = "deps"
+        self.output_dir = pathlib.Path("deps")
         self.source_url = "https://archive.apache.org/dist/orc/"
         self.download_only = False
         self.skip_orc_build = False
@@ -103,24 +102,22 @@ class BuildExt(build_ext):
 
     def _download_source(self) -> None:
         tmp_tar = io.BytesIO()
-        url = "{url}orc-{ver}/orc-{ver}.tar.gz".format(
-            url=self.source_url, ver=self.orc_version
-        )
+        url = f"{self.source_url}orc-{self.orc_version}/orc-{self.orc_version}.tar.gz"
         with urllib.request.urlopen(url) as src:
-            logging.info("Download ORC release from: %s" % url)
+            logging.info(f"Download ORC release from: {url}")
             tmp_tar.write(src.read())
         tmp_tar.seek(0)
         tar_src = tarfile.open(fileobj=tmp_tar, mode="r:gz")
-        logging.info("Extract archives in: %s" % self.output_dir)
+        logging.info(f"Extract archives in: {self.output_dir}")
         tar_src.extractall(self.output_dir)
         tar_src.close()
 
     def _patch_protobuf_version(self, version) -> None:
-        file_path = os.path.join(
-            self.output_dir,
-            "orc-{ver}".format(ver=self.orc_version),
-            "cmake_modules",
-            "ThirdpartyToolchain.cmake",
+        file_path = (
+            self.output_dir
+            / f"orc-{self.orc_version}"
+            / "cmake_modules"
+            / "ThirdpartyToolchain.cmake"
         )
         with fileinput.input(file_path, inplace=True, encoding="utf-8") as cmake_file:
             for line in cmake_file:
@@ -139,7 +136,7 @@ class BuildExt(build_ext):
 
         return env
 
-    def _build_with_cmake(self) -> str:
+    def _build_with_cmake(self) -> pathlib.Path:
         build_type = "DEBUG" if self.debug else "RELEASE"
 
         cmake_args = [
@@ -155,14 +152,12 @@ class BuildExt(build_ext):
             cmake_args.append("-DBUILD_TOOLS=OFF")
             cmake_args.append("-DBUILD_CPP_TESTS=OFF")
         env = self._get_build_envs()
-        build_dir = os.path.join(
-            self.output_dir, "orc-{ver}".format(ver=self.orc_version), "build"
-        )
+        build_dir = self.output_dir / f"orc-{self.orc_version}" / "build"
         if not os.path.exists(build_dir):
             os.makedirs(build_dir)
         logging.info("Build libraries with cmake")
         cmake_cmd = ["cmake", ".."] + cmake_args
-        logging.info("Cmake command: %s" % cmake_cmd)
+        logging.info(f"Cmake command: {cmake_cmd}")
         subprocess.check_call(cmake_cmd, cwd=build_dir, env=env)
         if sys.platform == "win32":
             subprocess.check_call(
@@ -183,7 +178,7 @@ class BuildExt(build_ext):
             subprocess.check_call(["make", j_flag, "package"], cwd=build_dir, env=env)
         return build_dir
 
-    def _build_orc_lib(self):
+    def _build_orc_lib(self) -> None:
         logging.info("Build ORC C++ Core library")
         build_dir = self._build_with_cmake()
         plat = (
@@ -192,43 +187,28 @@ class BuildExt(build_ext):
             # Change platform title on Windows depending on arch (32/64bit)
             else sys.platform.title().replace("32", platform.architecture()[0][:2])
         )
-        pack_dir = os.path.join(
-            build_dir,
-            "_CPack_Packages",
-            plat,
-            "TGZ",
-            f"ORC-{self.orc_version}-{plat}",
+        pack_dir = (
+            build_dir
+            / "_CPack_Packages"
+            / plat
+            / "TGZ"
+            / f"ORC-{self.orc_version}-{plat}"
         )
-        proto_src_dir = os.path.join(
-            build_dir,
-            "protobuf_ep-prefix",
-            "src",
-            "protobuf_ep",
-            "src",
-        )
+        proto_src_dir = build_dir / "protobuf_ep-prefix" / "src" / "protobuf_ep" / "src"
         logging.info(
-            "Move artifacts from '%s' to the '%s' folder" % (pack_dir, self.output_dir)
+            f"Move artifacts from '{pack_dir}' to the '{self.output_dir}' folder"
         )
         try:
-            shutil.move(os.path.join(pack_dir, "include"), self.output_dir)
-            shutil.move(
-                os.path.join(proto_src_dir, "google"),
-                os.path.join(self.output_dir, "include"),
-            )
+            shutil.move(pack_dir / "include", self.output_dir)
+            shutil.move(proto_src_dir / "google", self.output_dir / "include")
             lib_dir = (
                 "lib64" if os.path.exists(os.path.join(pack_dir, "lib64")) else "lib"
             )
-            shutil.move(
-                os.path.join(pack_dir, lib_dir), os.path.join(self.output_dir, "lib")
-            )
+            shutil.move(pack_dir / lib_dir, self.output_dir / "lib")
             if self.debug and not sys.platform.startswith("win32"):
-                shutil.move(os.path.join(pack_dir, "bin"), self.output_dir)
+                shutil.move(pack_dir / "bin", self.output_dir)
             shutil.move(
-                os.path.join(
-                    self.output_dir,
-                    f"orc-{self.orc_version}",
-                    "examples",
-                ),
+                self.output_dir / f"orc-{self.orc_version}" / "examples",
                 self.output_dir,
             )
         except Exception as exc:
@@ -244,14 +224,12 @@ class BuildExt(build_ext):
 
     def build_extensions(self):
         if not self.skip_orc_build:
-            orc_lib = os.path.join(
-                self.output_dir,
-                "lib",
-                "orc.lib" if sys.platform.startswith("win32") else "liborc.a",
+            orc_lib = (
+                self.output_dir
+                / "lib"
+                / ("orc.lib" if sys.platform.startswith("win32") else "liborc.a")
             )
-            if not os.path.isdir(
-                os.path.join(self.output_dir, "orc-{ver}".format(ver=self.orc_version))
-            ):
+            if not os.path.isdir(self.output_dir / f"orc-{self.orc_version}"):
                 self._download_source()
 
             if self.download_only:
