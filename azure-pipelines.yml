@@ -136,8 +136,10 @@ stages:
             env:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: x86_64
+              CIBW_ENABLE: pypy
               CIBW_BUILD: "*-manylinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
+              CIBW_SKIP: "cp38-* cp39-*"
+              CIBW_ENVIRONMENT: "CMAKE_POLICY_VERSION_MINIMUM=$(CMAKE_POLICY_VERSION_MINIMUM) PYORC_OVERRIDDEN_PROTOBUF_VERSION=$(PYORC_OVERRIDDEN_PROTOBUF_VERSION)"
             displayName: Build wheels
 
   - job: musllinux_x86_64
@@ -151,8 +153,10 @@ stages:
             env:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: x86_64
+              CIBW_ENABLE: pypy
               CIBW_BUILD: "*-musllinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
+              CIBW_SKIP: "cp38-* cp39-*"
+              CIBW_ENVIRONMENT: "CMAKE_POLICY_VERSION_MINIMUM=$(CMAKE_POLICY_VERSION_MINIMUM) PYORC_OVERRIDDEN_PROTOBUF_VERSION=$(PYORC_OVERRIDDEN_PROTOBUF_VERSION)"
             displayName: Build wheels
 
   - job: manylinux_cpy_aarch64
@@ -169,7 +173,8 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: aarch64
               CIBW_BUILD: "*-manylinux_*"
-              CIBW_SKIP: "pp* cp36-* cp37-* cp38-* cp39-*"
+              CIBW_SKIP: "cp38-* cp39-*"
+              CIBW_ENVIRONMENT: "CMAKE_POLICY_VERSION_MINIMUM=$(CMAKE_POLICY_VERSION_MINIMUM) PYORC_OVERRIDDEN_PROTOBUF_VERSION=$(PYORC_OVERRIDDEN_PROTOBUF_VERSION)"
             displayName: Build wheels
 
   - job: manylinux_pypy_aarch64
@@ -185,8 +190,10 @@ stages:
             env:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: aarch64
+              CIBW_ENABLE: pypy
               CIBW_BUILD: "*-manylinux_*"
               CIBW_SKIP: "cp* pp37-* pp38-*"
+              CIBW_ENVIRONMENT: "CMAKE_POLICY_VERSION_MINIMUM=$(CMAKE_POLICY_VERSION_MINIMUM) PYORC_OVERRIDDEN_PROTOBUF_VERSION=$(PYORC_OVERRIDDEN_PROTOBUF_VERSION)"
             displayName: Build wheels
 
   - job: musllinux_aarch64
@@ -203,7 +210,8 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: aarch64
               CIBW_BUILD: "*-musllinux_*"
-              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
+              CIBW_SKIP: "cp38-* cp39-*"
+              CIBW_ENVIRONMENT: "CMAKE_POLICY_VERSION_MINIMUM=$(CMAKE_POLICY_VERSION_MINIMUM) PYORC_OVERRIDDEN_PROTOBUF_VERSION=$(PYORC_OVERRIDDEN_PROTOBUF_VERSION)"
             displayName: Build wheels
 
   - job: macos
@@ -217,7 +225,7 @@ stages:
             env:
               CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.13"
               CIBW_BUILD_VERBOSITY: 3
-              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
+              CIBW_SKIP: "cp38-* cp39-*"
             displayName: Build wheels
 
   - job: macos_universal2
@@ -233,7 +241,7 @@ stages:
               CIBW_BUILD_VERBOSITY: 3
               CMAKE_OSX_ARCHITECTURES: 'x86_64;arm64'
               CIBW_ARCHS_MACOS: universal2
-              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-*"
+              CIBW_SKIP: "cp38-* cp39-*"
             displayName: Build wheels
 
   - job: windows_amd64
@@ -247,5 +255,5 @@ stages:
             env:
               CIBW_BUILD_VERBOSITY: 3
               CIBW_ARCHS: AMD64
-              CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp37-* pp38-* pp39-*"
+              CIBW_SKIP: "cp38-* cp39-*"
             displayName: Build wheels
