@@ -166,5 +166,8 @@ class writer:
 def _orc_version() -> str:
     pass
 
+def _protobuf_version() -> str:
+    pass
+
 def _schema_from_string(arg0: str) -> TypeDescription:
     pass

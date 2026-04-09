@@ -10,7 +10,7 @@ if sys.platform.startswith("win32") and "TZDIR" not in os.environ:
 
     os.environ["TZDIR"] = os.path.join(os.path.dirname(tzdata.__file__), "zoneinfo")
 
-from pyorc._pyorc import _orc_version
+from pyorc._pyorc import _orc_version, _protobuf_version
 
 from .enums import *
 from .errors import *
@@ -22,10 +22,16 @@ from .writer import Writer
 __version__ = "0.11.0"
 
 orc_version = _orc_version()
+protobuf_version = _protobuf_version()
 
 ORCVersionInfo = NamedTuple(
     "ORCVersionInfo",
     [("major", int), ("minor", int), ("patch", int), ("releaselevel", str)],
+)
+
+ProtobufVersionInfo = NamedTuple(
+    "ProtobufVersionInfo",
+    [("major", int), ("minor", int), ("micro", int)],
 )
 
 
@@ -38,6 +44,8 @@ def __extract_version_info() -> ORCVersionInfo:
 
 
 orc_version_info = __extract_version_info()
+
+protobuf_version_info = ProtobufVersionInfo(*map(int, protobuf_version.split(".")))
 
 __all__ = [
     "Column",
@@ -54,7 +62,7 @@ __all__ = [
     # Errors
     "ORCError",
     "ParseError",
-    # Type descriptiona
+    # Type descriptions
     "TypeDescription",
     "Boolean",
     "TinyInt",
@@ -78,4 +86,6 @@ __all__ = [
     # Version info
     "orc_version",
     "orc_version_info",
+    "protobuf_version",
+    "protobuf_version_info",
 ]
