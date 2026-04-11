@@ -1,17 +1,24 @@
 Changelog
 ==========
-[0.11.0] - UNRELEASED
+[0.11.0] - 2026-04-11
 ---------------------
 
 Added
 ~~~~~
 
+- Python 3.14 wheels.
+- Module level variables for the protobuf library version: protobuf_version
+  string and protobuf_version_info namedtuple.
+
 Changed
 ~~~~~~~
 
-Fixed
-~~~~~
-
+- Wheels shipped with protobuf version 3.21.12.
+- ORC C++ Core updated to 2.1.4.
+- Dropped support for Python 3.9.
+- Set minimum version requirements for setuptools to 61.0.0,
+  remove upper pin for PyPy.
+- Use pyproject.toml for module metadata.
 
 [0.10.0] - 2025-02-18
 ---------------------
