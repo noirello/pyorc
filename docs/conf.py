@@ -33,6 +33,8 @@ class Mock(MagicMock):
             return object
         elif name == "_orc_version":
             return lambda: "0.0.0-DUMMY"
+        elif name == "_protobuf_version":
+            return lambda: "0.0.0"
         # For zoneinfo
         elif name == "ZoneInfo":
             return lambda key: object
