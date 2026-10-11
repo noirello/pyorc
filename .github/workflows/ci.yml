@@ -130,8 +130,7 @@ jobs:
     needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
     uses: ./.github/workflows/prepare-and-push-wheels.yml
     with:
-      runs-on: ubuntu-latest
-      qemu: true
+      runs-on: ubuntu-24.04-arm
       label: manylinux-aarch64-cp
       cibw-build: '*-manylinux_*'
       cibw-archs: 'aarch64'
@@ -143,8 +142,7 @@ jobs:
     needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
     uses: ./.github/workflows/prepare-and-push-wheels.yml
     with:
-      runs-on: ubuntu-latest
-      qemu: true
+      runs-on: ubuntu-24.04-arm
       label: manylinux-aarch64-pp
       cibw-build: '*-manylinux_*'
       cibw-archs: 'aarch64'
@@ -157,8 +155,7 @@ jobs:
     needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
     uses: ./.github/workflows/prepare-and-push-wheels.yml
     with:
-      runs-on: ubuntu-latest
-      qemu: true
+      runs-on: ubuntu-24.04-arm
       label: musllinux-aarch64
       cibw-build: '*-musllinux_*'
       cibw-archs: 'aarch64'
