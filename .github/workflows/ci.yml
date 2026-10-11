@@ -1,0 +1,195 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  ubuntu:
+    name: Ubuntu / Python ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+          - 'pypy3.10'
+    uses: ./.github/workflows/build-run-tests.yml
+    with:
+      runs-on: ubuntu-latest
+      label: ubuntu-${{ matrix.python-version }}
+      python-version: ${{ matrix.python-version }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  ubuntu_eastern_timezone:
+    name: Ubuntu (Eastern timezone) / Python 3.12
+    uses: ./.github/workflows/build-run-tests.yml
+    with:
+      runs-on: ubuntu-latest
+      label: ubuntu-eastern-timezone
+      python-version: '3.12'
+      timezone: America/New_York
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  previous_orc_versions:
+    name: Ubuntu / ORC ${{ matrix.orc-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        orc-version:
+          - '1.7.11'
+          - '1.8.10'
+          - '1.9.8'
+          - '2.0.7'
+    uses: ./.github/workflows/build-run-tests.yml
+    with:
+      runs-on: ubuntu-latest
+      label: orc-${{ matrix.orc-version }}
+      python-version: '3.11'
+      orc-version: ${{ matrix.orc-version }}
+      # Use "shipped" protobuf version for older libs
+      protobuf-version: ''
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  macos:
+    name: macOS / Python ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+    uses: ./.github/workflows/build-run-tests.yml
+    with:
+      runs-on: macos-latest
+      label: macos-${{ matrix.python-version }}
+      python-version: ${{ matrix.python-version }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  windows:
+    name: Windows / Python ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+    uses: ./.github/workflows/build-run-tests.yml
+    with:
+      runs-on: windows-latest
+      label: windows-${{ matrix.python-version }}
+      python-version: ${{ matrix.python-version }}
+      windows: true
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  wheel_manylinux_x86_64:
+    name: Wheel / manylinux x86_64
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: ubuntu-latest
+      label: manylinux-x86_64
+      cibw-build: '*-manylinux_*'
+      cibw-archs: 'x86_64'
+      cibw-enable: 'pypy'
+      cibw-skip: 'cp38-* cp39-*'
+      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
+
+  wheel_musllinux_x86_64:
+    name: Wheel / musllinux x86_64
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: ubuntu-latest
+      label: musllinux-x86_64
+      cibw-build: '*-musllinux_*'
+      cibw-archs: 'x86_64'
+      cibw-skip: 'cp38-* cp39-*'
+      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
+
+  wheel_manylinux_cpy_aarch64:
+    name: Wheel / manylinux aarch64 (CPython)
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: ubuntu-latest
+      qemu: true
+      label: manylinux-aarch64-cp
+      cibw-build: '*-manylinux_*'
+      cibw-archs: 'aarch64'
+      cibw-skip: 'cp38-* cp39-*'
+      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
+
+  wheel_manylinux_pypy_aarch64:
+    name: Wheel / manylinux aarch64 (PyPy)
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: ubuntu-latest
+      qemu: true
+      label: manylinux-aarch64-pp
+      cibw-build: '*-manylinux_*'
+      cibw-archs: 'aarch64'
+      cibw-enable: 'pypy'
+      cibw-skip: 'cp* pp37-* pp38-*'
+      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
+
+  wheel_musllinux_aarch64:
+    name: Wheel / musllinux aarch64
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: ubuntu-latest
+      qemu: true
+      label: musllinux-aarch64
+      cibw-build: '*-musllinux_*'
+      cibw-archs: 'aarch64'
+      cibw-skip: 'cp38-* cp39-*'
+      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
+
+  wheel_macos:
+    name: Wheel / macOS
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: macos-latest
+      label: macos
+      cibw-skip: 'cp38-* cp39-*'
+      cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
+
+  wheel_macos_universal2:
+    name: Wheel / macOS universal2
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: macos-latest
+      label: macos-universal2
+      cibw-skip: 'cp38-* cp39-*'
+      cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
+      cibw-archs-macos: 'universal2'
+      cmake-osx-architectures: 'x86_64;arm64'
+
+  wheel_windows_amd64:
+    name: Wheel / Windows amd64
+    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
+    uses: ./.github/workflows/prepare-and-push-wheels.yml
+    with:
+      runs-on: windows-latest
+      label: windows-amd64
+      cibw-archs: 'AMD64'
+      cibw-skip: 'cp38-* cp39-*'

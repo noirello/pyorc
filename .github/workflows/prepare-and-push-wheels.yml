@@ -1,0 +1,103 @@
+name: Prepare and push wheels
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: The runner image to use, e.g. ubuntu-latest
+        type: string
+        required: true
+      label:
+        description: Unique label used for the artifact name
+        type: string
+        required: true
+      qemu:
+        description: Register QEMU for cross-platform Linux wheels
+        type: boolean
+        default: false
+      cibw-build:
+        description: The CIBW_BUILD selector (empty means all)
+        type: string
+        default: ""
+      cibw-archs:
+        description: The CIBW_ARCHS selector (empty means default)
+        type: string
+        default: ""
+      cibw-archs-macos:
+        description: The CIBW_ARCHS_MACOS selector (empty means default)
+        type: string
+        default: ""
+      cibw-enable:
+        description: The CIBW_ENABLE selector (empty means default)
+        type: string
+        default: ""
+      cibw-skip:
+        description: The CIBW_SKIP selector (empty means none)
+        type: string
+        default: ""
+      cibw-environment:
+        description: The CIBW_ENVIRONMENT environment variables passed to the build
+        type: string
+        default: ""
+      cibw-build-verbosity:
+        description: The CIBW_BUILD_VERBOSITY level
+        type: string
+        default: "3"
+      cmake-osx-architectures:
+        description: CMAKE_OSX_ARCHITECTURES for the macOS build
+        type: string
+        default: ""
+
+jobs:
+  prepare-and-push-wheels:
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.qemu && 165 || 60 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install cibuildwheel dependencies
+        run: |
+          set -o errexit
+          python3 -m pip install --upgrade pip
+          python3 -m pip install cibuildwheel==3.4.1
+
+      - name: Worker info
+        run: |
+          echo "Worker Arch: ${ARCH}; OS: ${OS};"
+        env:
+          ARCH: ${{ runner.arch }}
+          OS: ${{ runner.os }}
+
+      - name: Register QEMU
+        if: ${{ inputs.qemu }}
+        run: docker run --privileged --rm tonistiigi/binfmt --install all
+
+      - name: Build wheels
+        shell: bash
+        env:
+          CIBW_BUILD_VERBOSITY: ${{ inputs.cibw-build-verbosity }}
+          CIBW_BUILD: ${{ inputs.cibw-build }}
+          CIBW_ARCHS: ${{ inputs.cibw-archs }}
+          CIBW_ARCHS_MACOS: ${{ inputs.cibw-archs-macos }}
+          CIBW_ENABLE: ${{ inputs.cibw-enable }}
+          CIBW_SKIP: ${{ inputs.cibw-skip }}
+          CIBW_ENVIRONMENT: ${{ inputs.cibw-environment }}
+          CMAKE_OSX_ARCHITECTURES: ${{ inputs.cmake-osx-architectures }}
+        run: |
+          set -o errexit
+          for var in CIBW_BUILD CIBW_ARCHS CIBW_ARCHS_MACOS CIBW_ENABLE CIBW_SKIP CIBW_ENVIRONMENT CMAKE_OSX_ARCHITECTURES; do
+            if [ -z "${!var}" ]; then unset "$var"; fi
+          done
+          cibuildwheel --output-dir wheelhouse .
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ inputs.label }}
+          path: wheelhouse

@@ -1,0 +1,149 @@
+name: Build and run tests
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: The runner image to use, e.g. ubuntu-latest
+        type: string
+        required: true
+      label:
+        description: Unique label used for artifact names
+        type: string
+        required: false
+        default: ""
+      python-version:
+        description: The Python version to use
+        type: string
+        required: true
+      windows:
+        description: Whether the job runs on a Windows runner
+        type: boolean
+        default: false
+      orc-version:
+        description: 'Build the given ORC C++ version (empty means the default)'
+        type: string
+        default: ""
+      protobuf-version:
+        description: Override of the protobuf version for the ORC build (empty means shipped)
+        type: string
+        default: "3.21.12"
+      timezone:
+        description: Timezone to set on the runner (empty means no change)
+        type: string
+        default: ""
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+env:
+  CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+  PYORC_OVERRIDDEN_PROTOBUF_VERSION: ${{ inputs.protobuf-version }}
+
+jobs:
+  build-run-tests:
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set timezone
+        if: ${{ inputs.timezone != '' }}
+        env:
+          TZ: ${{ inputs.timezone }}
+        run: |
+          sudo timedatectl set-timezone "$TZ"
+          date
+
+      - name: Set up Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          allow-prereleases: true
+
+      - name: Check Python ${{ inputs.python-version }} path
+        run: |
+          which python
+          python -V
+
+      - name: Install test dependencies
+        run: python -m pip install --user -U pytest pytest-cov pytest-xdist[psutil] coverage
+
+      - name: Install package (Windows)
+        if: ${{ inputs.windows }}
+        shell: cmd
+        env:
+          ORC_VERSION: ${{ inputs.orc-version }}
+        run: |
+          set PYORC_DEBUG=1
+          if not "%ORC_VERSION%"=="" set PYORC_LIB_VERSION=%ORC_VERSION%
+          python -m pip install -vvv --user .
+
+      - name: Install package (Unix)
+        if: ${{ !inputs.windows }}
+        env:
+          ORC_VERSION: ${{ inputs.orc-version }}
+        run: |
+          if [ -n "$ORC_VERSION" ]; then export PYORC_LIB_VERSION="$ORC_VERSION"; fi
+          PYORC_DEBUG=1 CFLAGS=-coverage python -m pip install -vvv --user .
+
+      - name: Collect build logs (Windows)
+        if: ${{ always() && inputs.windows }}
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -path .\deps\orc-*\build\*\*\*-stamp\*.log
+          $output = ".\\buildlogs\\logs-$env:AGENT_OS-$env:PYTHON_VER.zip"
+          New-Item -Path .\ -Name "buildlogs" -ItemType "directory"
+          Compress-Archive -LiteralPath $files -Destination $output
+        env:
+          PYTHON_VER: ${{ inputs.python-version }}
+          AGENT_OS: ${{ runner.os }}
+
+      - name: Collect build logs (Unix)
+        if: ${{ always() && !inputs.windows }}
+        run: |
+          mkdir ./buildlogs
+          mkdir "$AGENT_OS-$PYTHON_VER"
+          cp $(ls deps/orc-*/build/*/*/*-stamp/*.log) "$AGENT_OS-$PYTHON_VER"
+          tar -czvf "buildlogs/logs-$AGENT_OS-$PYTHON_VER.tar.gz" "$AGENT_OS-$PYTHON_VER"
+        env:
+          PYTHON_VER: ${{ inputs.python-version }}
+          AGENT_OS: ${{ runner.os }}
+
+      - name: Run pytest (Windows)
+        if: ${{ inputs.windows }}
+        shell: cmd
+        run: |
+          FOR /F "tokens=* USEBACKQ" %%F IN (`python -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))"`) DO (SET INSTALLDIR=%%F)
+          echo %INSTALLDIR%
+          python -m pytest -vs --junitxml=./test-results.xml -n auto --cov=%INSTALLDIR% tests/
+
+      - name: Run pytest (Unix)
+        if: ${{ !inputs.windows }}
+        run: |
+          INSTALLDIR=$(python -c "import os, pyorc; print(os.path.dirname(pyorc.__file__))")
+          echo "$INSTALLDIR"
+          python -m pytest -vs --junitxml=./test-results.xml -n auto --cov="$INSTALLDIR" tests/
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ inputs.label }}${{ inputs.label == '' && format('-{0}-{1}-{2}', inputs.runs-on, inputs.python-version, inputs.orc-version || 'default') || '' }}
+          path: test-results.xml
+          if-no-files-found: ignore
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ inputs.label }}${{ inputs.label == '' && format('-{0}-{1}-{2}', inputs.runs-on, inputs.python-version, inputs.orc-version || 'default') || '' }}
+          path: buildlogs
+          if-no-files-found: ignore
+
+      - name: Report coverage
+        if: success()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
