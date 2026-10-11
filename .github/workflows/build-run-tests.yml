@@ -125,14 +125,6 @@ jobs:
           echo "$INSTALLDIR"
           python -m pytest -vs --junitxml=./test-results.xml -n auto --cov="$INSTALLDIR" tests/
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-results-${{ inputs.label }}${{ inputs.label == '' && format('-{0}-{1}-{2}', inputs.runs-on, inputs.python-version, inputs.orc-version || 'default') || '' }}
-          path: test-results.xml
-          if-no-files-found: ignore
-
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@v7
