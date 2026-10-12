@@ -46,6 +46,7 @@ on:
 
 jobs:
   prepare-and-push-wheels:
+    name: Prepare and push wheels (${{ inputs.label }})
     runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.qemu && 165 || 60 }}
     steps:

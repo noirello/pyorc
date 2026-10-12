@@ -42,6 +42,7 @@ env:
 
 jobs:
   build-run-tests:
+    name: Build and run tests (${{ inputs.label }})
     runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Checkout
