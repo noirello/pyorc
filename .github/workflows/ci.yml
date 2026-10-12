@@ -111,7 +111,6 @@ jobs:
       cibw-archs: 'x86_64'
       cibw-enable: 'pypy'
       cibw-skip: 'cp38-* cp39-*'
-      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
 
   wheel_musllinux_x86_64:
     name: Wheel / musllinux x86_64
@@ -123,7 +122,6 @@ jobs:
       cibw-build: '*-musllinux_*'
       cibw-archs: 'x86_64'
       cibw-skip: 'cp38-* cp39-*'
-      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
 
   wheel_manylinux_cpy_aarch64:
     name: Wheel / manylinux aarch64 (CPython)
@@ -135,7 +133,6 @@ jobs:
       cibw-build: '*-manylinux_*'
       cibw-archs: 'aarch64'
       cibw-skip: 'cp38-* cp39-*'
-      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
 
   wheel_manylinux_pypy_aarch64:
     name: Wheel / manylinux aarch64 (PyPy)
@@ -148,7 +145,6 @@ jobs:
       cibw-archs: 'aarch64'
       cibw-enable: 'pypy'
       cibw-skip: 'cp* pp37-* pp38-*'
-      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
 
   wheel_musllinux_aarch64:
     name: Wheel / musllinux aarch64
@@ -160,7 +156,6 @@ jobs:
       cibw-build: '*-musllinux_*'
       cibw-archs: 'aarch64'
       cibw-skip: 'cp38-* cp39-*'
-      cibw-environment: 'CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12'
 
   wheel_macos:
     name: Wheel / macOS
