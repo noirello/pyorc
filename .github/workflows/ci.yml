@@ -169,6 +169,7 @@ jobs:
     with:
       runs-on: macos-latest
       label: macos
+      cibw-build: '*-macosx*'
       cibw-skip: 'cp38-* cp39-*'
       cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
 
@@ -179,9 +180,10 @@ jobs:
     with:
       runs-on: macos-latest
       label: macos-universal2
+      cibw-build: '*-macosx*'
       cibw-skip: 'cp38-* cp39-*'
       cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
-      cibw-archs-macos: 'universal2'
+      cibw-archs: 'universal2'
       cmake-osx-architectures: 'x86_64;arm64'
 
   wheel_windows_amd64:
@@ -191,5 +193,6 @@ jobs:
     with:
       runs-on: windows-latest
       label: windows-amd64
+      cibw-build: '*-win*'
       cibw-archs: 'AMD64'
       cibw-skip: 'cp38-* cp39-*'

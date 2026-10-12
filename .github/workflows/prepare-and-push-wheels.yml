@@ -16,17 +16,13 @@ on:
         type: boolean
         default: false
       cibw-build:
-        description: The CIBW_BUILD selector (empty means all)
+        description: The CIBW_BUILD selector
         type: string
-        default: ""
+        required: true
       cibw-archs:
-        description: The CIBW_ARCHS selector (empty means default)
+        description: The CIBW_ARCHS selector
         type: string
-        default: ""
-      cibw-archs-macos:
-        description: The CIBW_ARCHS_MACOS selector (empty means default)
-        type: string
-        default: ""
+        default: "auto"
       cibw-enable:
         description: The CIBW_ENABLE selector (empty means default)
         type: string
@@ -56,17 +52,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-
-      - name: Install cibuildwheel dependencies
-        run: |
-          set -o errexit
-          python3 -m pip install --upgrade pip
-          python3 -m pip install cibuildwheel==3.4.1
-
       - name: Worker info
         run: |
           echo "Worker Arch: ${ARCH}; OS: ${OS};"
@@ -79,22 +64,18 @@ jobs:
         run: docker run --privileged --rm tonistiigi/binfmt --install all
 
       - name: Build wheels
-        shell: bash
+        uses: pypa/cibuildwheel@v4.3.1
         env:
           CIBW_BUILD_VERBOSITY: ${{ inputs.cibw-build-verbosity }}
           CIBW_BUILD: ${{ inputs.cibw-build }}
           CIBW_ARCHS: ${{ inputs.cibw-archs }}
-          CIBW_ARCHS_MACOS: ${{ inputs.cibw-archs-macos }}
           CIBW_ENABLE: ${{ inputs.cibw-enable }}
           CIBW_SKIP: ${{ inputs.cibw-skip }}
           CIBW_ENVIRONMENT: ${{ inputs.cibw-environment }}
           CMAKE_OSX_ARCHITECTURES: ${{ inputs.cmake-osx-architectures }}
-        run: |
-          set -o errexit
-          for var in CIBW_BUILD CIBW_ARCHS CIBW_ARCHS_MACOS CIBW_ENABLE CIBW_SKIP CIBW_ENVIRONMENT CMAKE_OSX_ARCHITECTURES; do
-            if [ -z "${!var}" ]; then unset "$var"; fi
-          done
-          cibuildwheel --output-dir wheelhouse .
+        with:
+          package-dir: .
+          output-dir: wheelhouse
 
       - name: Upload wheels
         uses: actions/upload-artifact@v7
