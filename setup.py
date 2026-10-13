@@ -180,7 +180,7 @@ class BuildExt(build_ext):
 
         return env
 
-    def _build_with_cmake(self) -> pathlib.Path:
+    def _build_with_cmake(self) -> tuple[pathlib.Path, pathlib.Path]:
         build_type = "DEBUG" if self.debug else "RELEASE"
 
         cmake_args = [
@@ -199,47 +199,32 @@ class BuildExt(build_ext):
             cmake_args.append("-DBUILD_CPP_TESTS=OFF")
         env = self._get_build_envs()
         build_dir = self.output_dir / f"orc-{self.orc_version}" / "build"
+        pack_dir = (build_dir / "final-package").resolve()
         if not build_dir.exists():
             os.makedirs(build_dir)
         logging.info("Build libraries with cmake")
         cmake_cmd = ["cmake", ".."] + cmake_args
         logging.info(f"Cmake command: {cmake_cmd}")
         subprocess.check_call(cmake_cmd, cwd=build_dir, env=env)
-        if sys.platform == "win32":
-            subprocess.check_call(
-                [
-                    "cmake",
-                    "--build",
-                    ".",
-                    "--config",
-                    build_type,
-                    "--target",
-                    "PACKAGE",
-                ],
-                cwd=build_dir,
-                env=env,
-            )
-        else:
-            j_flag = f"-j{os.cpu_count() or 1}"
-            subprocess.check_call(["make", j_flag, "package"], cwd=build_dir, env=env)
-        return build_dir
+
+        logging.info("Calling cmake build")
+        subprocess.check_call(
+            ["cmake", "--build", ".", "--config", build_type,
+             "-j", str(os.cpu_count() or 1)],
+            cwd=build_dir, env=env,
+        )
+        logging.info(f"Calling cmake install with prefix: {pack_dir}")
+        subprocess.check_call(
+            ["cmake", "--install", ".", "--config", build_type,
+             "--prefix", str(pack_dir)],
+            cwd=build_dir, env=env,
+        )
+
+        return build_dir, pack_dir
 
     def _build_orc_lib(self) -> None:
         logging.info("Build ORC C++ Core library")
-        build_dir = self._build_with_cmake()
-        plat = (
-            sys.platform.title()
-            if not sys.platform.startswith("win32")
-            # Change platform title on Windows depending on arch (32/64bit)
-            else sys.platform.title().replace("32", platform.architecture()[0][:2])
-        )
-        pack_dir = (
-            build_dir
-            / "_CPack_Packages"
-            / plat
-            / "TGZ"
-            / f"ORC-{self.orc_version}-{plat}"
-        )
+        build_dir, pack_dir = self._build_with_cmake()
         proto_src_dir = build_dir / "_deps" / "protobuf-src" / "src"
         if not proto_src_dir.exists():
             proto_src_dir = build_dir / "protobuf_ep-prefix" / "src" / "protobuf_ep" / "src"
