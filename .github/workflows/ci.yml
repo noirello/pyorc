@@ -154,7 +154,7 @@ jobs:
       label: macos
       cibw-build: '*-macosx*'
       cibw-skip: 'cp39-* cp310-* cp3??t-*'
-      cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
+      cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=11.0'
 
   wheel_macos_universal2:
     name: Wheel / macOS universal2
