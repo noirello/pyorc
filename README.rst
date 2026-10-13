@@ -1,9 +1,9 @@
 PyORC
 =====
 
-.. image:: https://dev.azure.com/noirello/pyorc/_apis/build/status/noirello.pyorc?branchName=master
-    :target: https://dev.azure.com/noirello/pyorc/_build?definitionId=1
-    :alt: Azure Pipelines Status
+.. image:: https://github.com/noirello/pyorc/actions/workflows/ci.yml/badge.svg?branch=master
+    :target: https://github.com/noirello/pyorc/actions/workflows/ci.yml
+    :alt: GitHub Actions CI Status
 
 .. image:: https://codecov.io/gh/noirello/pyorc/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/noirello/pyorc
