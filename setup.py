@@ -8,7 +8,7 @@ import subprocess
 import urllib.request
 import tarfile
 import logging
-import fileinput
+import re
 
 from setuptools import setup
 
@@ -112,22 +112,66 @@ class BuildExt(build_ext):
         tar_src.extractall(self.output_dir)
         tar_src.close()
 
-    def _patch_protobuf_version(self, version) -> None:
+    def _patch_protobuf_version(self, version, hash) -> None:
         file_path = (
             self.output_dir
             / f"orc-{self.orc_version}"
             / "cmake_modules"
             / "ThirdpartyToolchain.cmake"
         )
-        with fileinput.input(file_path, inplace=True, encoding="utf-8") as cmake_file:
-            for line in cmake_file:
-                if "set(PROTOBUF_VERSION " in line:
-                    line = f'set(PROTOBUF_VERSION "{version}")\n'
-                print(line, end="")
-        logging.info(f"Overrode protobuf version to: {version}")
+        content = file_path.read_text("utf-8")
+        # Replace protobuf version.
+        content = re.sub(
+            r'set\(PROTOBUF_VERSION "[^"]*"\)',
+            f'set(PROTOBUF_VERSION "{version}")',
+            content,
+        )
+        content = re.sub(
+            r"(fetchcontent_declare\(Protobuf\b.*?)\n\s*URL_HASH SHA256=\w+",
+            r"\1",
+            content,
+            count=1,
+            flags=re.DOTALL
+        )
+        # Replace protobuf hash when it's set, otherwise the entire url hash line.
+        if hash:
+            content = re.sub(
+                r"(fetchcontent_declare\(Protobuf\b.*?\n\s*URL_HASH SHA256=)\w+",
+                rf"\g<1>{hash}",
+                content,
+                count=1,
+                flags=re.DOTALL
+            )
+        else:
+            content = re.sub(
+                r"(fetchcontent_declare\(Protobuf\b.*?)\n\s*URL_HASH SHA256=\w+",
+                r"\1",
+                content,
+                count=1,
+                flags=re.DOTALL
+            )
+        # Newer protobuf creates these aliases itself, avoid clash with already
+        # defined ones.
+        content = content.replace(
+            "      add_library(protobuf::libprotobuf ALIAS libprotobuf)\n"
+            "      add_executable(protobuf::protoc ALIAS protoc)\n",
+            "      if(NOT TARGET protobuf::libprotobuf)\n"
+            "        add_library(protobuf::libprotobuf ALIAS libprotobuf)\n"
+            "      endif()\n"
+            "      if(NOT TARGET protobuf::protoc)\n"
+            "        add_executable(protobuf::protoc ALIAS protoc)\n"
+            "      endif()\n",
+        )
+        content = content.replace(
+            "        install(TARGETS libprotobuf\n"
+            "                EXPORT orc_targets\n",
+            "        install(TARGETS libprotobuf\n"
+        )
+        file_path.write_text(content, "utf-8")
+        logging.info(f"Overrode protobuf version to: {version} (hash: {hash})")
 
     @staticmethod
-    def _get_build_envs() -> dict:
+    def _get_build_envs() -> dict[str, str]:
         env = os.environ.copy()
 
         if sys.platform != "win32":
@@ -147,13 +191,15 @@ class BuildExt(build_ext):
         ]
         if sys.platform == "win32":
             cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
+        if os.getenv("PYORC_OVERRIDDEN_PROTOBUF_VERSION"):
+            cmake_args.append("-DCMAKE_DISABLE_FIND_PACKAGE_Protobuf=ON")
         if not self.debug or sys.platform == "win32":
             # Skip building tools and tests.
             cmake_args.append("-DBUILD_TOOLS=OFF")
             cmake_args.append("-DBUILD_CPP_TESTS=OFF")
         env = self._get_build_envs()
         build_dir = self.output_dir / f"orc-{self.orc_version}" / "build"
-        if not os.path.exists(build_dir):
+        if not build_dir.exists():
             os.makedirs(build_dir)
         logging.info("Build libraries with cmake")
         cmake_cmd = ["cmake", ".."] + cmake_args
@@ -194,18 +240,26 @@ class BuildExt(build_ext):
             / "TGZ"
             / f"ORC-{self.orc_version}-{plat}"
         )
-        proto_src_dir = build_dir / "protobuf_ep-prefix" / "src" / "protobuf_ep" / "src"
+        proto_src_dir = build_dir / "_deps" / "protobuf-src" / "src"
+        if not proto_src_dir.exists():
+            proto_src_dir = build_dir / "protobuf_ep-prefix" / "src" / "protobuf_ep" / "src"
         logging.info(
             f"Move artifacts from '{pack_dir}' to the '{self.output_dir}' folder"
         )
         try:
             shutil.move(pack_dir / "include", self.output_dir)
-            if os.path.exists(proto_src_dir / "google"):
+            if (proto_src_dir / "google").exists():
                 shutil.move(proto_src_dir / "google", self.output_dir / "include")
             lib_dir = (
-                "lib64" if os.path.exists(os.path.join(pack_dir, "lib64")) else "lib"
+                "lib64" if (pack_dir / "lib64").exists() else "lib"
             )
             shutil.move(pack_dir / lib_dir, self.output_dir / "lib")
+
+            for ven_lib in (self.output_dir / "lib").glob("liborc_vendored_*"):
+                if ven_lib.suffix in (".a", ".lib"):
+                    dst_name = ven_lib.name.replace("liborc_vendored_", "lib", 1)
+                    ven_lib.replace(ven_lib.with_name(dst_name))
+
             if self.debug and not sys.platform.startswith("win32"):
                 shutil.move(pack_dir / "bin", self.output_dir)
             shutil.move(
@@ -238,10 +292,11 @@ class BuildExt(build_ext):
                 return
 
             protobuf_ver = os.getenv("PYORC_OVERRIDDEN_PROTOBUF_VERSION")
+            protobuf_hash = os.getenv("PYORC_OVERRIDDEN_PROTOBUF_HASH")
             if protobuf_ver:
-                self._patch_protobuf_version(protobuf_ver)
+                self._patch_protobuf_version(protobuf_ver, protobuf_hash)
 
-            if not os.path.exists(orc_lib):
+            if not orc_lib.exists():
                 self._build_orc_lib()
 
         if sys.platform.startswith("win32") and self.debug:
