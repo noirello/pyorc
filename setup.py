@@ -84,7 +84,7 @@ class BuildExt(build_ext):
     def initialize_options(self) -> None:
         """Set default values for options."""
         super().initialize_options()
-        self.orc_version = "2.1.4"
+        self.orc_version = "2.3.1"
         self.output_dir = pathlib.Path("deps")
         self.source_url = "https://archive.apache.org/dist/orc/"
         self.download_only = False
@@ -200,7 +200,8 @@ class BuildExt(build_ext):
         )
         try:
             shutil.move(pack_dir / "include", self.output_dir)
-            shutil.move(proto_src_dir / "google", self.output_dir / "include")
+            if os.path.exists(proto_src_dir / "google"):
+                shutil.move(proto_src_dir / "google", self.output_dir / "include")
             lib_dir = (
                 "lib64" if os.path.exists(os.path.join(pack_dir, "lib64")) else "lib"
             )
