@@ -12,7 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.10'
           - '3.11'
           - '3.12'
           - '3.13'
@@ -46,7 +45,7 @@ jobs:
         orc-version:
           - '1.7.11'
           - '1.8.10'
-          - '1.9.8'
+          - '1.9.9'
           - '2.0.7'
     uses: ./.github/workflows/build-run-tests.yml
     with:
@@ -65,7 +64,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.10'
           - '3.11'
           - '3.12'
           - '3.13'
@@ -85,7 +83,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.10'
           - '3.11'
           - '3.12'
           - '3.13'
@@ -110,7 +107,7 @@ jobs:
       cibw-build: '*-manylinux_*'
       cibw-archs: 'x86_64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp38-* cp39-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
 
   wheel_musllinux_x86_64:
     name: Wheel / musllinux x86_64
@@ -121,30 +118,20 @@ jobs:
       label: musllinux-x86_64
       cibw-build: '*-musllinux_*'
       cibw-archs: 'x86_64'
-      cibw-skip: 'cp38-* cp39-*'
+      cibw-enable: 'pypy'
+      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
 
-  wheel_manylinux_cpy_aarch64:
-    name: Wheel / manylinux aarch64 (CPython)
+  wheel_manylinux_aarch64:
+    name: Wheel / manylinux aarch64
     needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
     uses: ./.github/workflows/prepare-and-push-wheels.yml
     with:
       runs-on: ubuntu-24.04-arm
-      label: manylinux-aarch64-cp
-      cibw-build: '*-manylinux_*'
-      cibw-archs: 'aarch64'
-      cibw-skip: 'cp38-* cp39-*'
-
-  wheel_manylinux_pypy_aarch64:
-    name: Wheel / manylinux aarch64 (PyPy)
-    needs: [ubuntu, ubuntu_eastern_timezone, previous_orc_versions, macos, windows]
-    uses: ./.github/workflows/prepare-and-push-wheels.yml
-    with:
-      runs-on: ubuntu-24.04-arm
-      label: manylinux-aarch64-pp
+      label: manylinux-aarch64
       cibw-build: '*-manylinux_*'
       cibw-archs: 'aarch64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp* pp37-* pp38-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
 
   wheel_musllinux_aarch64:
     name: Wheel / musllinux aarch64
@@ -155,7 +142,8 @@ jobs:
       label: musllinux-aarch64
       cibw-build: '*-musllinux_*'
       cibw-archs: 'aarch64'
-      cibw-skip: 'cp38-* cp39-*'
+      cibw-enable: 'pypy'
+      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
 
   wheel_macos:
     name: Wheel / macOS
@@ -165,7 +153,7 @@ jobs:
       runs-on: macos-latest
       label: macos
       cibw-build: '*-macosx*'
-      cibw-skip: 'cp38-* cp39-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-*'
       cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
 
   wheel_macos_universal2:
@@ -176,7 +164,7 @@ jobs:
       runs-on: macos-latest
       label: macos-universal2
       cibw-build: '*-macosx*'
-      cibw-skip: 'cp38-* cp39-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-*'
       cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
       cibw-archs: 'universal2'
       cmake-osx-architectures: 'x86_64;arm64'
@@ -190,4 +178,4 @@ jobs:
       label: windows-amd64
       cibw-build: '*-win*'
       cibw-archs: 'AMD64'
-      cibw-skip: 'cp38-* cp39-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-*'
