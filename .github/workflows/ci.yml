@@ -107,7 +107,7 @@ jobs:
       cibw-build: '*-manylinux_*'
       cibw-archs: 'x86_64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-*'
 
   wheel_musllinux_x86_64:
     name: Wheel / musllinux x86_64
@@ -119,7 +119,7 @@ jobs:
       cibw-build: '*-musllinux_*'
       cibw-archs: 'x86_64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-*'
 
   wheel_manylinux_aarch64:
     name: Wheel / manylinux aarch64
@@ -131,7 +131,7 @@ jobs:
       cibw-build: '*-manylinux_*'
       cibw-archs: 'aarch64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-*'
 
   wheel_musllinux_aarch64:
     name: Wheel / musllinux aarch64
@@ -143,7 +143,7 @@ jobs:
       cibw-build: '*-musllinux_*'
       cibw-archs: 'aarch64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-* pp39-* pp310-*'
+      cibw-skip: 'cp39-* cp310-* cp3??t-*'
 
   wheel_macos:
     name: Wheel / macOS
