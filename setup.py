@@ -189,7 +189,10 @@ class BuildExt(build_ext):
             "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
         ]
         if sys.platform == "win32":
-            cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
+            if self.debug:
+                cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebugDLL")
+            else:
+                cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL")
         if os.getenv("PYORC_OVERRIDDEN_PROTOBUF_VERSION"):
             cmake_args.append("-DCMAKE_DISABLE_FIND_PACKAGE_Protobuf=ON")
         if not self.debug or sys.platform == "win32":
