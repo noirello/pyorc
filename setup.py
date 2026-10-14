@@ -196,6 +196,9 @@ class BuildExt(build_ext):
             # Skip building tools and tests.
             cmake_args.append("-DBUILD_TOOLS=OFF")
             cmake_args.append("-DBUILD_CPP_TESTS=OFF")
+        if self.debug:
+            cmake_args.append("-Dprotobuf_DEBUG_POSTFIX=")
+            cmake_args.append("-DCMAKE_DEBUG_POSTFIX=")
         env = self._get_build_envs()
         build_dir = self.output_dir / f"orc-{self.orc_version}" / "build"
         pack_dir = (build_dir / "final-package").resolve()
