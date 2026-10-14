@@ -187,6 +187,7 @@ class BuildExt(build_ext):
             "-DBUILD_JAVA=OFF",
             "-DBUILD_LIBHDFSPP=OFF",
             "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+            "-DSTOP_BUILD_ON_WARNING=OFF",
         ]
         if sys.platform == "win32":
             if self.debug:
