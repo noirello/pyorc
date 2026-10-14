@@ -88,29 +88,6 @@ jobs:
           if [ -n "$ORC_VERSION" ]; then export PYORC_LIB_VERSION="$ORC_VERSION"; fi
           PYORC_DEBUG=1 CFLAGS=-coverage python -m pip install -vvv --user .
 
-      - name: Collect build logs (Windows)
-        if: ${{ always() && inputs.windows }}
-        shell: pwsh
-        run: |
-          $files = Get-ChildItem -path .\deps\orc-*\build\*\*\*-stamp\*.log
-          $output = ".\\buildlogs\\logs-$env:AGENT_OS-$env:PYTHON_VER.zip"
-          New-Item -Path .\ -Name "buildlogs" -ItemType "directory"
-          Compress-Archive -LiteralPath $files -Destination $output
-        env:
-          PYTHON_VER: ${{ inputs.python-version }}
-          AGENT_OS: ${{ runner.os }}
-
-      - name: Collect build logs (Unix)
-        if: ${{ always() && !inputs.windows }}
-        run: |
-          mkdir ./buildlogs
-          mkdir "$AGENT_OS-$PYTHON_VER"
-          cp $(ls deps/orc-*/build/*/*/*-stamp/*.log) "$AGENT_OS-$PYTHON_VER"
-          tar -czvf "buildlogs/logs-$AGENT_OS-$PYTHON_VER.tar.gz" "$AGENT_OS-$PYTHON_VER"
-        env:
-          PYTHON_VER: ${{ inputs.python-version }}
-          AGENT_OS: ${{ runner.os }}
-
       - name: Run pytest (Windows)
         if: ${{ inputs.windows }}
         shell: cmd
