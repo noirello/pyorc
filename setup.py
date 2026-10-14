@@ -190,6 +190,7 @@ class BuildExt(build_ext):
             "-DSTOP_BUILD_ON_WARNING=OFF",
         ]
         if sys.platform == "win32":
+            cmake_args.append("-Dprotobuf_MSVC_STATIC_RUNTIME=OFF")
             if self.debug:
                 cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebugDLL")
             else:
