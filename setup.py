@@ -38,10 +38,10 @@ HEADERS = [
 if sys.platform.startswith("win32"):
     LIBS = [
         "orc",
-        "libprotobuf",
+        "protobuf",
         "lz4",
-        "zstd_static",
-        "zlibstatic",
+        "zstd",
+        "zlib",
         "snappy",
     ]
 else:
@@ -198,7 +198,6 @@ class BuildExt(build_ext):
             cmake_args.append("-DBUILD_CPP_TESTS=OFF")
         if self.debug:
             cmake_args.append("-Dprotobuf_DEBUG_POSTFIX=")
-            cmake_args.append("-DCMAKE_DEBUG_POSTFIX=")
         env = self._get_build_envs()
         build_dir = self.output_dir / f"orc-{self.orc_version}" / "build"
         pack_dir = (build_dir / "final-package").resolve()
@@ -285,6 +284,12 @@ class BuildExt(build_ext):
 
             if not orc_lib.exists():
                 self._build_orc_lib()
+
+        if sys.platform.startswith("win32") and self.debug:
+            self.extensions[0].libraries = [
+                lib if lib != "zlib" else "zlibd"
+                for lib in self.extensions[0].libraries
+            ]
 
         self.extensions[0].define_macros.extend(self.get_version_macros())
         super().build_extensions()
