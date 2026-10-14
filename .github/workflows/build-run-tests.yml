@@ -67,6 +67,15 @@ jobs:
           which python
           python -V
 
+      - name: Hide Homebrew libs (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          for f in zstd lz4 snappy protobuf; do
+            if brew list --formula --versions "$f" >/dev/null 2>&1; then
+              brew unlink "$f" || true
+            fi
+          done
+
       - name: Install test dependencies
         run: python -m pip install --user -U pytest pytest-cov pytest-xdist[psutil] coverage
 

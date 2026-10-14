@@ -65,6 +65,15 @@ jobs:
         if: ${{ inputs.qemu }}
         run: docker run --privileged --rm tonistiigi/binfmt --install all
 
+      - name: Hide Homebrew libs (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          for f in zstd lz4 snappy protobuf; do
+            if brew list --formula --versions "$f" >/dev/null 2>&1; then
+              brew unlink "$f" || true
+            fi
+          done
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.1
         env:
