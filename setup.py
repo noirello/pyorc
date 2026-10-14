@@ -39,14 +39,13 @@ if sys.platform.startswith("win32"):
     LIBS = [
         "orc",
         "libprotobuf",
-        "libprotoc",
         "lz4",
         "zstd_static",
         "zlibstatic",
         "snappy",
     ]
 else:
-    LIBS = ["orc", "protobuf", "protoc", "lz4", "zstd", "z", "snappy", "pthread"]
+    LIBS = ["orc", "protobuf", "lz4", "zstd", "z", "snappy", "pthread"]
 
 LIBS = os.getenv("PYORC_LIBRARIES", ",".join(LIBS)).split(",")
 
@@ -284,11 +283,6 @@ class BuildExt(build_ext):
             if not orc_lib.exists():
                 self._build_orc_lib()
 
-        if sys.platform.startswith("win32") and self.debug:
-            self.extensions[0].libraries = [
-                lib if lib != "zlibstatic" else "zlibstaticd"
-                for lib in self.extensions[0].libraries
-            ]
         self.extensions[0].define_macros.extend(self.get_version_macros())
         super().build_extensions()
 
