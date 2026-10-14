@@ -241,10 +241,11 @@ class BuildExt(build_ext):
             )
             shutil.move(pack_dir / lib_dir, self.output_dir / "lib")
 
-            for ven_lib in (self.output_dir / "lib").glob("liborc_vendored_*"):
+            for ven_lib in (self.output_dir / "lib").glob("*orc_vendored_*"):
                 if ven_lib.suffix in (".a", ".lib"):
-                    dst_name = ven_lib.name.replace("liborc_vendored_", "lib", 1)
+                    dst_name = ven_lib.name.replace("orc_vendored_", "", 1)
                     ven_lib.replace(ven_lib.with_name(dst_name))
+                    logging.info(f"Renamed {ven_lib} to {dst_name}")
 
             if self.debug and not sys.platform.startswith("win32"):
                 shutil.move(pack_dir / "bin", self.output_dir)
