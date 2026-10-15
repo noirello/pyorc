@@ -27,7 +27,7 @@ on:
       protobuf-version:
         description: Override of the protobuf version for the ORC build (empty means shipped)
         type: string
-        default: "3.21.12"
+        default: "36.2"
       timezone:
         description: Timezone to set on the runner (empty means no change)
         type: string

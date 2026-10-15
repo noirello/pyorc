@@ -82,7 +82,7 @@ jobs:
           CIBW_ARCHS: ${{ inputs.cibw-archs }}
           CIBW_ENABLE: ${{ inputs.cibw-enable }}
           CIBW_SKIP: ${{ inputs.cibw-skip }}
-          CIBW_ENVIRONMENT: "CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=3.21.12 ${{ inputs.cibw-environment }}"
+          CIBW_ENVIRONMENT: "CMAKE_POLICY_VERSION_MINIMUM=3.5 PYORC_OVERRIDDEN_PROTOBUF_VERSION=36.2 ${{ inputs.cibw-environment }}"
           CMAKE_OSX_ARCHITECTURES: ${{ inputs.cmake-osx-architectures }}
         with:
           package-dir: .
