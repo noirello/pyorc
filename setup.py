@@ -272,6 +272,9 @@ class BuildExt(build_ext):
                     ven_lib.replace(ven_lib.with_name(dst_name))
                     logging.info(f"Renamed {ven_lib} to {dst_name}")
 
+            if self._uses_abseil():
+                self._vendor_protobuf_dependencies(build_dir)
+
             if self.debug and not sys.platform.startswith("win32"):
                 shutil.move(pack_dir / "bin", self.output_dir)
             shutil.move(
@@ -280,6 +283,57 @@ class BuildExt(build_ext):
             )
         except Exception as exc:
             logging.warning(exc)
+
+    @staticmethod
+    def _uses_abseil() -> bool:
+        version = os.getenv("PYORC_OVERRIDDEN_PROTOBUF_VERSION", "")
+        if not version:
+            return False
+        return int(version.split(".")[0]) >= 23
+
+    def _vendor_protobuf_dependencies(self, build_dir: pathlib.Path) -> None:
+        """
+        Copy the Abseil and utf8_range static libraries built by protobuf next
+        to liborc, because protobuf 23 and later depend on them.
+        """
+        lib_dir = self.output_dir / "lib"
+        patterns = ("libabsl_*.*", "libutf8_*.*", "absl_*.*", "utf8_*.*")
+        copied = set[str]()
+        for pattern in patterns:
+            for lib in build_dir.rglob(pattern):
+                if lib.suffix not in (".a", ".lib") or lib.name in copied:
+                    continue
+                copied.add(lib.name)
+                shutil.copy2(lib, lib_dir / lib.name)
+        logging.info(f"Copied {len(copied)} protobuf dependency libraries")
+
+    def _link_protobuf_dependencies(self) -> None:
+        """Add the vendored Abseil and utf8_range libraries to the link line."""
+        lib_dir = self.output_dir / "lib"
+        is_win = sys.platform.startswith("win32")
+        names = []
+        for lib in sorted(lib_dir.iterdir()):
+            stem = lib.name
+            if not (stem.startswith("libabsl_") or stem.startswith("libutf8_")
+                    or stem.startswith("absl_") or stem.startswith("utf8_")):
+                continue
+            if not is_win and stem.endswith(".a"):
+                names.append(stem[len("lib"):-len(".a")])
+            elif is_win and stem.endswith(".lib"):
+                names.append(stem[:-len(".lib")])
+        if not names:
+            return
+        logging.info(f"Linking protobuf dependencies: {names}")
+        if is_win or sys.platform == "darwin":
+            # On Windows the linker does not care about the order and on macOS
+            # the linker does not support grouping.
+            self.extensions[0].libraries.extend(names)
+        else:
+            link_args = list(self.extensions[0].extra_link_args or [])
+            link_args += ["-Wl,--start-group"]
+            link_args += [f"-l{name}" for name in names]
+            link_args += ["-Wl,--end-group"]
+            self.extensions[0].extra_link_args = link_args
 
     def get_version_macros(self):
         parts = self.orc_version.split(".")
@@ -310,6 +364,9 @@ class BuildExt(build_ext):
 
             if not orc_lib.exists():
                 self._build_orc_lib()
+
+        if self._uses_abseil():
+            self._link_protobuf_dependencies()
 
         if sys.platform.startswith("win32") and self.debug:
             self.extensions[0].libraries = [
