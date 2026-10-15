@@ -293,8 +293,8 @@ class BuildExt(build_ext):
 
     def _vendor_protobuf_dependencies(self, build_dir: pathlib.Path) -> None:
         """
-        Copy the Abseil and utf8_range static libraries built by protobuf next
-        to liborc, because protobuf 23 and later depend on them.
+        Copy the Abseil and utf8_range headers and static libraries built by
+        protobuf next to liborc, because protobuf 23 and later depend on them.
         """
         lib_dir = self.output_dir / "lib"
         patterns = ("libabsl_*.*", "libutf8_*.*", "absl_*.*", "utf8_*.*")
@@ -306,6 +306,25 @@ class BuildExt(build_ext):
                 copied.add(lib.name)
                 shutil.copy2(lib, lib_dir / lib.name)
         logging.info(f"Copied {len(copied)} protobuf dependency libraries")
+
+        include_dir = self.output_dir / "include"
+        # Abseil headers, because protobuf 23+ headers include "absl/...".
+        absl_src = build_dir / "_deps" / "absl-src" / "absl"
+        if absl_src.is_dir():
+            dst = include_dir / "absl"
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(absl_src, dst)
+            logging.info("Copied Abseil headers")
+        # utf8_range headers, because protobuf 23+ headers include
+        # "utf8_validity.h" and "utf8_range.h" unqualified.
+        utf8_src = (
+            build_dir / "_deps" / "protobuf-src" / "third_party" / "utf8_range"
+        )
+        if utf8_src.is_dir():
+            for hdr in list(utf8_src.glob("*.h")) + list(utf8_src.glob("*.inc")):
+                shutil.copy2(hdr, include_dir / hdr.name)
+            logging.info("Copied utf8_range headers")
 
     def _link_protobuf_dependencies(self) -> None:
         """Add the vendored Abseil and utf8_range libraries to the link line."""
