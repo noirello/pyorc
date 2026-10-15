@@ -125,6 +125,26 @@ class BuildExt(build_ext):
             f'set(PROTOBUF_VERSION "{version}")',
             content,
         )
+        # Protobuf 23 and later moved the CMake entry point from the "cmake"
+        # subfolder to the repository root.
+        source_subdir = (
+            "cmake" if int(version.split(".")[0]) < 23 else "."
+        )
+        content = re.sub(
+            r'(fetchcontent_declare\(Protobuf\b.*?)\n(\s*)SOURCE_SUBDIR "[^"]*"',
+            rf'\1\n\g<2>SOURCE_SUBDIR "{source_subdir}"',
+            content,
+            count=1,
+            flags=re.DOTALL,
+        )
+        if int(version.split(".")[0]) >= 23:
+            # Protobuf 23 and later depends on Abseil, which has to be built
+            # (and vendored) along with protobuf.
+            content = content.replace(
+                "    set(protobuf_INSTALL OFF)\n",
+                "    set(protobuf_INSTALL OFF)\n"
+                "    set(protobuf_FORCE_FETCH_DEPENDENCIES ON)\n",
+            )
         content = re.sub(
             r"(fetchcontent_declare\(Protobuf\b.*?)\n\s*URL_HASH SHA256=\w+",
             r"\1",
