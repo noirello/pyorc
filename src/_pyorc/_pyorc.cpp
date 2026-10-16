@@ -7,7 +7,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(_pyorc, m)
+PYBIND11_MODULE(_pyorc, m, py::mod_gil_not_used())
 {
     m.doc() = "_pyorc c++ extension";
     m.def("_orc_version", []() -> py::object { return py::cast(ORC_VERSION); });
