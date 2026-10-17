@@ -7,6 +7,7 @@
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
+#include "UseGuard.h"
 
 namespace py = pybind11;
 
@@ -26,6 +27,8 @@ class ORCFileLikeObject
     std::unique_ptr<Converter> converter;
     py::dict convDict;
     py::object timezoneInfo;
+    std::shared_ptr<UseFlag> useFlag = std::make_shared<UseFlag>();
+    py::object nextImpl();
     py::dict buildStatistics(const orc::Type*, const orc::ColumnStatistics*) const;
     const orc::Type* findColumnType(const orc::Type*, uint64_t) const;
 
@@ -39,6 +42,7 @@ class ORCFileLikeObject
     const orc::RowReaderOptions getRowReaderOptions() const { return rowReaderOpts; };
     const py::dict getConverterDict() const { return convDict; }
     const py::object getTimeZoneInfo() const { return timezoneInfo; }
+    std::shared_ptr<UseFlag> getUseFlag() const { return useFlag; }
     virtual ~ORCFileLikeObject(){};
 };
 

@@ -142,6 +142,13 @@ createTypeDescription(const orc::Type& orcType)
 py::object
 ORCFileLikeObject::next()
 {
+    UseFlag::Guard guard(*useFlag);
+    return nextImpl();
+}
+
+py::object
+ORCFileLikeObject::nextImpl()
+{
     while (true) {
         if (batchItem == 0) {
             if (!rowReader->next(*batch)) {
@@ -163,6 +170,7 @@ ORCFileLikeObject::next()
 py::list
 ORCFileLikeObject::read(int64_t num)
 {
+    UseFlag::Guard guard(*useFlag);
     int64_t i = 0;
     py::list res;
     if (num < -1) {
@@ -173,7 +181,7 @@ ORCFileLikeObject::read(int64_t num)
             if (num != -1 && i == num) {
                 return res;
             }
-            res.append(this->next());
+            res.append(this->nextImpl());
             ++i;
         }
     } catch (py::stop_iteration&) {
@@ -184,6 +192,7 @@ ORCFileLikeObject::read(int64_t num)
 uint64_t
 ORCFileLikeObject::seek(int64_t row, uint16_t whence)
 {
+    UseFlag::Guard guard(*useFlag);
     uint64_t start = 0;
     switch (whence) {
         case 0:
@@ -489,6 +498,7 @@ Reader::softwareVersion() const
 std::unique_ptr<Stripe>
 Reader::readStripe(uint64_t idx)
 {
+    UseFlag::Guard guard(*useFlag);
     if (idx >= reader->getNumberOfStripes()) {
         throw py::index_error("stripe index out of range");
     }
@@ -538,6 +548,7 @@ Stripe::Stripe(const Reader& reader_,
                std::unique_ptr<orc::StripeInformation> stripe)
   : reader(reader_)
 {
+    useFlag = reader.getUseFlag();
     batchItem = 0;
     currentRow = 0;
     stripeIndex = idx;
@@ -560,6 +571,7 @@ Stripe::Stripe(const Reader& reader_,
 py::tuple
 Stripe::bloomFilterColumns()
 {
+    UseFlag::Guard guard(*useFlag);
     int64_t idx = 0;
     std::set<uint32_t> empty = {};
     std::map<uint32_t, orc::BloomFilterIndex> bfCols =
@@ -593,6 +605,7 @@ Stripe::offset() const
 py::tuple
 Stripe::statistics(uint64_t columnIndex)
 {
+    UseFlag::Guard guard(*useFlag);
     if (columnIndex < 0 ||
         columnIndex > rowReader->getSelectedType().getMaximumColumnId()) {
         throw py::index_error("column index out of range");
@@ -613,5 +626,6 @@ Stripe::statistics(uint64_t columnIndex)
 std::string
 Stripe::writerTimezone()
 {
+    UseFlag::Guard guard(*useFlag);
     return stripeInfo->getWriterTimezone();
 }

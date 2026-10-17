@@ -31,6 +31,7 @@ HEADERS = [
     "PyORCStream.h",
     "Reader.h",
     "SearchArgument.h",
+    "UseGuard.h",
     "Writer.h",
     "verguard.h",
 ]
