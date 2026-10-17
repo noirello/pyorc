@@ -16,7 +16,9 @@ jobs:
           - '3.12'
           - '3.13'
           - '3.14'
+          - '3.14t'
           - '3.15'
+          - '3.15t'
           - 'pypy3.11'
     uses: ./.github/workflows/build-run-tests.yml
     with:
@@ -68,7 +70,9 @@ jobs:
           - '3.12'
           - '3.13'
           - '3.14'
+          - '3.14t'
           - '3.15'
+          - '3.15t'
     uses: ./.github/workflows/build-run-tests.yml
     with:
       runs-on: macos-latest
@@ -87,7 +91,9 @@ jobs:
           - '3.12'
           - '3.13'
           - '3.14'
+          - '3.14t'
           - '3.15'
+          - '3.15t'
     uses: ./.github/workflows/build-run-tests.yml
     with:
       runs-on: windows-latest
@@ -107,7 +113,7 @@ jobs:
       cibw-build: '*-manylinux_*'
       cibw-archs: 'x86_64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-*'
+      cibw-skip: 'cp39-* cp310-*'
 
   wheel_musllinux_x86_64:
     name: Wheel / musllinux x86_64
@@ -119,7 +125,7 @@ jobs:
       cibw-build: '*-musllinux_*'
       cibw-archs: 'x86_64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-*'
+      cibw-skip: 'cp39-* cp310-*'
 
   wheel_manylinux_aarch64:
     name: Wheel / manylinux aarch64
@@ -131,7 +137,7 @@ jobs:
       cibw-build: '*-manylinux_*'
       cibw-archs: 'aarch64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-*'
+      cibw-skip: 'cp39-* cp310-*'
 
   wheel_musllinux_aarch64:
     name: Wheel / musllinux aarch64
@@ -143,7 +149,7 @@ jobs:
       cibw-build: '*-musllinux_*'
       cibw-archs: 'aarch64'
       cibw-enable: 'pypy'
-      cibw-skip: 'cp39-* cp310-* cp3??t-*'
+      cibw-skip: 'cp39-* cp310-*'
 
   wheel_macos:
     name: Wheel / macOS
@@ -153,7 +159,7 @@ jobs:
       runs-on: macos-latest
       label: macos
       cibw-build: '*-macosx*'
-      cibw-skip: 'cp39-* cp310-* cp3??t-*'
+      cibw-skip: 'cp39-* cp310-*'
       cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=11.0'
 
   wheel_macos_universal2:
@@ -164,7 +170,7 @@ jobs:
       runs-on: macos-latest
       label: macos-universal2
       cibw-build: '*-macosx*'
-      cibw-skip: 'cp39-* cp310-* cp3??t-*'
+      cibw-skip: 'cp39-* cp310-*'
       cibw-environment: 'MACOSX_DEPLOYMENT_TARGET=10.13'
       cibw-archs: 'universal2'
       cmake-osx-architectures: 'x86_64;arm64'
@@ -178,4 +184,4 @@ jobs:
       label: windows-amd64
       cibw-build: '*-win*'
       cibw-archs: 'AMD64'
-      cibw-skip: 'cp39-* cp310-* cp3??t-*'
+      cibw-skip: 'cp39-* cp310-*'
