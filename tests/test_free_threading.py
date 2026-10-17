@@ -103,6 +103,27 @@ def test_shared_reader_is_rejected_not_corrupted(file_class):
     assert all("Concurrent" in str(exc) for exc in errors)
 
 
+@requires_free_threading
+def test_shared_writer_is_rejected_not_corrupted():
+    buf = io.BytesIO()
+    written = []
+
+    def write_rows():
+        idx = threading.get_ident()
+        for i in range(500):
+            value = idx * 1000 + i
+            try:
+                writer.write((value, "n", [], {}))
+            except RuntimeError:
+                continue
+            written.append(value)
+
+    with pyorc.Writer(buf, SCHEMA, batch_size=64) as writer:
+        run_concurrently(write_rows, NTHREADS)
+    buf.seek(0)
+    assert sorted(row[0] for row in pyorc.Reader(buf)) == sorted(written)
+
+
 def test_parallel_independent_write_and_read():
     results = {}
 

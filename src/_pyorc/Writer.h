@@ -7,6 +7,7 @@
 #include "orc/OrcFile.hh"
 
 #include "Converter.h"
+#include "UseGuard.h"
 #include "verguard.h"
 
 namespace py = pybind11;
@@ -20,6 +21,8 @@ class Writer
     std::unique_ptr<Converter> converter;
     uint64_t batchSize;
     uint64_t batchItem;
+    UseFlag useFlag;
+    void writeImpl(py::object);
 
   public:
     uint64_t currentRow;
