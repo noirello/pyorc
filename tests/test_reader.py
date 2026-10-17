@@ -1,6 +1,7 @@
 import pytest
 
 import io
+import gc
 import math
 import string
 from datetime import datetime, date, timezone
@@ -618,3 +619,11 @@ def test_read_custom_null_value(orc_type, value):
     else:
         assert next(reader) == value
     assert next(reader) is NullValue()
+
+
+def test_stripe_keeps_reader_alive(striped_orc_data):
+    stripe = Reader(striped_orc_data(655)).read_stripe(0)
+    gc.collect()
+    assert len(list(stripe)) == len(stripe)
+    assert isinstance(stripe[0].statistics, dict)
+    assert stripe.bytes_length > 0

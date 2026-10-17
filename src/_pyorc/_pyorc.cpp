@@ -36,7 +36,7 @@ PYBIND11_MODULE(_pyorc, m, py::mod_gil_not_used())
     py::class_<Stripe>(m, "stripe")
       .def(
         py::init([](Reader& reader, uint64_t num) { return reader.readStripe(num); }),
-        py::keep_alive<0, 2>())
+        py::keep_alive<1, 2>())
       .def("__next__", [](Stripe& s) -> py::object { return s.next(); })
       .def("__iter__", [](Stripe& s) -> Stripe& { return s; })
       .def("__len__", &Stripe::len)
