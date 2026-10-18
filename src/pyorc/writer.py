@@ -1,6 +1,7 @@
 import copy
 from collections.abc import Collection
-from typing import Any, BinaryIO, TypeVar, Generic
+from typing import Any, BinaryIO, Generic, TYPE_CHECKING
+
 
 from pyorc._pyorc import writer
 
@@ -11,7 +12,12 @@ from .typedescription import TypeDescription
 import zoneinfo
 
 
-T = TypeVar("T")
+if TYPE_CHECKING:
+    from typing_extensions import TypeVar
+    T = TypeVar("T", default=Any)
+else:
+    from typing import TypeVar
+    T = TypeVar("T")
 
 class Writer(writer[T], Generic[T]):
     def __init__(

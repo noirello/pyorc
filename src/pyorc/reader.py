@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterator, Iterable
-from typing import Any, BinaryIO, TypeVar, Generic
+from typing import Any, BinaryIO, Generic, TYPE_CHECKING
 
 from pyorc._pyorc import reader, stripe
 
@@ -11,7 +11,12 @@ from .predicates import Predicate
 import zoneinfo
 
 
-T = TypeVar("T")
+if TYPE_CHECKING:
+    from typing_extensions import TypeVar
+    T = TypeVar("T", default=Any)
+else:
+    from typing import TypeVar
+    T = TypeVar("T")
 
 class Column(Generic[T]):
     def __init__(self, stream: "Reader[T] | Stripe[T]", index: int):
