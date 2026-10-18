@@ -13,6 +13,11 @@ PYBIND11_MODULE(_pyorc, m, py::mod_gil_not_used())
 
     py::object generic_alias = py::module_::import("types").attr("GenericAlias");
 
+    py::object class_getitem = py::reinterpret_steal<py::object>(PyClassMethod_New(
+      py::cpp_function([generic_alias](py::object cls, py::object item) {
+          return generic_alias(cls, item);
+      }).ptr()));
+
     m.def("_orc_version", []() -> std::string { return ORC_VERSION; });
     m.def("_protobuf_version", []() -> std::string {
         return google::protobuf::internal::VersionString(GOOGLE_PROTOBUF_VERSION);
@@ -52,10 +57,7 @@ PYBIND11_MODULE(_pyorc, m, py::mod_gil_not_used())
       .def_property_readonly("writer_timezone",
                              [](Stripe& s) { return s.writerTimezone(); })
       .def_readonly("current_row", &Stripe::currentRow)
-      .def_readonly("row_offset", &Stripe::firstRowOfStripe)
-      .def_static("__class_getitem__", [generic_alias](py::object item) {
-          return generic_alias(py::type::of<Stripe>(), item);
-      });
+      .def_readonly("row_offset", &Stripe::firstRowOfStripe);
     py::class_<Reader>(m, "reader")
       .def(py::init<py::object,
                     uint64_t,
@@ -94,10 +96,7 @@ PYBIND11_MODULE(_pyorc, m, py::mod_gil_not_used())
       .def_property_readonly("writer_id", &Reader::writerId)
       .def_property_readonly("writer_version", &Reader::writerVersion)
       .def_property_readonly("software_version", &Reader::softwareVersion)
-      .def_readonly("current_row", &Reader::currentRow)
-      .def_static("__class_getitem__", [generic_alias](py::object item) {
-          return generic_alias(py::type::of<Reader>(), item);
-      });
+      .def_readonly("current_row", &Reader::currentRow);
     py::class_<Writer>(m, "writer")
       .def(py::init<py::object,
                     py::object,
@@ -140,8 +139,9 @@ PYBIND11_MODULE(_pyorc, m, py::mod_gil_not_used())
       .def("write_intermediate_footer", &Writer::writeIntermediateFooter)
 #endif
       .def("close", &Writer::close)
-      .def_readonly("current_row", &Writer::currentRow)
-      .def_static("__class_getitem__", [generic_alias](py::object item) {
-          return generic_alias(py::type::of<Writer>(), item);
-      });
+      .def_readonly("current_row", &Writer::currentRow);
+
+    m.attr("stripe").attr("__class_getitem__") = class_getitem;
+    m.attr("reader").attr("__class_getitem__") = class_getitem;
+    m.attr("writer").attr("__class_getitem__") = class_getitem;
 }
