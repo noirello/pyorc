@@ -7,10 +7,9 @@ from .converters import DEFAULT_CONVERTERS, ORCConverter
 from .enums import CompressionKind, StructRepr, TypeKind, WriterVersion
 from .predicates import Predicate
 
-try:
-    import zoneinfo
-except ImportError:
-    from backports import zoneinfo
+import zoneinfo
+
+
 
 
 class Column:

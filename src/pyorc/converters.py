@@ -6,10 +6,7 @@ from typing import Dict, Tuple, Type, Any
 
 from .enums import TypeKind
 
-try:
-    import zoneinfo
-except ImportError:
-    from backports import zoneinfo
+import zoneinfo
 
 
 class ORCConverter(ABC):
