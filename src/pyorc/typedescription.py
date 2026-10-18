@@ -1,6 +1,7 @@
 import re
 from types import MappingProxyType
-from typing import Dict, Mapping, Tuple
+
+from collections.abc import Mapping
 
 from pyorc._pyorc import _schema_from_string
 
@@ -13,16 +14,16 @@ class TypeDescription:
 
     def __init__(self) -> None:
         self._column_id = 0
-        self._attributes: Dict[str, str] = {}
+        self._attributes: dict[str, str] = {}
 
     def __str__(self) -> str:
         return self.name
 
     @property
-    def attributes(self) -> Dict[str, str]:
+    def attributes(self) -> dict[str, str]:
         return self._attributes
 
-    def set_attributes(self, val) -> None:
+    def set_attributes(self, val: dict[str, str]) -> None:
         if isinstance(val, dict):
             if all(
                 isinstance(key, str) and isinstance(val, str)
@@ -162,7 +163,7 @@ class Union(TypeDescription):
                 raise TypeError("Invalid container type for Union")
         self.__cont_types = cont_types
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{name}<{types}>".format(
             name=Union.name, types=",".join(str(typ) for typ in self.__cont_types),
         )
@@ -177,7 +178,7 @@ class Union(TypeDescription):
         return val
 
     @property
-    def cont_types(self) -> Tuple[TypeDescription, ...]:
+    def cont_types(self) -> tuple[TypeDescription, ...]:
         return self.__cont_types
 
 
@@ -273,7 +274,7 @@ class Struct(TypeDescription):
         this = self
         # Allow to use backtick for escaping column names with dot.
         for key in re.findall(r"[^\.`]+|`[^`]*`", dotted_key):
-            this = this[key.replace("`", "")]
+            this = this[key.replace("`", "")]  # type: ignore[assignment]
         return this.column_id
 
     @property
