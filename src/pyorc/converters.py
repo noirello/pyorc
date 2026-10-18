@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta, timezone as tz
 from decimal import Decimal, localcontext
 import math
-from typing import Dict, Tuple, Type, Any
+from typing import Any
 
 from .enums import TypeKind
 
@@ -12,12 +12,12 @@ import zoneinfo
 class ORCConverter(ABC):
     @staticmethod
     @abstractmethod
-    def from_orc(*args):
+    def from_orc(*args: Any, **kwargs: Any) -> Any:
         pass
 
     @staticmethod
     @abstractmethod
-    def to_orc(*args):
+    def to_orc(*args: Any, **kwargs: Any) -> Any:
         pass
 
 
@@ -32,7 +32,7 @@ class TimestampConverter(ORCConverter):
         ).astimezone(timezone)
 
     @staticmethod
-    def to_orc(obj: datetime, timezone: zoneinfo.ZoneInfo) -> Tuple[int, int]:
+    def to_orc(obj: datetime, timezone: zoneinfo.ZoneInfo) -> tuple[int, int]:
         return math.floor(obj.timestamp()), obj.microsecond * 1000
 
 
@@ -69,22 +69,20 @@ class DecimalConverter(ORCConverter):
                 coefficient = Decimal("1.{0}".format("0" * scale))
                 dec = obj.quantize(coefficient)
                 dec_tup = dec.as_tuple()
-                integer = sum(
+                integer: int = sum(
                     dig * 10 ** exp for exp, dig in enumerate(reversed(dec_tup.digits))
                 )
-                if dec_tup.exponent > 0:
-                    integer = integer * 10 ** dec_tup.exponent
+                if dec_tup.exponent > 0:  # type: ignore[operator]
+                    integer = integer * 10 ** dec_tup.exponent  # type: ignore[operator]
                 if dec_tup.sign == 1:
                     return integer * -1
                 else:
                     return integer
             except AttributeError:
-                raise TypeError(
-                    "Item {0} cannot be cast as a decimal".format(type(obj))
-                ) from None
+                raise TypeError(f"Item {type(obj)} cannot be cast as a decimal") from None
 
 
-DEFAULT_CONVERTERS: Dict[TypeKind, Type[ORCConverter]] = {
+DEFAULT_CONVERTERS: dict[TypeKind, type[ORCConverter]] = {
     TypeKind.DATE: DateConverter,
     TypeKind.DECIMAL: DecimalConverter,
     TypeKind.TIMESTAMP: TimestampConverter,
