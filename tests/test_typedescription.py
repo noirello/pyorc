@@ -8,6 +8,7 @@ def test_from_str_schema():
     descr = TypeDescription.from_string(
         "struct<a:int,b:map<varchar(20),int>,c:struct<d:bigint,e:float,f:char(12)>>"
     )
+    assert isinstance(descr, Struct)
     assert descr.kind == TypeKind.STRUCT
     assert len(descr.fields) == 3
     assert tuple(descr.fields.keys()) == ("a", "b", "c")
@@ -105,6 +106,7 @@ def test_decimal():
 
 def test_varchar():
     descr = TypeDescription.from_string("varchar(30)")
+    assert isinstance(descr, VarChar)
     assert descr.max_length == 30
     descr.max_length = 15
     assert descr.max_length == 15
@@ -143,6 +145,7 @@ def test_struct():
 
 def test_union():
     schema = TypeDescription.from_string("uniontype<int,double,string>")
+    assert isinstance(schema, Union)
     assert schema[1].kind == TypeKind.DOUBLE
     with pytest.raises(IndexError):
         _ = schema[10]

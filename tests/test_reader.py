@@ -29,9 +29,9 @@ from conftest import output_file, NullValue
 
 @pytest.fixture
 def orc_data():
-    def _init(row):
+    def _init(row: int) -> io.BytesIO:
         data = io.BytesIO()
-        with Writer(
+        with Writer[dict[str, str | int]](
             data, "struct<col0:int,col1:string>", struct_repr=StructRepr.DICT
         ) as writer:
             for i in range(row):
@@ -49,9 +49,9 @@ def orc_data():
 
 @pytest.fixture
 def striped_orc_data():
-    def _init(row):
+    def _init(row: int) -> io.BytesIO:
         data = io.BytesIO()
-        with Writer(
+        with Writer[tuple[int]](
             data,
             "struct<col0:int>",
             batch_size=65535,
@@ -408,9 +408,9 @@ def test_writer_id():
 
 def test_writer_version():
     data = io.BytesIO()
-    with Writer(data, "int") as writer:
+    with Writer[int](data, "int") as writer:
         writer.writerows(range(10))
-    reader = Reader(data)
+    reader = Reader[int](data)
     assert reader.writer_version == WriterVersion.ORC_135
 
 

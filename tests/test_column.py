@@ -19,7 +19,7 @@ from pyorc import (
 
 @pytest.fixture
 def striped_orc_data():
-    def _init(schema, rows, bfc=tuple()):
+    def _init(schema: str, rows, bfc=tuple()):
         data = io.BytesIO()
         with Writer(
             data,

@@ -6,12 +6,16 @@ import sysconfig
 import threading
 import time
 
+from typing import TypeAlias
+
 import pytest
 
 import pyorc
 
 NTHREADS = 10
 SCHEMA = "struct<id:int,name:string,tags:array<string>,attrs:map<string,int>>"
+
+ROWTYPE: TypeAlias = tuple[int, str, list[str], dict[str, int]]
 
 
 requires_free_threading = pytest.mark.skipif(
@@ -44,7 +48,7 @@ def run_concurrently(worker_func, nthreads, args=(), kwargs={}):
         raise errors[0]
 
 
-def make_rows(seed: int, count: int = 2000):
+def make_rows(seed: int, count: int = 2000) -> list[ROWTYPE]:
     return [
         (
             seed * count + i,
@@ -85,10 +89,11 @@ def test_import_keeps_gil_disabled():
 def test_shared_reader_is_rejected_not_corrupted(file_class):
     buf = io.BytesIO()
     input_rows = make_rows(0, 1000)
-    with pyorc.Writer(buf, SCHEMA, batch_size=128) as writer:
+    with pyorc.Writer[ROWTYPE](buf, SCHEMA, batch_size=128) as writer:
         writer.writerows(input_rows)
-    reader = pyorc.Reader(file_class(buf.getvalue()), batch_size=100)
-    result, errors = [], []
+    reader = pyorc.Reader[ROWTYPE](file_class(buf.getvalue()), batch_size=100)
+    result: list[ROWTYPE] = []
+    errors: list[Exception] = []
 
     def read_rows():
         try:
@@ -106,7 +111,7 @@ def test_shared_reader_is_rejected_not_corrupted(file_class):
 @requires_free_threading
 def test_shared_writer_is_rejected_not_corrupted():
     buf = io.BytesIO()
-    written = []
+    written: list[int] = []
 
     def write_rows():
         idx = threading.get_ident()
@@ -118,10 +123,10 @@ def test_shared_writer_is_rejected_not_corrupted():
                 continue
             written.append(value)
 
-    with pyorc.Writer(buf, SCHEMA, batch_size=64) as writer:
+    with pyorc.Writer[ROWTYPE](buf, SCHEMA, batch_size=64) as writer:
         run_concurrently(write_rows, NTHREADS)
     buf.seek(0)
-    assert sorted(row[0] for row in pyorc.Reader(buf)) == sorted(written)
+    assert sorted(row[0] for row in pyorc.Reader[ROWTYPE](buf)) == sorted(written)
 
 
 def test_parallel_independent_write_and_read():
@@ -131,10 +136,10 @@ def test_parallel_independent_write_and_read():
         idx = threading.get_ident()
         input_rows = make_rows(idx)
         buf = io.BytesIO()
-        with pyorc.Writer(buf, SCHEMA, batch_size=128) as writer:
+        with pyorc.Writer[ROWTYPE](buf, SCHEMA, batch_size=128) as writer:
             writer.writerows(input_rows)
         buf.seek(0)
-        results[idx] = (input_rows, list(pyorc.Reader(buf, batch_size=100)))
+        results[idx] = (input_rows, list(pyorc.Reader[ROWTYPE](buf, batch_size=100)))
 
     run_concurrently(work, NTHREADS)
     for val in results.values():
