@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Any, BinaryIO, Dict, Iterator, List, Optional, Type, Union
+from collections.abc import Iterator
+from typing import Any, BinaryIO, TypeVar, Generic
 
 from pyorc._pyorc import reader, stripe
 
@@ -10,16 +11,16 @@ from .predicates import Predicate
 import zoneinfo
 
 
+T = TypeVar("T")
 
-
-class Column:
-    def __init__(self, stream: Union["Reader", "Stripe"], index: int):
+class Column(Generic[T]):
+    def __init__(self, stream: "Reader[T] | Stripe[T]", index: int):
         self.index = index
         self.stream = stream
         self._stats = self.stream._statistics(self.index)
 
     @property
-    def statistics(self) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         result = {}
         result_list = defaultdict(list)
         for stat in self._stats:
@@ -44,22 +45,22 @@ class Column:
         return result
 
 
-class Stripe(stripe):
-    def __getitem__(self, col_idx: int) -> "Column":
+class Stripe(stripe[T], Generic[T]):
+    def __getitem__(self, col_idx: int) -> "Column[T]":
         return Column(self, col_idx)
 
 
-class Reader(reader):
+class Reader(reader[T], Generic[T]):
     def __init__(
         self,
         fileo: BinaryIO,
         batch_size: int = 1024,
-        column_indices: Optional[List[int]] = None,
-        column_names: Optional[List[str]] = None,
+        column_indices: list[int] | None = None,
+        column_names: list[str] | None = None,
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
-        converters: Optional[Dict[TypeKind, Type[ORCConverter]]] = None,
-        predicate: Optional[Predicate] = None,
+        converters: dict[TypeKind, type[ORCConverter]] | None = None,
+        predicate: Predicate | None = None,
         null_value: Any = None,
     ) -> None:
         if column_indices is None:
@@ -85,13 +86,13 @@ class Reader(reader):
             null_value,
         )
 
-    def __getitem__(self, col_idx: int) -> Column:
+    def __getitem__(self, col_idx: int) -> Column[T]:
         return Column(self, col_idx)
 
-    def read_stripe(self, stripe_idx: int) -> Stripe:
+    def read_stripe(self, stripe_idx: int) -> Stripe[T]:
         return Stripe(self, stripe_idx)
 
-    def iter_stripes(self) -> Iterator[Stripe]:
+    def iter_stripes(self) -> Iterator[Stripe[T]]:
         for num in range(self.num_of_stripes):
             yield self.read_stripe(num)
 
@@ -100,7 +101,7 @@ class Reader(reader):
         return CompressionKind(super().compression)
 
     @property
-    def writer_id(self) -> str:
+    def writer_id(self) -> str:  # type: ignore[override]
         wid = super().writer_id
         if wid == 0:
             return "ORC_JAVA_WRITER"
