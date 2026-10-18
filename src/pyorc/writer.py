@@ -1,4 +1,5 @@
 import copy
+from collections.abc import Collection
 from typing import Any, BinaryIO, TypeVar, Generic
 
 from pyorc._pyorc import writer
@@ -23,7 +24,7 @@ class Writer(writer[T], Generic[T]):
         compression: CompressionKind = CompressionKind.ZLIB,
         compression_strategy: CompressionStrategy = CompressionStrategy.SPEED,
         compression_block_size: int = 65536,
-        bloom_filter_columns: list[str | int] | None = None,
+        bloom_filter_columns: Collection[str | int] | None = None,
         bloom_filter_fpp: float = 0.05,
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
@@ -43,7 +44,7 @@ class Writer(writer[T], Generic[T]):
         self.__user_metadata: dict[str, bytes] = {}
         comp = CompressionKind(compression)
         comp_strat = CompressionStrategy(compression_strategy)
-        bf_set = set()
+        bf_set: set[int] = set()
         if bloom_filter_columns:
             if any(not isinstance(item, (int, str)) for item in bloom_filter_columns):
                 raise ValueError(

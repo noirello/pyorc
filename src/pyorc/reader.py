@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Iterator
+from collections.abc import Iterator, Iterable
 from typing import Any, BinaryIO, TypeVar, Generic
 
 from pyorc._pyorc import reader, stripe
@@ -55,8 +55,8 @@ class Reader(reader[T], Generic[T]):
         self,
         fileo: BinaryIO,
         batch_size: int = 1024,
-        column_indices: list[int] | None = None,
-        column_names: list[str] | None = None,
+        column_indices: Iterable[int] | None = None,
+        column_names: Iterable[str] | None = None,
         timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("UTC"),
         struct_repr: StructRepr = StructRepr.TUPLE,
         converters: dict[TypeKind, type[ORCConverter]] | None = None,
