@@ -84,8 +84,8 @@ class Reader(reader[T], Generic[T]):
         super().__init__(
             fileo,
             batch_size,
-            column_indices,
-            column_names,
+            list(column_indices),
+            list(column_names),
             timezone,
             struct_repr,
             conv,
