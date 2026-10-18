@@ -95,7 +95,7 @@ jobs:
           ORC_VERSION: ${{ inputs.orc-version }}
         run: |
           if [ -n "$ORC_VERSION" ]; then export PYORC_LIB_VERSION="$ORC_VERSION"; fi
-          PYORC_DEBUG=1 CFLAGS=-coverage python -m pip install -vvv --user .
+          PYORC_DEBUG=1 LDFLAGS=--coverage CXXFLAGS=-coverage CFLAGS=-coverage python -m pip install -vvv --user .
 
       - name: Run pytest (Windows)
         if: ${{ inputs.windows }}
