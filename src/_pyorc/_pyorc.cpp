@@ -10,10 +10,9 @@ namespace py = pybind11;
 PYBIND11_MODULE(_pyorc, m, py::mod_gil_not_used())
 {
     m.doc() = "_pyorc c++ extension";
-    m.def("_orc_version", []() -> py::object { return py::cast(ORC_VERSION); });
-    m.def("_protobuf_version", []() -> py::object {
-        return py::cast(
-          google::protobuf::internal::VersionString(GOOGLE_PROTOBUF_VERSION));
+    m.def("_orc_version", []() -> std::string { return ORC_VERSION; });
+    m.def("_protobuf_version", []() -> std::string {
+        return google::protobuf::internal::VersionString(GOOGLE_PROTOBUF_VERSION);
     });
     m.def("_schema_from_string", [](std::string schema) {
         try {
