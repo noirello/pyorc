@@ -1,5 +1,5 @@
 import enum
-from typing import Any, Optional
+from typing import Any
 
 from .enums import TypeKind
 
@@ -14,14 +14,14 @@ class Operator(enum.IntEnum):
 
 
 class Predicate:
-    def __init__(self, operator: Operator, left, right) -> None:
-        self.values = (operator, left, right)
+    def __init__(self, operator: Operator, left: Any, right: Any) -> None:
+        self.values: tuple[Operator, Any, Any] | tuple[Operator, Any] = (operator, left, right)
 
-    def __or__(self, other) -> "Predicate":
+    def __or__(self, other: "Predicate") -> "Predicate":
         self.values = (Operator.OR, self.values, other.values)
         return self
 
-    def __and__(self, other) -> "Predicate":
+    def __and__(self, other: "Predicate") -> "Predicate":
         self.values = (Operator.AND, self.values, other.values)
         return self
 
@@ -34,10 +34,10 @@ class PredicateColumn:
     def __init__(
         self,
         type_kind: TypeKind,
-        name: Optional[str] = None,
-        index: Optional[int] = None,
-        precision: Optional[int] = None,
-        scale: Optional[int] = None,
+        name: str | None = None,
+        index: int | None = None,
+        precision: int | None = None,
+        scale: int | None = None,
     ) -> None:
         if not TypeKind.has_value(type_kind) or type_kind in (
             TypeKind.BINARY,
@@ -61,10 +61,10 @@ class PredicateColumn:
         self.precision = precision if precision is not None else 0
         self.scale = scale if scale is not None else 0
 
-    def __eq__(self, other: Any) -> Predicate:
+    def __eq__(self, other: Any) -> Predicate:  # type: ignore[override]
         return Predicate(Operator.EQ, self, other)
 
-    def __ne__(self, other: Any) -> Predicate:
+    def __ne__(self, other: Any) -> Predicate:  # type: ignore[override]
         return ~Predicate(Operator.EQ, self, other)
 
     def __lt__(self, other: Any) -> Predicate:
