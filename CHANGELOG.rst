@@ -1,5 +1,30 @@
 Changelog
 ==========
+[0.12.0] - UNRELEASED
+---------------------
+
+Added
+~~~~~
+
+- Free-threading support.
+- Python 3.15 wheels and free threaded wheels.
+- Guards to avoid sharing Reader or Writer between threads
+  and crashing, when running on free threaded interpreter.
+
+Changed
+~~~~~~~
+
+- ORC C++ Core updated to 2.3.1.
+- Wheels shipped with protobuf version 7.36.2.
+- Dropped support for Python 3.10.
+- Set minimum version requirements for pybind11 to newer than 2.13.0.
+
+Fixed
+~~~~~
+
+- Premature freeing of Reader instance, when there's still a Stripe
+  object relying on it.
+
 [0.11.0] - 2026-04-11
 ---------------------
 
