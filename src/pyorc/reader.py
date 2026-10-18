@@ -10,13 +10,15 @@ from .predicates import Predicate
 
 import zoneinfo
 
-
 if TYPE_CHECKING:
     from typing_extensions import TypeVar
+
     T = TypeVar("T", default=Any)
 else:
     from typing import TypeVar
+
     T = TypeVar("T")
+
 
 class Column(Generic[T]):
     def __init__(self, stream: "Reader[T] | Stripe[T]", index: int):

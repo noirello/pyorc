@@ -43,7 +43,7 @@ class ORCFileLikeObject
     const py::dict getConverterDict() const { return convDict; }
     const py::object getTimeZoneInfo() const { return timezoneInfo; }
     std::shared_ptr<UseFlag> getUseFlag() const { return useFlag; }
-    virtual ~ORCFileLikeObject(){};
+    virtual ~ORCFileLikeObject() {};
 };
 
 class Stripe; /* Forward declaration */
@@ -86,7 +86,7 @@ class Reader : public ORCFileLikeObject
     const uint64_t getBatchSize() const { return batchSize; }
     const unsigned int getStructKind() const { return structKind; }
     const py::object getNullValue() const { return nullValue; }
-    ~Reader(){};
+    ~Reader() {};
 };
 
 class Stripe : public ORCFileLikeObject
@@ -104,7 +104,7 @@ class Stripe : public ORCFileLikeObject
     uint64_t offset() const;
     py::tuple statistics(uint64_t);
     std::string writerTimezone();
-    ~Stripe(){};
+    ~Stripe() {};
 };
 
 #endif

@@ -59,8 +59,10 @@ def make_rows(seed: int, count: int = 2000) -> list[ROWTYPE]:
         for i in range(count)
     ]
 
+
 class SlowBytesIO(io.BytesIO):
     """For simulating slow(er) file read (for potential thread switch)."""
+
     def read(self, *args):
         data = super().read(*args)
         time.sleep(0.002)
@@ -203,4 +205,3 @@ def test_mutating_containers_while_writing_does_not_crash():
     finally:
         stop.set()
         thread.join()
-

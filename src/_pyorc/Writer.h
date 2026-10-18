@@ -51,7 +51,7 @@ class Writer
     uint64_t writeIntermediateFooter();
 #endif
     void close();
-    ~Writer(){};
+    ~Writer() {};
 };
 
 #endif

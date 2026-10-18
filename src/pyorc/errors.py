@@ -1,7 +1,6 @@
 class ORCError(Exception):
-    """ General pyorc error. """
+    """General pyorc error."""
 
 
 class ParseError(ORCError):
-    """ Parse error while processing an ORC file. """
-
+    """Parse error while processing an ORC file."""

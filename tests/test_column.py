@@ -126,7 +126,7 @@ def test_statistics_double(striped_orc_data):
 
 
 def test_statistics_binary(striped_orc_data):
-    data = striped_orc_data("binary", (b"\x4D\x45\x34\x01" for i in range(100000)))
+    data = striped_orc_data("binary", (b"\x4d\x45\x34\x01" for i in range(100000)))
     reader = Reader(data)
     stripe = Stripe(reader, 0)
     stat = stripe[0].statistics

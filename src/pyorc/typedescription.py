@@ -165,7 +165,8 @@ class Union(TypeDescription):
 
     def __str__(self) -> str:
         return "{name}<{types}>".format(
-            name=Union.name, types=",".join(str(typ) for typ in self.__cont_types),
+            name=Union.name,
+            types=",".join(str(typ) for typ in self.__cont_types),
         )
 
     def __getitem__(self, idx: int) -> TypeDescription:

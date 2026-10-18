@@ -24,7 +24,9 @@ class ORCConverter(ABC):
 class TimestampConverter(ORCConverter):
     @staticmethod
     def from_orc(
-        seconds: int, nanoseconds: int, timezone: zoneinfo.ZoneInfo,
+        seconds: int,
+        nanoseconds: int,
+        timezone: zoneinfo.ZoneInfo,
     ) -> datetime:
         epoch = datetime(1970, 1, 1, 0, 0, 0, tzinfo=tz.utc)
         return (
@@ -70,16 +72,18 @@ class DecimalConverter(ORCConverter):
                 dec = obj.quantize(coefficient)
                 dec_tup = dec.as_tuple()
                 integer: int = sum(
-                    dig * 10 ** exp for exp, dig in enumerate(reversed(dec_tup.digits))
+                    dig * 10**exp for exp, dig in enumerate(reversed(dec_tup.digits))
                 )
                 if dec_tup.exponent > 0:  # type: ignore[operator]
-                    integer = integer * 10 ** dec_tup.exponent  # type: ignore[operator]
+                    integer = integer * 10**dec_tup.exponent  # type: ignore[operator]
                 if dec_tup.sign == 1:
                     return integer * -1
                 else:
                     return integer
             except AttributeError:
-                raise TypeError(f"Item {type(obj)} cannot be cast as a decimal") from None
+                raise TypeError(
+                    f"Item {type(obj)} cannot be cast as a decimal"
+                ) from None
 
 
 DEFAULT_CONVERTERS: dict[TypeKind, type[ORCConverter]] = {

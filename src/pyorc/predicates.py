@@ -15,7 +15,11 @@ class Operator(enum.IntEnum):
 
 class Predicate:
     def __init__(self, operator: Operator, left: Any, right: Any) -> None:
-        self.values: tuple[Operator, Any, Any] | tuple[Operator, Any] = (operator, left, right)
+        self.values: tuple[Operator, Any, Any] | tuple[Operator, Any] = (
+            operator,
+            left,
+            right,
+        )
 
     def __or__(self, other: "Predicate") -> "Predicate":
         self.values = (Operator.OR, self.values, other.values)

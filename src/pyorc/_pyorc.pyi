@@ -1,4 +1,5 @@
 """_pyorc c++ extension"""
+
 from typing import TypeVar, Generic, Any
 
 from collections.abc import Iterable
@@ -34,61 +35,73 @@ class reader(Generic[T]):
         """
         :type: dict
         """
+
     @property
     def compression(self) -> int:
         """
         :type: int
         """
+
     @property
     def compression_block_size(self) -> int:
         """
         :type: int
         """
+
     @property
     def current_row(self) -> int:
         """
         :type: int
         """
+
     @property
     def format_version(self) -> tuple[int, int]:
         """
         :type: tuple
         """
+
     @property
     def num_of_stripes(self) -> int:
         """
         :type: int
         """
+
     @property
     def row_index_stride(self) -> int:
         """
         :type: int
         """
+
     @property
     def schema(self) -> TypeDescription:
         """
         :type: TypeDescription
         """
+
     @property
     def selected_schema(self) -> TypeDescription:
         """
         :type: TypeDescription
         """
+
     @property
     def software_version(self) -> str:
         """
         :type: str
         """
+
     @property
     def user_metadata(self) -> dict[str, bytes]:
         """
         :type: dict
         """
+
     @property
     def writer_id(self) -> int:
         """
         :type: int
         """
+
     @property
     def writer_version(self) -> int:
         """
@@ -109,26 +122,31 @@ class stripe(Generic[T]):
         """
         :type: tuple
         """
+
     @property
     def bytes_length(self) -> int:
         """
         :type: int
         """
+
     @property
     def bytes_offset(self) -> int:
         """
         :type: int
         """
+
     @property
     def current_row(self) -> int:
         """
         :type: int
         """
+
     @property
     def row_offset(self) -> int:
         """
         :type: int
         """
+
     @property
     def writer_timezone(self) -> str:
         """
@@ -177,4 +195,3 @@ def _protobuf_version() -> str:
 
 def _schema_from_string(arg0: str) -> TypeDescription:
     pass
-

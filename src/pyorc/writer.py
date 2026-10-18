@@ -11,13 +11,15 @@ from .typedescription import TypeDescription
 
 import zoneinfo
 
-
 if TYPE_CHECKING:
     from typing_extensions import TypeVar
+
     T = TypeVar("T", default=Any)
 else:
     from typing import TypeVar
+
     T = TypeVar("T")
+
 
 class Writer(writer[T], Generic[T]):
     def __init__(

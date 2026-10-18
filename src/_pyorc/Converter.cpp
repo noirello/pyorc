@@ -101,7 +101,7 @@ class TimestampConverter : public Converter
 
   public:
     TimestampConverter(py::dict conv, py::object tzone, py::object nv);
-    virtual ~TimestampConverter() override{};
+    virtual ~TimestampConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -116,7 +116,7 @@ class DateConverter : public Converter
 
   public:
     DateConverter(py::dict conv, py::object nv);
-    virtual ~DateConverter() override{};
+    virtual ~DateConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -133,7 +133,7 @@ class Decimal64Converter : public Converter
 
   public:
     Decimal64Converter(uint64_t prec_, uint64_t scale_, py::dict conv, py::object nv);
-    virtual ~Decimal64Converter() override{};
+    virtual ~Decimal64Converter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -150,7 +150,7 @@ class Decimal128Converter : public Converter
 
   public:
     Decimal128Converter(uint64_t prec_, uint64_t scale_, py::dict conv, py::object nv);
-    virtual ~Decimal128Converter() override{};
+    virtual ~Decimal128Converter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -168,7 +168,7 @@ class ListConverter : public Converter
                   py::dict conv,
                   py::object tzone,
                   py::object nv);
-    virtual ~ListConverter() override{};
+    virtual ~ListConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -188,7 +188,7 @@ class MapConverter : public Converter
                  py::dict conv,
                  py::object tzone,
                  py::object nv);
-    virtual ~MapConverter() override{};
+    virtual ~MapConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
