@@ -36,3 +36,19 @@ Homepage = "https://github.com/noirello/pyorc"
 Repository = "https://github.com/noirello/pyorc.git"
 Documentation = "https://pyorc.readthedocs.io"
 Changelog = "https://github.com/noirello/pyorc/blob/master/CHANGELOG.rst"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "pytest-cov>=7.0",
+    "ruff>=0.9",
+    "mypy>=1.10",
+    "black>=26.10.1",
+    "sphinx>=8.0.0",
+    "furo==2025.12.19",
+]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/pyorc"]
+strict = true
