@@ -156,6 +156,12 @@ API documentation
     parameter. The dictionary's keys must be values of :class:`TypeKind` and
     the values must implement the :class:`ORCConverter` abstract class.
 
+    The class is a `Generic`_ with one type parameter, ``T``: the type of the
+    rows it returns (``tuple[int, str]`` or ``dict[str, Any]``, matching
+    ``struct_repr``). It is only used by static type checkers and is not
+    checked at runtime, e.g. ``Reader[tuple[int, str]](f)``. If you leave it
+    out, ``T`` defaults to ``Any``.
+
     :param object fileo: a readable binary file-like object.
     :param int batch_size: the size of a batch to read.
     :param Iterable column_indices: a list of column indices to read.
@@ -316,6 +322,9 @@ API documentation
     An object that represents a stripe in an ORC file. It's iterable just
     like :class:`Reader`, and inherits many of its methods, but the read
     rows are limited to the stripe.
+
+    The class is a `Generic`_ with one type parameter, just like the
+    :class:`Reader`.
 
     :param Reader reader: a reader object.
     :param int idx: the index of the stripe.
@@ -561,6 +570,12 @@ API documentation
     parameter. The dictionary's keys must be a :class:`TypeKind` and the
     values must implement the :class:`ORCConverter` abstract class.
 
+    The class is a `Generic`_ with one type parameter, ``T``: the type of the
+    rows it writes (``tuple[int, str]`` or ``dict[str, Any]``, matching
+    ``struct_repr``). It is only used by static type checkers and is not
+    checked at runtime, e.g. ``Writer[tuple[int, str]](f)``. If you leave it
+    out, ``T`` defaults to ``Any``.
+
     :param object fileo: a writable binary file-like object.
     :param TypeDescription|str schema: the ORC schema of the file.
     :param int batch_size: the batch size for the ORC file.
@@ -688,3 +703,5 @@ Enums
     :members:
     :undoc-members:
     :member-order: bysource
+
+.. _Generic: https://docs.python.org/3/library/typing.html#typing.Generic

@@ -196,3 +196,29 @@ parameter as a dictionary with one of the supported types as key::
 
     data = open("./timestamps.orc", "rb")
     reader = pyorc.Reader(data, converters={pyorc.TypeKind.TIMESTAMP: TSConverter})
+
+
+Static typing
+-------------
+
+.. versionadded:: 0.12.0
+
+Reader, Stripe and Writer are `Generic`_ classes, meaning they accept a
+``T`` parameter to represent the Python type of the read or written rows.
+
+.. code-block:: python
+
+    import pyorc
+
+    with open("./data.orc", "rb") as data:
+        reader = pyorc.Reader[tuple[int, str]](data)
+        for row in reader:
+            print(row)
+
+    with open("./new.orc", "wb") as output:
+        with pyorc.Writer[tuple[int, str, list[int]]](output, "struct<col0:int,col1:string,col2:array<int>>") as writer:
+            writer.write((0, "data", [0,1,2]))
+
+The type parameter is only for static type checkers. It has no effect at runtime.
+
+.. _Generic: https://docs.python.org/3/library/typing.html#typing.Generic
