@@ -29,7 +29,7 @@ We can check the number of rows in the file by calling len() on the Reader::
     >>> len(reader)
     1920800
 
-The Reader is an interable object, yielding a new row after every
+The Reader is an iterable object, yielding a new row after every
 iteration::
 
     >>> next(reader)
@@ -39,7 +39,7 @@ iteration::
 
 Iterating over the file's content to process its rows is the preferable way,
 but we can also read the entire file into the memory with the read method.
-This method has an optional parameter to control the maximal number of rows
+This method has an optional parameter to control the maximum number of rows
 to read::
 
     >>> rows = reader.read(10000)
@@ -48,10 +48,10 @@ to read::
     >>> reader.read()  # This call froze the interpreter for several minutes!
     ... (1920799, 'M', 'U', 'Unknown', 10000, 'Unknown', 6, 6, 6), (1920800, 'F', 'U', 'Unknown', 10000, 'Unknown', 6, 6, 6)]
 
-Using this optional parameter for larger ORC file is highly recommended!
+Using this optional parameter for larger ORC files is highly recommended!
 
 After all the rows are read, the Reader object has no more rows to yield.
-There's a seek method to jump a specific row in the file and continue the
+There's a seek method to jump to a specific row in the file and continue the
 read from that point::
 
     >>> reader.seek(1000)
@@ -59,7 +59,7 @@ read from that point::
     >>> next(reader)
     (1001, 'M', 'M', 'College', 7500, 'Good', 0, 0, 0)
 
-By default all fields are loaded from an ORC file, but that can be changed
+By default, all fields are loaded from an ORC file, but that can be changed
 by passing either `column_indices` or `column_names` parameter to Reader::
 
     >>> reader = pyorc.Reader(example, column_names=("_col0", "_col5"))
@@ -76,8 +76,8 @@ We can also change the representation of a struct from tuple to dictionary::
 Stripes
 -------
 
-ORC files are divided in to stripes. Stripes are independent of each other.
-Let's open an other ORC files that has multiple stripes in it::
+ORC files are divided into stripes. Stripes are independent of each other.
+Let's open another ORC file that has multiple stripes in it::
 
     >>> example = open("./deps/examples/TestOrcFile.testStripeLevelStats.orc", "rb")
     >>> reader = pyorc.Reader(example)
@@ -85,19 +85,19 @@ Let's open an other ORC files that has multiple stripes in it::
     3
 
 The `num_of_stripes` property of the Reader shows how many stripes are in
-the file. We can read a certain stripes using the `read_stripe` method::
+the file. We can read a certain stripe using the `read_stripe` method::
 
     >>> stripe2 = reader.read_stripe(2)
     >>> stripe2
     <pyorc._pyorc.stripe object at 0x7f9784e09ce0>
 
-The stripe object also an iterable object and has the same methods for
+The stripe object is also an iterable object and has the same methods for
 reading and seeking rows, but only in the boundaries of the selected
 stripe::
 
     >>> next(stripe2)
     (3, 'three')
-    >>> len(stripe1)
+    >>> len(stripe2)
     1000
     >>> len(reader)
     11000
@@ -137,7 +137,7 @@ Writing
 -------
 
 To write a new ORC file we need to open a binary file-like object and pass
-to a Writer object with an ORC schema description. The schema can be a 
+it to a Writer object with an ORC schema description. The schema can be a
 TypeDescription or a simple string ORC schema definition::
 
     >>> output = open("./new.orc", "wb")
@@ -151,7 +151,7 @@ We can add rows to the file with the `write` method::
     >>> writer.write((1, "Test 1"))
 
 Don't forget to close the writer to write out the necessary metadata,
-otherwise it won't be a valid ORC file.
+otherwise it won't be a valid ORC file::
 
     >>> writer.close()
 

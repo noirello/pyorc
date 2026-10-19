@@ -54,8 +54,8 @@ And another for writing one:
 Contribution
 ============
 
-Any contributions are welcome. If you would like to help in development fork
-or report issue here on Github. You can also help in improving the
+Any contributions are welcome. If you would like to help in development fork the
+repository or report an issue here on GitHub. You can also help in improving the
 documentation.
 
 .. _Apache ORC: https://orc.apache.org/

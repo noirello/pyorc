@@ -10,7 +10,7 @@ API documentation
 
     An object that represents a column in an ORC file. It contains
     statistics about the column. If the `stream` is a :class:`Reader`
-    object then the column refers to the entire ORC file, if its a 
+    object then the column refers to the entire ORC file, if it's a
     :class:`Stripe` then just the specified ORC stripe.
 
     :param Reader|Stripe stream: an ORC stream object (:class:`Reader`
@@ -20,8 +20,8 @@ API documentation
 .. attribute:: Column.statistics
 
     A dictionary object about the Column's statistics. It always contains
-    the kind of the column, the number of values that does not include null
-    values and a boolean value about either containing null values or not.
+    the kind of the column, the number of values that do not include null
+    values and a boolean saying whether the column contains nulls.
     It may contain other information depending on the kind of the column
     like minimum and maximum values, sums etc.
 
@@ -31,7 +31,7 @@ API documentation
 
 .. class:: ORCConverter()
 
-    An abstract class for implementing own converters for `date`, `decimal`
+    An abstract class for implementing custom converters for `date`, `decimal`
     and `timestamp` types. These types are stored as integers in the ORC file
     and can be transformed into more convenient Python objects.
 
@@ -40,10 +40,10 @@ API documentation
     one of :attr:`TypeKind.DATE`, :attr:`TypeKind.DECIMAL`, or
     :attr:`TypeKind.TIMESTAMP`, and the value is the converter itself.
 
-.. staticmethod:: ORCConverter.from_orc(*args)
+.. staticmethod:: ORCConverter.from_orc(*args, **kwargs)
 
-    Builds high-level objects from basic ORC type. Its arguments depend on
-    what ORC type the converter is bound:
+    Builds high-level objects from a basic ORC type. Its arguments depend on
+    what ORC type the converter is bound to:
 
         * `date`: the number of days since the epoch as a single integer.
         * `decimal`: the decimal number formatted as a string.
@@ -52,14 +52,13 @@ API documentation
 
     :return: the constructed Python object.
 
-.. staticmethod:: ORCConverter.to_orc(*args)
+.. staticmethod:: ORCConverter.to_orc(*args, **kwargs)
 
     Converts the high-level Python object to basic ORC type. Its argument
-    is a single Python object, when the convert is bound to `date` or
-    `timestamp`. The precision and scale are also passed to this method
-    as integers, along with the object when it's bound to a decimal type,
-    and the Writer's timezone as a ZoneInfo object, when it's bound to a
-    timestamp type.
+    is a single Python object, when the converter is bound to `date`. The
+    precision and scale are also passed to this method as integers, along
+    with the object when it's bound to a decimal type, and the Writer's
+    timezone as a ZoneInfo object, when it's bound to a timestamp type.
 
     Expected return value:
 
@@ -86,21 +85,19 @@ API documentation
 
 .. method:: Predicate.__or__(other)
 
-    Set logical OR connection between to predicate expressions.
+    Set logical OR connection between two predicate expressions.
 
     :param Predicate other: the other predicate.
 
 .. method:: Predicate.__and__(other)
 
-    Set logical AND connection between to predicate expressions.
+    Set logical AND connection between two predicate expressions.
 
     :param Predicate other: the other predicate.
 
-.. method:: Predicate.__invert__(other)
+.. method:: Predicate.__invert__()
 
-    Set logical NOT to a predicate expression.
-
-    :param Predicate other: the other predicate.
+    Set logical NOT to the predicate expression.
 
 
 :class:`PredicateColumn`
@@ -146,17 +143,17 @@ API documentation
                   predicate=None, null_value=None)
 
     An object to read ORC files. The `fileo` must be a binary stream that
-    support seeking. Either `column_indices` or `column_names` can be used
+    supports seeking. Either `column_indices` or `column_names` can be used
     to select specific columns from the ORC file.
 
     The object iterates over rows by calling :meth:`Reader.__next__`. By
-    default, the ORC struct type represented as a tuple, but it can be
+    default, the ORC struct type is represented as a tuple, but it can be
     changed by changing `struct_repr` to a valid :class:`StructRepr` value.
 
     For decimal, date and timestamp ORC types the default converters to
-    Python objects can be change by setting a dictionary to the `converters`
-    parameter. The dictionary's keys must be a :class:`TypeKind` and the
-    values must implement the :class:`ORCConverter` abstract class.
+    Python objects can be changed by setting a dictionary to the `converters`
+    parameter. The dictionary's keys must be values of :class:`TypeKind` and
+    the values must implement the :class:`ORCConverter` abstract class.
 
     :param object fileo: a readable binary file-like object.
     :param int batch_size: The size of a batch to read.
@@ -198,8 +195,8 @@ API documentation
 
 .. method:: Reader.read(rows=-1)
 
-    Read the rows into memory. If `rows` is specified, at most number of
-    rows will be read.
+    Read the rows into memory. If `rows` is specified, at most that
+    many rows are read.
 
     :return: A list of rows.
     :rtype: list
@@ -301,9 +298,9 @@ API documentation
 
 .. attribute:: Reader.writer_version
 
-    The version of the writer created the file, returned as
+    The version of the writer that created the file, returned as
     :class:`WriterVersion`. This version is used to mark significant changes
-    (that doesn't change the file format) and helps the reader to handle
+    (that don't change the file format) and helps the reader to handle
     the corresponding file correctly.
 
 
@@ -358,7 +355,7 @@ API documentation
 
 .. attribute:: Stripe.bytes_offset
 
-    The bytes offset where the stripe starts in the file.
+    The byte offset where the stripe starts in the file.
 
 .. attribute:: Stripe.current_row
 
@@ -379,7 +376,7 @@ API documentation
 .. class:: TypeDescription()
 
     The base class for representing a type of ORC schema. A schema
-    consists one or more instances that are inherited from the
+    consists of one or more instances that are inherited from the
     TypeDescription class.
 
 .. staticmethod:: TypeDescription.from_string(schema)
@@ -389,7 +386,7 @@ API documentation
 
 .. method:: TypeDescription.find_column_id(name)
 
-    Find the its id of a column by its name.
+    Find the column's id by its name.
 
 .. method:: TypeDescription.set_attributes(attrs)
 
@@ -509,7 +506,7 @@ API documentation
 
     >>> schema = Struct(
     ...    field0=Int(),
-    ...    field1=Map(key=String(),value=Double()),
+    ...    field1=Map(key=String(), value=Double()),
     ...    field2=Timestamp(),
     ... )
     >>> str(schema)
@@ -547,10 +544,10 @@ API documentation
     parameter. The dictionary's keys must be a :class:`TypeKind` and the
     values must implement the :class:`ORCConverter` abstract class.
 
-    :param object fileo: a writeable binary file-like object.
+    :param object fileo: a writable binary file-like object.
     :param TypeDescription|str schema: the ORC schema of the file.
     :param int batch_size: the batch size for the ORC file.
-    :param int stripe_size: the stripes size in bytes.
+    :param int stripe_size: the stripe's size in bytes.
     :param int row_index_stride: the size of the row index stride.
     :param CompressionKind compression: the compression kind for the ORC
         file.
@@ -559,7 +556,7 @@ API documentation
     :param int compression_block_size: the compression block size in bytes.
     :param list bloom_filter_columns: list of columns to use Bloom filter.
     :param float bloom_filter_fpp: the false positive probability for the
-        Bloom filter (Must be 0> and 1<).
+        Bloom filter (must be greater than 0 and less than 1).
     :param ZoneInfo timezone: a ZoneInfo object to use for writing timestamp
         columns.
     :param StructRepr struct_repr: An enum to set the representation for
@@ -608,8 +605,8 @@ API documentation
 
 .. method:: Writer.writerows(rows)
 
-    Write multiple rows with one function call. It iterates over the `rows` and 
-    calls :meth:`Writer.write`. Returns the written number of rows.
+    Write multiple rows with one function call. It iterates over the `rows` and
+    calls :meth:`Writer.write`. Returns the number of rows written.
 
     :param iterable rows: an iterable with the rows.
     :return: the written number of rows.

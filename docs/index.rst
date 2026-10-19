@@ -41,8 +41,8 @@ Indices and tables
 Contribution
 ============
 
-Any contributions are welcome. If you would like to help in development fork
-or report issue on the project's `GitHub site`_. You can also help in
+Any contributions are welcome. If you would like to help in development fork the
+repository or report issue on the project's `GitHub site`_. You can also help in
 improving the documentation.
 
 .. _github site: https://github.com/noirello/pyorc
