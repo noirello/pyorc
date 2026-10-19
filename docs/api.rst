@@ -114,7 +114,7 @@ API documentation
     A simple predicate example, that filtering row groups where the
     ``col0`` column is less than 0:
 
-    >>> pred = PredicateColumn("col0", TypeKind.INT) < 0)
+    >>> pred = (PredicateColumn(TypeKind.INT, "col0") < 0)
 
     :param str name: the name of the column in the ORC file.
     :param TypeKind type_kind: the type of the column.

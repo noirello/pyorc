@@ -194,4 +194,4 @@ To use the converter you have to set the Reader's or Writer's converters
 parameter as a dictionary with one of the supported types as key::
 
     data = open("./timestamps.orc", "rb")
-    reader = pyorc.Reader(data, converters={TypeKind.TIMESTAMP: TSConverter})
+    reader = pyorc.Reader(data, converters={pyorc.TypeKind.TIMESTAMP: TSConverter})
