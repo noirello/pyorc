@@ -4,8 +4,8 @@ Installing
 Using pip
 ---------
 
-For Linux and Mac, you can simply use pip that will install a wheel bundled
-with the required libraries::
+For Linux, macOS and Windows, you can simply use pip that will install a wheel
+bundled with the required libraries::
 
     $ pip3 install pyorc
 
@@ -33,31 +33,36 @@ Install from source
 
 To install from source, the module requires the Apache ORC C++ Core library.
 During the extension build step, the module will build the ORC core library
-before building the extension module itself. It requires `cmake` -- in
+before building the extension module itself. It requires ``cmake`` -- in
 addition to a suitable C++ compiler. The following steps take place during
-the `build_ext` command:
+the ``build_ext`` command:
 
     1. Downloading the Apache ORC release package.
-    2. Extracting the package to a directory named `deps` into the project's
-       root directory.
-    3. Running cmake to configure the ORC C++ library.
-    4. Running the ``make package`` command.
+    2. Extracting the package to a directory named ``deps`` into the
+       project's root directory.
+    3. Running ``cmake`` to configure the ORC C++ library.
+    4. Building the library with ``cmake --build`` and installing it into a
+       temporary package directory with ``cmake --install``.
     5. Finally, moving the C++ headers, ORC example files and ORC tools
-       to the top level of the `deps` directory for the `setup.py` and tests
-       to find.
+       to the top level of the ``deps`` directory for the ``setup.py`` and
+       tests to find.
     6. Building the C++ extension part of PyORC.
 
 .. note::
-    The ``build_ext`` command has a ``--orc-version`` and a ``--source-url``
-    parameter for changing the default ORC library version or the URL of the
-    source zip to download respectively. It also has a ``--skip-orc-build``
-    flag to skip ORC library build steps.
+    The ``build_ext`` command has an ``--orc-version`` and a ``--source-url``
+    parameter for changing the default ORC library version or the base URL
+    that the ORC source archive is downloaded from, respectively. It also has
+    a ``--skip-orc-build`` flag to skip the ORC library build steps.
 
-You also need the `pybind11` Python package to be installed before running
-the installation::
+    ``pip`` does not pass these parameters to ``build_ext``, so when
+    installing with ``pip``, set the ``PYORC_LIB_VERSION`` and
+    ``PYORC_SKIP_ORC_BUILD`` environment variables instead.
 
-    $ pip3 install pybind11
-    $ python3 setup.py install
+You also need the ``pybind11`` Python package to be installed before running
+the installation, but it's part of the build requirements of the
+`pyproject.toml`, so modern pip will install it automatically::
+
+    $ pip3 install .
 
 After the installation completes without errors, you have the module ready
 to use.
