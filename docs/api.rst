@@ -103,7 +103,7 @@ API documentation
 :class:`PredicateColumn`
 ========================
 
-.. class:: PredicateColumn(type_kind, name=None, index=None, precision=None,
+.. class:: PredicateColumn(type_kind, name=None, index=None, precision=None, \
                            scale=None)
 
     An object that represents a specific column to use in a predicate

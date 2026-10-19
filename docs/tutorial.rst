@@ -1,6 +1,8 @@
 Tutorial
 ========
 
+.. currentmodule:: pyorc
+
 At this point you have an installed pyorc module.
 
 Reading
@@ -17,9 +19,9 @@ See the schema of the selected file::
     >>> reader.schema
     <pyorc.typedescription.Struct object at 0x7f9784d91298>
 
-The Reader's schema read-only property is a :class:`TypeDescription` object,
-representing the ORC file's type hierarchy. We can get a more human-friendly
-interpretation if we print its string format::
+The :class:`Reader`'s schema read-only property is a :class:`TypeDescription`
+object, representing the ORC file's type hierarchy. We can get a more
+human-friendly interpretation if we print its string format::
 
     >>> str(reader.schema)
     'struct<_col0:int,_col1:string,_col2:string,_col3:string,_col4:int,_col5:string,_col6:int,_col7:int,_col8:int>'
@@ -29,7 +31,7 @@ We can check the number of rows in the file by calling len() on the Reader::
     >>> len(reader)
     1920800
 
-The Reader is an iterable object, yielding a new row after every
+The :class:`Reader` is an iterable object, yielding a new row after every
 iteration::
 
     >>> next(reader)
@@ -50,9 +52,9 @@ to read::
 
 Using this optional parameter for larger ORC files is highly recommended!
 
-After all the rows are read, the Reader object has no more rows to yield.
-There's a seek method to jump to a specific row in the file and continue the
-read from that point::
+After all the rows are read, the :class:`Reader` object has no more rows to
+yield. There's a seek method to jump to a specific row in the file and
+continue the read from that point::
 
     >>> reader.seek(1000)
     1000
@@ -92,7 +94,7 @@ the file. We can read a certain stripe using the `read_stripe` method::
     >>> stripe2
     <pyorc.reader.Stripe object at 0x7f100cbf2fc0>
 
-The stripe object is also an iterable object and has the same methods for
+The :class:`Stripe` object is also an iterable object and has the same methods for
 reading and seeking rows, but within the boundaries of the selected stripe::
 
     >>> next(stripe2)
@@ -138,8 +140,8 @@ Writing
 -------
 
 To write a new ORC file we need to open a binary file-like object and pass
-it to a Writer object with an ORC schema description. The schema can be a
-TypeDescription or a simple string ORC schema definition::
+it to a :class:`Writer` object with an ORC schema description. The schema
+can be a :class:`TypeDescription` or a simple string ORC schema definition::
 
     >>> output = open("./new.orc", "wb")
     >>> writer = pyorc.Writer(output, "struct<col0:int,col1:string>")
@@ -156,9 +158,9 @@ otherwise it won't be a valid ORC file::
 
     >>> writer.close()
 
-For simpler use the Writer object can be used as a context manager, and you
-can also change the struct representation to use dictionaries as rows instead
-of tuples:
+For simpler use the :class:`Writer` object can be used as a context manager,
+and you can also change the struct representation to use dictionaries as rows
+instead of tuples:
 
 .. code-block:: python
 
@@ -203,8 +205,9 @@ Static typing
 
 .. versionadded:: 0.12.0
 
-Reader, Stripe and Writer are `Generic`_ classes, meaning they accept a
-``T`` parameter to represent the Python type of the read or written rows.
+:class:`Reader`, :class:`Stripe` and :class:`Writer` are `Generic`_ classes,
+meaning they accept a ``T`` parameter to represent the Python type of the
+read or written rows.
 
 .. code-block:: python
 
