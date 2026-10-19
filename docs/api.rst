@@ -293,7 +293,8 @@ API documentation
 .. attribute:: Reader.writer_id
 
     The identification of the writer that created the ORC file. The known
-    writers are the official Java writer, the C++ writer and the Presto writer.
+    writers are the official Java and the C++ writers, the Presto,
+    Scritchley (Golang implementation), Trino and CUDF writers.
     Other possible writers are represented as ``"UNKNOWN_WRITER"``.
 
     >>> reader.writer_id
