@@ -16,7 +16,7 @@ PyORC
 Python module for reading and writing `Apache ORC`_ file format. It uses the Apache ORC's Core C++ API
 under the hood, and provides a similar interface as the `csv module`_ in the Python standard library.
 
-Supports only Python 3.11 or newer and ORC 1.8 or newer library version.
+Supports Python 3.11 or newer and ORC 1.8 or newer library version.
 
 Features
 --------
@@ -55,7 +55,7 @@ Contribution
 ============
 
 Any contributions are welcome. If you would like to help in development fork the
-repository or report an issue here on GitHub. You can also help in improving the
+repository, or report an issue here on GitHub. You can also help in improving the
 documentation.
 
 .. _Apache ORC: https://orc.apache.org/

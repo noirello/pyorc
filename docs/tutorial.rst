@@ -60,7 +60,8 @@ read from that point::
     (1001, 'M', 'M', 'College', 7500, 'Good', 0, 0, 0)
 
 By default, all fields are loaded from an ORC file, but that can be changed
-by passing either `column_indices` or `column_names` parameter to Reader::
+by passing either the `column_indices` or the `column_names` parameter to
+Reader::
 
     >>> reader = pyorc.Reader(example, column_names=("_col0", "_col5"))
     >>> next(reader)
@@ -89,11 +90,10 @@ the file. We can read a certain stripe using the `read_stripe` method::
 
     >>> stripe2 = reader.read_stripe(2)
     >>> stripe2
-    <pyorc._pyorc.stripe object at 0x7f9784e09ce0>
+    <pyorc.reader.Stripe object at 0x7f100cbf2fc0>
 
 The stripe object is also an iterable object and has the same methods for
-reading and seeking rows, but only in the boundaries of the selected
-stripe::
+reading and seeking rows, but within the boundaries of the selected stripe::
 
     >>> next(stripe2)
     (3, 'three')
@@ -126,8 +126,9 @@ during reading::
 The predicate can be used to select a single row group, but not an
 individual record. The size of the row group is determined by the
 `row_index_stride`, set during writing of the file. You can create more
-complex predicate using logical expressions::
+complex predicates using logical expressions::
 
+    >>> from pyorc import PredicateColumn, TypeKind
     >>> pred = (PredicateColumn(TypeKind.INT, "c0") > 300) & (PredicateColumn(TypeKind.STRING, "c1") == "A")
 
 One of the comparands must always be a literal value (cannot compare two
@@ -155,9 +156,9 @@ otherwise it won't be a valid ORC file::
 
     >>> writer.close()
 
-For simpler use the Writer object can be used as a context manager and you
+For simpler use the Writer object can be used as a context manager, and you
 can also change the struct representation to use dictionaries as rows instead
-of tuples as well:
+of tuples:
 
 .. code-block:: python
 

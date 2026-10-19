@@ -107,13 +107,14 @@ API documentation
                            scale=None)
 
     An object that represents a specific column to use in a predicate
-    expression. It can be compared to literal value to create a
+    expression. It can be compared to a literal value to create a
     :class:`Predicate`. A column can be addressed by either its name or its
     index.
 
-    A simple predicate example, that filtering row groups where the
-    ``col0`` column is less than 0:
+    A simple predicate example, that filters row groups where the ``col0``
+    column is less than 0:
 
+    >>> from pyorc import PredicateColumn, TypeKind
     >>> pred = (PredicateColumn(TypeKind.INT, "col0") < 0)
 
     :param str name: the name of the column in the ORC file.
@@ -156,9 +157,9 @@ API documentation
     the values must implement the :class:`ORCConverter` abstract class.
 
     :param object fileo: a readable binary file-like object.
-    :param int batch_size: The size of a batch to read.
-    :param list column_indices: a list of column indices to read.
-    :param list column_names: a list of column names to read.
+    :param int batch_size: the size of a batch to read.
+    :param Iterable column_indices: a list of column indices to read.
+    :param Iterable column_names: a list of column names to read.
     :param ZoneInfo timezone: a ZoneInfo object to use for parsing timestamp
         columns.
     :param StructRepr struct_repr: An enum to set the representation for
@@ -172,7 +173,7 @@ API documentation
 
 .. method:: Reader.__getitem__(col_idx)
 
-    Get a :class:`Column` object. The indexing is the same as it's in the
+    Get a :class:`Column` object. The indexing is the same as it is in the
     ORC file which means `0` is the top-level, the first field in the
     top-level struct is `1`, if the `nth` field in the struct is a map then
     the `(n+1)th` index is the column of the keys and the `(n+2)th` index is
@@ -193,19 +194,21 @@ API documentation
     :return: an iterator of :class:`Stripe` objects.
     :rtype: iterator
 
-.. method:: Reader.read(rows=-1)
+.. method:: Reader.read(num=-1)
 
-    Read the rows into memory. If `rows` is specified, at most that
+    Read the rows into memory. If `num` is specified, at most that
     many rows are read.
+
+    :param int num: the number of rows (at most) to read.
 
     :return: A list of rows.
     :rtype: list
 
-.. method:: Reader.read_stripe(idx)
+.. method:: Reader.read_stripe(stripe_idx)
 
-    Read a specific :class:`Stripe` object at `idx` from the ORC file.
+    Read a specific :class:`Stripe` object at `stripe_idx` from the ORC file.
 
-    :param int idx: the index of the stripe.
+    :param int stripe_idx: the index of the stripe.
 
     :return: a :class:`Stripe` object.
     :rtype: Stripe
@@ -213,9 +216,9 @@ API documentation
 .. method:: Reader.seek(row, whence=0)
 
     Jump to a certain row position in the file. Values for `whence` are:
-        * 0 – start of the file (the default); offset should be zero or positive.
-        * 1 – current file position; offset may be negative.
-        * 2 – end of the file; offset should be negative.
+        * 0 – start of the file (the default); row should be zero or positive.
+        * 1 – current file position; row may be negative.
+        * 2 – end of the file; row should be negative.
 
     :return: number of the absolute row position.
     :rtype: int
@@ -270,7 +273,7 @@ API documentation
 .. attribute:: Reader.schema
 
     A :class:`TypeDescription` object of the ORC file's schema. Always
-    represents the full schema of the file, regardless which columns
+    represents the full schema of the file, regardless of which columns
     are selected to read.
 
 .. attribute:: Reader.selected_schema
@@ -337,17 +340,19 @@ API documentation
     :return: number of the absolute row position in the stripe.
     :rtype: int
 
-.. method:: Stripe.read(rows=-1)
+.. method:: Stripe.read(num=-1)
 
-    Read the rows into memory. If `rows` is specified, at most number of
-    rows will be read.
+    Read the rows into memory. If `num` is specified, at most that
+    many rows are read.
+
+    :param int num: the number of rows (at most) to read.
 
     :return: A list of rows.
     :rtype: list
 
 .. attribute:: Stripe.bloom_filter_columns
 
-    The list of column indices that have Bloom filter.
+    The tuple of column indices that have Bloom filter.
 
 .. attribute:: Stripe.bytes_length
 
@@ -384,9 +389,20 @@ API documentation
     Return instances of TypeDescription objects from a string
     representation of an ORC schema.
 
-.. method:: TypeDescription.find_column_id(name)
+.. method:: TypeDescription.find_column_id(dotted_key)
 
-    Find the column's id by its name.
+    Find the column's id by its name. A column nested in a struct is addressed
+    by its full path from the top-level struct, with the field names joined by
+    dots. For example finding the id of `lvl2_b` in
+    ``struct<lvl1:struct<lvl2_a:int,lvl2_b:string>>`` use ``"lvl1.lvl2_b"``.
+    When the column name also contains a dot, it must be enclosed with
+    backticks (e.g. ``"lvl1.`lvl2.dotted`"``).
+
+    :param str dotted_key: the name or dotted path of the column.
+
+    :return: the id number of the column.
+    :rtype: int
+    :raises KeyError: if the column does not exist
 
 .. method:: TypeDescription.set_attributes(attrs)
 
@@ -533,14 +549,14 @@ API documentation
     The `schema` must be :class:`TypeDescription` or a valid ORC schema
     definition as a string.
 
-    With the `bloom_filter_columns` a list of column ids or field names
+    With the `bloom_filter_columns` a collection of column ids or field names
     can be set to create a Bloom filter for the column. Nested structure
     fields can be selected with dotted format. For example in a file with
     a ``struct<first:struct<second:int>>`` schema the second column can be
     selected as ``["first.second"]``.
 
     For decimal, date and timestamp ORC types the default converters from
-    Python objects can be change by setting a dictionary to the `converters`
+    Python objects can be changed by setting a dictionary to the `converters`
     parameter. The dictionary's keys must be a :class:`TypeKind` and the
     values must implement the :class:`ORCConverter` abstract class.
 
@@ -554,7 +570,7 @@ API documentation
     :param CompressionStrategy compression_strategy: the compression
         strategy.
     :param int compression_block_size: the compression block size in bytes.
-    :param list bloom_filter_columns: list of columns to use Bloom filter.
+    :param Collection bloom_filter_columns: list of columns to use Bloom filter.
     :param float bloom_filter_fpp: the false positive probability for the
         Bloom filter (must be greater than 0 and less than 1).
     :param ZoneInfo timezone: a ZoneInfo object to use for writing timestamp
@@ -567,8 +583,8 @@ API documentation
     :param float padding_tolerance: tolerance for block padding.
     :param float dict_key_size_threshold: threshold for dictionary encoding.
     :param object null_value: a singleton object to represent ORC null value.
-    :param int memory_block_size: the initial block size of the original
-        input buffer.
+    :param int memory_block_size: the initial block size of writer's
+        memory-pool.
 
 .. method:: Writer.__enter__()
 .. method:: Writer.__exit__()

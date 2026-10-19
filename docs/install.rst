@@ -11,20 +11,20 @@ with the required libraries::
 
 .. note::
     To install on Linux, you need *pip 19.0* or newer. Earlier versions are
-    unable to handle the ``manylinux2010`` wheels, thus they try to install
-    the package from source.
+    unable to handle the appropriate ``manylinux`` wheels, thus they try to
+    install the package from source.
 
 There could be some drawbacks of the bundled libraries in the package, when
-using together with other Python modules. If another module is loaded into
+used together with other Python modules. If another module is loaded into
 the Python runtime besides PyORC that also pre-bundles one of the required
 C/C++ libraries but a slightly different version, then the two libraries
 will collide, and the interpreter will crash with a segmentation fault at
 some point during the execution.
 
 It's easy to run into this situation. For example, ``libprotobuf`` is
-one of required libraries for ORC, and it's quite popular for other projects
-as well. To avoid this, you have to make sure that the very same version
-of the common library is used by both of the modules, and therefore
+one of the required libraries for ORC, and it's quite popular for other
+projects as well. To avoid this, you have to make sure that the very same
+version of the common library is used by both of the modules, and therefore
 you might need to build PyORC from source.
 
 
