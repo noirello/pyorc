@@ -10,6 +10,8 @@ Added
 - Python 3.15 wheels and free threaded wheels.
 - Guards to avoid sharing Reader or Writer between threads
   and crashing, when running on free threaded interpreter.
+- Type parameter support for Reader, Stripe and Writer, for better static
+  typing (e.g. ``Reader[tuple[int, str]]``).
 
 Changed
 ~~~~~~~
