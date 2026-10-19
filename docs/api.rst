@@ -164,8 +164,8 @@ API documentation
 
     :param object fileo: a readable binary file-like object.
     :param int batch_size: the size of a batch to read.
-    :param Iterable column_indices: a list of column indices to read.
-    :param Iterable column_names: a list of column names to read.
+    :param Iterable column_indices: an iterable of column indices to read.
+    :param Iterable column_names: an iterable of column names to read.
     :param ZoneInfo timezone: a ZoneInfo object to use for parsing timestamp
         columns.
     :param StructRepr struct_repr: An enum to set the representation for
@@ -567,8 +567,8 @@ API documentation
 
     For decimal, date and timestamp ORC types the default converters from
     Python objects can be changed by setting a dictionary to the `converters`
-    parameter. The dictionary's keys must be a :class:`TypeKind` and the
-    values must implement the :class:`ORCConverter` abstract class.
+    parameter. The dictionary's keys must be values of :class:`TypeKind` and
+    the values must implement the :class:`ORCConverter` abstract class.
 
     The class is a `Generic`_ with one type parameter, ``T``: the type of the
     rows it writes (``tuple[int, str]`` or ``dict[str, Any]``, matching
@@ -586,7 +586,8 @@ API documentation
     :param CompressionStrategy compression_strategy: the compression
         strategy.
     :param int compression_block_size: the compression block size in bytes.
-    :param Collection bloom_filter_columns: list of columns to use Bloom filter.
+    :param Collection bloom_filter_columns: the columns (ids or names) to
+        create a Bloom filter for.
     :param float bloom_filter_fpp: the false positive probability for the
         Bloom filter (must be greater than 0 and less than 1).
     :param ZoneInfo timezone: a ZoneInfo object to use for writing timestamp

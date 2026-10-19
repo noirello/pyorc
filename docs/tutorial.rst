@@ -207,14 +207,24 @@ Static typing
 
 :class:`Reader`, :class:`Stripe` and :class:`Writer` are `Generic`_ classes,
 meaning they accept a ``T`` parameter to represent the Python type of the
-read or written rows.
+read or written rows. When not set, the ``T`` type parameter defaults to
+``Any``.
 
 .. code-block:: python
 
     import pyorc
+    from typing import Any
 
+    # with default struct repr
     with open("./data.orc", "rb") as data:
         reader = pyorc.Reader[tuple[int, str]](data)
+        for row in reader:
+            print(row)
+
+    # with dict struct repr
+
+    with open("./data.orc", "rb") as data:
+        reader = pyorc.Reader[dict[str, Any]](data, struct_repr=pyorc.StructRepr.DICT)
         for row in reader:
             print(row)
 
