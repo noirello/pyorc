@@ -13,6 +13,8 @@
 import sys
 import os
 
+from types import GenericAlias
+
 sys.path[0:0] = [os.path.abspath("..")]
 
 # For read-the-docs: mocking the _pyorc module.
@@ -25,12 +27,9 @@ class Mock(MagicMock):
         # For pyorc
         if name == "typedescription":
             return object
-        elif name == "reader":
-            return object
-        elif name == "writer":
-            return object
-        elif name == "stripe":
-            return object
+        elif name in ("reader", "writer", "stripe"):
+            # Make these mocks subscriptable
+            return type(name, (), {"__class_getitem__": classmethod(GenericAlias)})
         elif name == "_orc_version":
             return lambda: "0.0.0-DUMMY"
         elif name == "_protobuf_version":
