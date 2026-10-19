@@ -20,7 +20,7 @@ else:
     T = TypeVar("T")
 
 
-class Column(Generic[T]):
+class Column:
     def __init__(self, stream: "Reader[T] | Stripe[T]", index: int):
         self.index = index
         self.stream = stream
@@ -53,7 +53,7 @@ class Column(Generic[T]):
 
 
 class Stripe(stripe[T], Generic[T]):
-    def __getitem__(self, col_idx: int) -> "Column[T]":
+    def __getitem__(self, col_idx: int) -> "Column":
         return Column(self, col_idx)
 
 
@@ -93,7 +93,7 @@ class Reader(reader[T], Generic[T]):
             null_value,
         )
 
-    def __getitem__(self, col_idx: int) -> Column[T]:
+    def __getitem__(self, col_idx: int) -> Column:
         return Column(self, col_idx)
 
     def read_stripe(self, stripe_idx: int) -> Stripe[T]:
