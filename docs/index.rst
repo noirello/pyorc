@@ -41,7 +41,7 @@ Indices and tables
 Contribution
 ============
 
-Any contributions are welcome. If you would like to help in development fork the
+Any contributions are welcome. If you would like to help in development, fork the
 repository, or report an issue on the project's `GitHub site`_. You can also help in
 improving the documentation.
 

@@ -54,7 +54,7 @@ And another for writing one:
 Contribution
 ============
 
-Any contributions are welcome. If you would like to help in development fork the
+Any contributions are welcome. If you would like to help in development, fork the
 repository, or report an issue here on GitHub. You can also help in improving the
 documentation.
 
