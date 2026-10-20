@@ -103,6 +103,7 @@ Writer::Writer(py::object fileo,
 {
     currentRow = 0;
     batchItem = 0;
+    closed = false;
     ORC_UNIQUE_PTR<orc::Type> type = createType(schema);
     orc::WriterOptions options;
     py::dict converters;
@@ -144,6 +145,9 @@ void
 Writer::write(py::object row)
 {
     UseFlag::Guard guard(useFlag);
+    if (closed) {
+        throw py::value_error("I/O operation on closed writer");
+    }
     this->writeImpl(row);
 }
 
@@ -166,6 +170,9 @@ Writer::writerows(py::iterable iter)
 {
     UseFlag::Guard guard(useFlag);
     uint64_t rows = 0;
+    if (closed) {
+        throw py::value_error("I/O operation on closed writer");
+    }
     for (auto handle : iter) {
         auto obj = py::cast<py::object>(handle);
         this->writeImpl(obj);
@@ -178,12 +185,15 @@ void
 Writer::close()
 {
     UseFlag::Guard guard(useFlag);
-    if (batchItem != 0) {
-        writer->add(*batch);
-        converter->clear();
-        batchItem = 0;
+    if (!closed) {
+        closed = true;
+        if (batchItem != 0) {
+            writer->add(*batch);
+            converter->clear();
+            batchItem = 0;
+        }
+        writer->close();
     }
-    writer->close();
 }
 
 void

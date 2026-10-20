@@ -682,3 +682,27 @@ def test_nested_growth_roundtrip(schema, factory, batch_size, n_rows):
 
     buf.seek(0)
     assert list(Reader(buf)) == rows
+
+
+def test_close_is_idempotent():
+    data = io.BytesIO()
+    wri = Writer[int](data, "int")
+    wri.write(1)
+    wri.close()
+    size = len(data.getvalue())
+    wri.close()
+    assert len(data.getvalue()) == size  # no second footer
+    data.seek(0)
+    assert list(Reader[int](data)) == [1]
+    with Writer(data, "int") as wri2:
+        wri2.write(1)
+        wri2.close()  # explicit close again
+
+
+def test_write_after_close_raises():
+    wri = Writer[int](io.BytesIO(), "int")
+    wri.close()
+    with pytest.raises(ValueError):
+        wri.write(1)
+    with pytest.raises(ValueError):
+        wri.writerows(range(10))

@@ -22,6 +22,7 @@ class Writer
     uint64_t batchSize;
     uint64_t batchItem;
     UseFlag useFlag;
+    bool closed;
     void writeImpl(py::object);
 
   public:
