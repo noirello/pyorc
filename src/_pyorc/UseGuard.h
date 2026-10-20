@@ -25,8 +25,7 @@ class UseFlag
         {
             if (flag.busy.exchange(true, std::memory_order_acquire)) {
                 throw std::runtime_error(
-                  "Concurrent use of the same ORC reader/writer (or of readers sharing "
-                  "one file object) is not supported");
+                  "Concurrent use of the same ORC reader/writer is not supported");
             }
         }
         ~Guard() { flag.busy.store(false, std::memory_order_release); }
