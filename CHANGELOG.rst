@@ -26,6 +26,7 @@ Fixed
 
 - Premature freeing of Reader instance, when there's still a Stripe
   object relying on it.
+- Missing batch resizing during writing uniontype.
 
 [0.11.0] - 2026-04-11
 ---------------------

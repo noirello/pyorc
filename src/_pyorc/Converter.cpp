@@ -985,6 +985,9 @@ UnionConverter::write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object 
         for (size_t i = 0; i < fieldConverters.size(); ++i) {
             unsigned char tag = static_cast<unsigned char>(i);
             uint64_t offset = childOffsets[tag];
+            if (unionBatch->children[i]->capacity <= offset) {
+                unionBatch->children[i]->resize(2 * unionBatch->children[i]->capacity);
+            }
             try {
                 fieldConverters[i]->write(unionBatch->children[i], offset, elem);
                 unionBatch->tags[rowId] = tag;
