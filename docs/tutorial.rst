@@ -222,7 +222,6 @@ read or written rows. When not set, the ``T`` type parameter defaults to
             print(row)
 
     # with dict struct repr
-
     with open("./data.orc", "rb") as data:
         reader = pyorc.Reader[dict[str, Any]](data, struct_repr=pyorc.StructRepr.DICT)
         for row in reader:

@@ -21,7 +21,7 @@ else:
 
 
 class Column:
-    def __init__(self, stream: "Reader[T] | Stripe[T]", index: int):
+    def __init__(self, stream: "Reader[Any] | Stripe[Any]", index: int):
         self.index = index
         self.stream = stream
         self._stats = self.stream._statistics(self.index)
