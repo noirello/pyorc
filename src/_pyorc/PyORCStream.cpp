@@ -156,5 +156,12 @@ PyORCOutputStream::flush()
 
 PyORCOutputStream::~PyORCOutputStream()
 {
-    close();
+    try {
+        close();
+    } catch (py::error_already_set& err) {
+        // sys.unraisablehook instead of letting it escape the destructor.
+        err.discard_as_unraisable("PyORCOutputStream::~PyORCOutputStream");
+    } catch (...) {
+        // Swallow any error during destruct.
+    }
 }
