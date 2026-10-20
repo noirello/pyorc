@@ -73,7 +73,11 @@ class Reader(reader[T], Generic[T]):
         if column_indices is None:
             column_indices = []
         if column_names is None:
-            column_names = []
+            column_names: list[str] = []
+        elif isinstance(column_names, str):
+            raise TypeError(
+                "The `column_names` must be an iterable of strings, not string"
+            )
         struct_repr = StructRepr(struct_repr)
         conv = None
         if converters:

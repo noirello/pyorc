@@ -285,6 +285,8 @@ def test_include():
     assert next(reader) == {"col0": 1, "col2": 3.14}
     with pytest.raises(TypeError):
         _ = Reader(data, column_indices=[0, "2"], struct_repr=StructRepr.DICT)
+    with pytest.raises(TypeError):
+        _ = Reader(data, column_names="wrong", struct_repr=StructRepr.DICT)
     reader = Reader(data, column_names=["col0"], struct_repr=StructRepr.DICT)
     assert next(reader) == {"col0": 1}
     reader = Reader(data, column_names=["col1", "col2"], struct_repr=StructRepr.DICT)
