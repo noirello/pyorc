@@ -186,13 +186,13 @@ Writer::close()
 {
     UseFlag::Guard guard(useFlag);
     if (!closed) {
-        closed = true;
         if (batchItem != 0) {
             writer->add(*batch);
             converter->clear();
             batchItem = 0;
         }
         writer->close();
+        closed = true;
     }
 }
 
