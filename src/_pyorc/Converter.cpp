@@ -44,7 +44,7 @@ class DoubleConverter : public Converter
       : Converter(nv)
       , data(nullptr)
     {}
-    ~DoubleConverter() override{};
+    ~DoubleConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -63,7 +63,7 @@ class StringConverter : public Converter
       , data(nullptr)
       , length(nullptr)
     {}
-    ~StringConverter() override{};
+    ~StringConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -83,7 +83,7 @@ class BinaryConverter : public Converter
       , data(nullptr)
       , length(nullptr)
     {}
-    ~BinaryConverter() override{};
+    ~BinaryConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -200,7 +200,7 @@ class UnionConverter : public Converter
   private:
     const unsigned char* tags;
     const uint64_t* offsets;
-    std::vector<Converter*> fieldConverters;
+    std::vector<std::unique_ptr<Converter>> fieldConverters;
     std::map<unsigned char, uint64_t> childOffsets;
 
   public:
@@ -209,7 +209,7 @@ class UnionConverter : public Converter
                    py::dict conv,
                    py::object tzone,
                    py::object nv);
-    virtual ~UnionConverter() override;
+    virtual ~UnionConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -219,7 +219,7 @@ class UnionConverter : public Converter
 class StructConverter : public Converter
 {
   private:
-    std::vector<Converter*> fieldConverters;
+    std::vector<std::unique_ptr<Converter>> fieldConverters;
     std::vector<py::str> fieldNames;
     unsigned int kind;
 
@@ -229,7 +229,7 @@ class StructConverter : public Converter
                     py::dict conv,
                     py::object tzone,
                     py::object nv);
-    virtual ~StructConverter() override;
+    virtual ~StructConverter() override {};
     py::object toPython(uint64_t rowId) override;
     void reset(const orc::ColumnVectorBatch& batch) override;
     void write(orc::ColumnVectorBatch* batch, uint64_t rowId, py::object elem) override;
@@ -940,15 +940,8 @@ UnionConverter::UnionConverter(const orc::Type& type,
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
         fieldConverters.push_back(
-          createConverter(type.getSubtype(i), structKind, conv, tzone, nv).release());
+          createConverter(type.getSubtype(i), structKind, conv, tzone, nv));
         childOffsets[static_cast<unsigned char>(i)] = 0;
-    }
-}
-
-UnionConverter::~UnionConverter()
-{
-    for (size_t i = 0; i < fieldConverters.size(); i++) {
-        delete fieldConverters[i];
     }
 }
 
@@ -1030,15 +1023,8 @@ StructConverter::StructConverter(const orc::Type& type,
 {
     for (size_t i = 0; i < type.getSubtypeCount(); ++i) {
         fieldConverters.push_back(
-          createConverter(type.getSubtype(i), kind, conv, tzone, nv).release());
+          createConverter(type.getSubtype(i), kind, conv, tzone, nv));
         fieldNames.push_back(py::str(type.getFieldName(i)));
-    }
-}
-
-StructConverter::~StructConverter()
-{
-    for (size_t i = 0; i < fieldConverters.size(); i++) {
-        delete fieldConverters[i];
     }
 }
 
