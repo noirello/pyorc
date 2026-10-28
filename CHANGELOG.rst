@@ -20,7 +20,7 @@ Changed
 - Wheels shipped with protobuf version 7.36.2.
 - Dropped support for Python 3.10.
 - Set minimum version requirements for pybind11 to newer than 2.13.0.
-- Writer.close method no idempotent.
+- Writer.close method is now idempotent.
 
 Fixed
 ~~~~~
